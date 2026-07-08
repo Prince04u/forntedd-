@@ -1,0 +1,138 @@
+/**
+ * LUCKY NOVA — Luxury Black & Gold Theme
+ */
+
+:root {
+
+  /* ===== BACKGROUND ===== */
+
+  --theme-bg:#080808;
+  --theme-bg-soft:#0D0D0D;
+  --theme-bg-elevated:#141414;
+  --theme-bg-card:#191919;
+  --theme-bg-muted:#202020;
+  --theme-bg-input:#131313;
+
+  --theme-bg-overlay:rgba(0,0,0,.82);
+  --theme-bg-nav:rgba(8,8,8,.96);
+  --theme-bg-pill:#1A1A1A;
+
+  --theme-btn-muted:#2A2A2A;
+
+  /* ===== TEXT ===== */
+
+  --theme-text:#FFFFFF;
+  --theme-text-secondary:#ECECEC;
+  --theme-text-muted:#A9A9A9;
+  --theme-text-dim:#6E6E6E;
+  --theme-text-inverse:#000000;
+
+  /* ===== PRIMARY GOLD ===== */
+
+  --theme-green:#D4AF37;
+  --theme-green-light:#E7C66A;
+  --theme-green-dark:#C69A2B;
+  --theme-green-deep:#AA8122;
+
+  --theme-green-glow:rgba(212,175,55,.08);
+  --theme-green-border:rgba(212,175,55,.18);
+  --theme-green-soft-bg:rgba(212,175,55,.08);
+
+  /* ===== GOLD ===== */
+
+  --theme-gold:#D4AF37;
+  --theme-gold-bright:#F4D77D;
+  --theme-gold-muted:#B98A2C;
+  --theme-gold-glow:rgba(212,175,55,.12);
+
+  /* ===== COLORS ===== */
+
+  --theme-violet:#6D28D9;
+  --theme-violet-light:#8B5CF6;
+
+  --theme-orange:#D97706;
+  --theme-orange-light:#F59E0B;
+
+  --theme-blue:#2563EB;
+  --theme-blue-light:#3B82F6;
+
+  --theme-badge-hot:#DC2626;
+
+  /* ===== BORDER ===== */
+
+  --theme-border:rgba(255,255,255,.05);
+  --theme-border-muted:rgba(255,255,255,.08);
+  --theme-border-strong:rgba(255,255,255,.12);
+
+  --theme-border-gold:rgba(212,175,55,.22);
+  --theme-border-green:rgba(212,175,55,.18);
+
+  /* ===== STATUS ===== */
+
+  --theme-danger:#DC2626;
+  --theme-danger-dark:#991B1B;
+  --theme-danger-bg:rgba(220,38,38,.12);
+  --theme-danger-border:#991B1B;
+  --theme-danger-text:#FECACA;
+
+  --theme-warning:#F59E0B;
+  --theme-warning-bg:rgba(245,158,11,.12);
+
+  --theme-success:var(--theme-green);
+  --theme-info:var(--theme-blue);
+
+  /* ===== SHADOW ===== */
+
+  --theme-shadow-sm:
+      0 4px 12px rgba(0,0,0,.25);
+
+  --theme-shadow-md:
+      0 10px 26px rgba(0,0,0,.32);
+
+  --theme-shadow-lg:
+      0 18px 45px rgba(0,0,0,.42);
+
+  --theme-shadow-green:
+      0 4px 14px rgba(212,175,55,.08);
+
+  --theme-shadow-gold:
+      0 8px 22px rgba(212,175,55,.08);
+
+  /* ===== LEGACY ===== */
+
+  --theme-gradient-gold-text:var(--theme-gold-bright);
+
+  --theme-gradient-green:var(--theme-green);
+  --theme-gradient-green-h:var(--theme-green-dark);
+  --theme-gradient-green-soft:var(--theme-green-soft-bg);
+  --theme-gradient-green-badge:var(--theme-green);
+
+  --theme-app-glow:transparent;
+  --theme-gradient-card:var(--theme-bg-card);
+  --theme-gradient-modal-header:var(--theme-bg-elevated);
+  --theme-gradient-banner:var(--theme-bg-card);
+
+  --color-bg:var(--theme-bg);
+  --color-surface:var(--theme-bg-card);
+  --color-primary:var(--theme-green);
+  --color-primary-light:var(--theme-green-light);
+  --color-accent:var(--theme-gold);
+  --color-text:var(--theme-text);
+  --color-text-muted:var(--theme-text-muted);
+  --color-border:var(--theme-border);
+
+  --gradient-primary:var(--theme-green);
+  --gradient-cta:var(--theme-green);
+
+  /* ===== PREMIUM UI HELPERS (UI-only) ===== */
+  --theme-glass-bg:rgba(25,25,25,.72);
+  --theme-glass-bg-soft:rgba(18,18,18,.62);
+  --theme-glass-border:rgba(255,255,255,.08);
+  --theme-glass-border-strong:rgba(212,175,55,.18);
+  --theme-glass-blur:14px;
+  --theme-gold-glow-strong:rgba(212,175,55,.22);
+  --theme-gold-metal: linear-gradient(135deg, #FFE8A3 0%, #F1C40F 25%, #C29B1D 50%, #F5D365 75%, #A67C00 100%);
+  --theme-gold-soft-metal: linear-gradient(135deg, #FFF1C5 0%, #D4AF37 50%, #AA8122 100%);
+  --theme-dark-glow: 0 0 20px rgba(214, 175, 55, 0.15);
+  --theme-card-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}

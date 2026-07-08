@@ -1,0 +1,646 @@
+.arupi-pay-page {
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #f3f4fb;
+  color: var(--theme-border-muted);
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  font-family: inherit;
+}
+
+.arupi-pay-page .wallet-screen-loading {
+  color: var(--theme-text-dim);
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.arupi-pay-header {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid #e8eaf3;
+}
+
+.arupi-pay-header h1 {
+  text-align: center;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--theme-border-strong);
+}
+
+.arupi-pay-back {
+  color: var(--theme-text-dim);
+  font-size: 1.75rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.arupi-pay-support {
+  padding: 0.3125rem 0.625rem;
+  border-radius: 999px;
+  background: #f87171;
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.arupi-pay-amount-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid #e8eaf3;
+}
+
+.arupi-pay-amount-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.arupi-pay-amount-left strong {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--theme-bg-card);
+  letter-spacing: -0.02em;
+}
+
+.arupi-pay-copy-icon {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: var(--theme-text-dim);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.arupi-pay-discount {
+  padding: 0.125rem 0.4375rem;
+  border-radius: 999px;
+  background: #ffe4e6;
+  color: #fb7185;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.arupi-pay-timer {
+  flex-shrink: 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #ef4444;
+  font-variant-numeric: tabular-nums;
+}
+
+.arupi-pay-block {
+  margin: 0.75rem 1rem 0;
+}
+
+.arupi-section-title {
+  margin: 0 0 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--theme-border-strong);
+}
+
+.arupi-section-title::before {
+  content: "• ";
+  color: #ef4444;
+}
+
+.arupi-method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.arupi-method-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 0.625rem 0.625rem;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.arupi-method-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: right -8px bottom -10px;
+  background-size: 72px 72px;
+}
+
+.arupi-method-card.blue {
+  background: #e8f7ff;
+  border-color: #b8dff8;
+}
+
+.arupi-method-card.blue::before {
+  background-image: url("/design/deposit/paytm-logo.svg");
+}
+
+.arupi-method-card.purple {
+  background: #f3ebff;
+  border-color: #d5c0f5;
+}
+
+.arupi-method-card.purple::before {
+  background-image: url("/design/deposit/phonepe-logo.svg");
+}
+
+.arupi-method-card.active {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.18);
+}
+
+.arupi-method-card-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.arupi-method-logo {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+.arupi-method-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--theme-text-dim);
+  line-height: 1.2;
+}
+
+.arupi-method-support {
+  position: relative;
+  z-index: 1;
+  display: block;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--theme-bg-card);
+  line-height: 1.2;
+}
+
+.arupi-qr-box {
+  padding: 1rem;
+  border-radius: 12px;
+  background: #eceef5;
+}
+
+.arupi-qr-frame {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: #fff;
+  margin-bottom: 0.75rem;
+}
+
+.arupi-qr-steps {
+  margin: 0;
+  padding-left: 1.125rem;
+  color: var(--theme-text-dim);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.arupi-qr-steps li {
+  margin-bottom: 0.375rem;
+}
+
+.arupi-qr-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.arupi-utr-warning {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.arupi-utr-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.375rem 0.25rem 0.875rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #fecdd3;
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18);
+}
+
+.arupi-utr-field.valid {
+  border-color: #86efac;
+  box-shadow: 0 0 0 3px rgba(134, 239, 172, 0.18);
+}
+
+.arupi-utr-field input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--theme-bg-card);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.arupi-utr-field input::placeholder {
+  color: var(--theme-text-muted);
+}
+
+.arupi-utr-paste {
+  flex-shrink: 0;
+  padding: 0.4375rem 0.875rem;
+  border: none;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arupi-reminders {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e8eaf3;
+  list-style: decimal;
+  padding-left: 1.75rem;
+}
+
+.arupi-reminders li {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--theme-border-strong);
+  margin-bottom: 0.375rem;
+}
+
+.arupi-pay-error {
+  margin: 0.75rem 1rem 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.8125rem;
+}
+
+.arupi-pay-footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: #fff;
+  border-top: 1px solid #e8eaf3;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.06);
+}
+
+.arupi-pay-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #eceef5;
+  color: var(--theme-text-dim);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.arupi-pay-submit {
+  border: none;
+  border-radius: 12px;
+  background: #c7d2e8;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: not-allowed;
+  padding: 0 0.5rem;
+}
+
+.arupi-pay-submit.ready {
+  background: var(--theme-green-light);
+  cursor: pointer;
+}
+
+.arupi-success-page {
+  padding: 1rem;
+}
+
+.arupi-success-card {
+  margin-top: 2rem;
+  padding: 1.5rem 1rem;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e8eaf3;
+  text-align: center;
+}
+
+.arupi-success-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.75rem;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.arupi-success-card h2 {
+  margin: 0 0 0.5rem;
+  color: var(--theme-bg-card);
+}
+
+.arupi-success-card p {
+  margin: 0 0 1rem;
+  color: var(--theme-text-dim);
+  font-size: 0.875rem;
+}
+
+.arupi-success-actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.arupi-success-primary,
+.arupi-success-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.arupi-success-primary {
+  background: #ef4444;
+  color: #fff;
+}
+
+.arupi-success-secondary {
+  background: #eceef5;
+  color: var(--theme-border-strong);
+}
+
+.arupi-success-meta {
+  margin: 0 0 1rem !important;
+  font-size: 0.75rem !important;
+  color: var(--theme-text-muted) !important;
+}
+
+.arupi-order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e8eaf3;
+  font-size: 0.8125rem;
+  color: var(--theme-text-dim);
+}
+
+.arupi-order-row strong {
+  color: var(--theme-border-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  word-break: break-all;
+  text-align: right;
+}
+
+.arupi-usdt-amount-card {
+  padding: 1rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e8eaf3;
+  text-align: center;
+}
+
+.arupi-usdt-amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.arupi-usdt-amount strong {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fb923c;
+  letter-spacing: -0.02em;
+}
+
+.arupi-usdt-amount span {
+  font-size: 0.875rem;
+  color: var(--theme-text-dim);
+}
+
+.arupi-usdt-inr-note {
+  margin: 0.375rem 0 0.75rem;
+  font-size: 0.75rem;
+  color: var(--theme-text-dim);
+}
+
+.arupi-copy-btn {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #7eb8aa;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arupi-crypto-qr-box {
+  text-align: center;
+}
+
+.arupi-network-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+  padding: 0.3125rem 0.875rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #fecaca;
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.arupi-address-field {
+  margin-bottom: 0.625rem;
+}
+
+.arupi-address-field input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #e8eaf3;
+  background: var(--theme-text);
+  color: var(--theme-border-strong);
+  font-size: 0.6875rem;
+  text-align: center;
+}
+
+.arupi-crypto-timer {
+  margin-top: 0.875rem;
+}
+
+.arupi-crypto-timer strong {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ef4444;
+  font-variant-numeric: tabular-nums;
+}
+
+.arupi-crypto-timer strong.urgent {
+  color: #dc2626;
+}
+
+.arupi-crypto-timer small {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--theme-text-dim);
+}
+
+.arupi-proof-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.arupi-proof-input {
+  display: none;
+}
+
+.arupi-proof-upload-btn {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border: 1.5px dashed var(--theme-green-light);
+  border-radius: 12px;
+  background: #f8fbff;
+  color: var(--theme-green-dark);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arupi-proof-upload-btn.valid {
+  border-color: #22c55e;
+  color: #15803d;
+  background: #f0fdf4;
+}
+
+.arupi-proof-upload-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.arupi-proof-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.arupi-proof-preview img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid var(--theme-text-secondary);
+  background: #fff;
+}
+
+.arupi-proof-preview-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.arupi-proof-change-btn,
+.arupi-proof-clear-btn {
+  flex: 1;
+  min-height: 40px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.arupi-proof-change-btn {
+  border: none;
+  background: var(--theme-green-light);
+  color: #fff;
+}
+
+.arupi-proof-clear-btn {
+  border: 1px solid var(--theme-text-secondary);
+  background: #fff;
+  color: var(--theme-text-dim);
+}
+
+.arupi-proof-uploaded {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.arupi-proof-error {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #dc2626;
+}

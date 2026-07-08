@@ -1,0 +1,228 @@
+.legal-page {
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--theme-bg-soft);
+  color: var(--theme-text-secondary);
+  padding-bottom: 2rem;
+}
+
+.legal-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  background: #151829;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.legal-back {
+  color: #fff;
+  font-size: 1.75rem;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.legal-header h1 {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.legal-content {
+  padding: 1rem 1rem 2rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.legal-updated {
+  color: var(--theme-text-dim);
+  font-size: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.legal-content section {
+  margin-bottom: 1.25rem;
+}
+
+.legal-content h2 {
+  font-size: 0.9375rem;
+  margin-bottom: 0.5rem;
+  color: var(--theme-text);
+}
+
+.legal-content ul {
+  padding-left: 1.25rem;
+  color: var(--theme-text-muted);
+}
+
+.legal-content li {
+  margin-bottom: 0.375rem;
+}
+
+.legal-link {
+  color: var(--theme-green-light);
+  text-decoration: none;
+}
+
+.legal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 1.5rem;
+}
+
+.legal-btn {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: var(--theme-green);
+  color: var(--theme-bg-soft);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.legal-btn.secondary {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--theme-text-secondary);
+}
+
+.legal-content a.legal-link {
+  color: var(--theme-green-light);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-content p a:not(.legal-btn):hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.auth-check-row a {
+  color: var(--theme-green-light);
+}
+
+.club-promo-section {
+  padding: 0 1rem 1.5rem;
+  scroll-margin-top: 72px;
+}
+
+.club-promo-heading {
+  padding: 0.25rem 0 0.75rem;
+}
+
+.club-promo-heading h2 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.club-promo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+}
+
+.club-promo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 154px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  text-decoration: none;
+  color: #fff;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.club-promo-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(212, 175, 55, 0.15);
+}
+
+.club-promo-card-has-image::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.club-promo-card-has-image:hover::before {
+  background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.9) 100%);
+}
+
+.club-promo-card.gold {
+  background-color: #1a1510;
+}
+
+.club-promo-card.blue {
+  background-color: #10151a;
+}
+
+.club-promo-card.pink {
+  background-color: #181018;
+}
+
+.club-promo-card strong {
+  position: relative;
+  z-index: 1;
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  max-width: 75%;
+}
+
+.club-promo-arrow {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
+  transition: all 0.25s ease;
+}
+
+.club-promo-card:hover .club-promo-arrow {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: rgba(212, 175, 55, 0.4);
+  color: #D4AF37;
+  transform: scale(1.05);
+}
+
+.club-promo-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.club-promo-body p {
+  font-size: 11px;
+  color: var(--theme-text-muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
