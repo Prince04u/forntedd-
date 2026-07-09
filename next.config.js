@@ -10,7 +10,7 @@ function getBackendOrigin() {
   }
 
   if (process.env.VERCEL) {
-    return "https://gaming-platform-yy0i.onrender.com";
+    return "https://forntedd.onrender.com";
   }
 
   return "http://localhost:5000";
