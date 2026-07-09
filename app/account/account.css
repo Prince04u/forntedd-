@@ -249,31 +249,17 @@
   font-weight: 900;
 }
 
-.aq-wallet {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
-}
-
-.aq-deposit {
-  background: var(--theme-gold-metal);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: #000;
+.aq-wallet,
+.aq-deposit,
+.aq-withdraw,
+.aq-vip,
+.aq-invite-friends {
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--theme-gold-bright, #F4D77D);
 }
 .aq-deposit .aq-glyph {
-  color: #000;
-}
-
-.aq-withdraw {
-  background: radial-gradient(circle at 35% 25%, #86efac 0%, #16a34a 75%, #14532d 100%);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  color: #fff;
-}
-
-.aq-vip {
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  color: #93c5fd;
+  color: var(--theme-gold-bright, #F4D77D);
 }
 
 .aq-icon-img {
@@ -321,36 +307,18 @@
   transform: scale(0.98);
 }
 
-.account-history-card.blue {
+.account-history-card.blue,
+.account-history-card.green,
+.account-history-card.red,
+.account-history-card.orange {
   border-color: rgba(212, 175, 55, 0.2);
 }
-.account-history-card.blue:hover {
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.08);
-}
-
-.account-history-card.green {
-  border-color: rgba(34, 197, 94, 0.2);
-}
-.account-history-card.green:hover {
-  border-color: rgba(34, 197, 94, 0.4);
-  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.08);
-}
-
-.account-history-card.red {
-  border-color: rgba(239, 68, 68, 0.2);
-}
-.account-history-card.red:hover {
-  border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.08);
-}
-
-.account-history-card.orange {
-  border-color: rgba(249, 115, 22, 0.2);
-}
+.account-history-card.blue:hover,
+.account-history-card.green:hover,
+.account-history-card.red:hover,
 .account-history-card.orange:hover {
-  border-color: rgba(249, 115, 22, 0.4);
-  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.08);
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.08);
 }
 
 .account-history-copy {
