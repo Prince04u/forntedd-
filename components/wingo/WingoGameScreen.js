@@ -1091,11 +1091,13 @@ export default function WingoGameScreen() {
                 </svg>
               </div>
 
-              {/* Sub-Title */}
-              <div className="wg-outcome-v2-subtitle">
-                <span className="wg-outcome-v2-sub-star">✦</span>
-                {outcomePopup.type === "win" ? " YOU WON " : " YOU LOST "}
-                <span className="wg-outcome-v2-sub-star">✦</span>
+              {/* Sub-Title with Lines */}
+              <div className="wg-outcome-v2-subtitle-container">
+                <span className="wg-outcome-v2-sub-line" />
+                <span className="wg-outcome-v2-subtitle-text">
+                  ✦ {outcomePopup.type === "win" ? "YOU WON" : "YOU LOST"} ✦
+                </span>
+                <span className="wg-outcome-v2-sub-line" />
               </div>
 
               {/* Amount or Motivation Quote */}
@@ -1216,14 +1218,29 @@ export default function WingoGameScreen() {
               </div>
 
               {/* Close Countdown */}
-              <div className="wg-outcome-v2-countdown">
-                {popupCountdown} seconds auto close
+              <div className="wg-outcome-v2-countdown-wrap">
+                <svg className="wg-countdown-circle-svg" viewBox="0 0 20 20">
+                  <circle className="bg" cx="10" cy="10" r="8" />
+                  <circle 
+                    className="progress" 
+                    cx="10" 
+                    cy="10" 
+                    r="8" 
+                    style={{
+                      strokeDasharray: "50.26",
+                      strokeDashoffset: (50.26 * (3 - popupCountdown)) / 3
+                    }}
+                  />
+                </svg>
+                <span className="wg-outcome-v2-countdown-text">
+                  {popupCountdown} seconds auto close
+                </span>
               </div>
 
               {/* Bottom Brand Logo */}
-              <div className="wg-outcome-v2-logo-row">
-                <div className="wg-outcome-v2-brand-circle">LN</div>
-                <span className="wg-outcome-v2-brand-name">LUCKY NOVA</span>
+              <div className="wg-outcome-v2-footer-logo-row">
+                <img src="/images/logo-ln.png" className="wg-footer-logo-img" alt="LN" />
+                <span className="wg-footer-logo-text">LUCKY NOVA</span>
               </div>
 
             </div>
@@ -1242,10 +1259,34 @@ export default function WingoGameScreen() {
         }
 
         /* V2 Premium Outcome Modal */
+        .wg-popup-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          animation: fade-in 0.25s ease-out forwards;
+        }
+
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .wg-outcome-card-container {
+          perspective: 1000px;
+        }
+
         .wg-outcome-card-v2 {
-          width: 330px;
+          width: 360px;
           border-radius: 28px;
-          padding: 2rem 1.5rem 1.5rem;
+          padding: 2.25rem 1.75rem 1.75rem;
           box-sizing: border-box;
           position: relative;
           color: #fff;
@@ -1254,28 +1295,45 @@ export default function WingoGameScreen() {
           display: flex;
           flex-direction: column;
           align-items: center;
+          background: rgba(10, 10, 12, 0.85);
+          backdrop-filter: blur(20px);
+          border: 1px solid;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
           animation: popup-scaleup 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-          background: #111115;
-        }
-        
-        .wg-outcome-card-v2.win {
-          border: 2px solid #d4af37;
-          box-shadow: 0 0 35px rgba(212, 175, 55, 0.2), inset 0 0 15px rgba(212, 175, 55, 0.1);
         }
 
-        .wg-outcome-card-v2.loss {
-          border: 2px solid #b91c1c;
-          box-shadow: 0 0 35px rgba(185, 28, 28, 0.2), inset 0 0 15px rgba(185, 28, 28, 0.1);
+        @keyframes popup-scaleup {
+          from {
+            transform: scale(0.85) translateY(20px);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+          }
+        }
+
+        .wg-outcome-card-v2.win {
+          border-color: rgba(212, 175, 55, 0.35);
+          box-shadow: 0 0 35px rgba(212, 175, 55, 0.15), inset 0 0 15px rgba(212, 175, 55, 0.05);
+          background: radial-gradient(circle at top center, rgba(212, 175, 55, 0.08) 0%, rgba(10, 10, 12, 0.95) 70%);
+        }
+
+        .wg-outcome-card-v2.lose {
+          border-color: rgba(185, 28, 28, 0.35);
+          box-shadow: 0 0 35px rgba(185, 28, 28, 0.15), inset 0 0 15px rgba(185, 28, 28, 0.05);
+          background: radial-gradient(circle at top center, rgba(185, 28, 28, 0.08) 0%, rgba(10, 10, 12, 0.95) 70%);
         }
 
         .wg-outcome-v2-close-top {
           position: absolute;
-          top: 16px;
-          right: 16px;
-          background: transparent;
-          border: 1.5px solid;
-          width: 26px;
-          height: 26px;
+          top: 18px;
+          right: 18px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.6);
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -1283,182 +1341,148 @@ export default function WingoGameScreen() {
           cursor: pointer;
           font-size: 0.75rem;
           font-weight: bold;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
           z-index: 10;
         }
-        .wg-outcome-card-v2.win .wg-outcome-v2-close-top {
-          border-color: rgba(212, 175, 55, 0.4);
-          color: #d4af37;
-        }
-        .wg-outcome-card-v2.loss .wg-outcome-v2-close-top {
-          border-color: rgba(185, 28, 28, 0.4);
-          color: #ef4444;
-        }
         .wg-outcome-v2-close-top:hover {
-          transform: scale(1.1);
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+          transform: scale(1.05);
         }
 
         .wg-outcome-v2-header {
           position: relative;
           width: 100%;
-          height: 125px;
+          height: 140px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: flex-end;
-          margin-bottom: 0.75rem;
+          margin-bottom: 1.25rem;
         }
 
         .wg-outcome-v2-header-svg {
           position: absolute;
-          width: 250px;
-          height: 144px;
-          top: -16px;
+          width: 280px;
+          height: 160px;
+          top: -20px;
           z-index: 1;
         }
 
-        /* Curved 3D ribbon banner styling */
-        .wg-outcome-v2-ribbon-banner {
-          position: absolute;
-          bottom: -8px;
-          z-index: 3;
+        /* Subtitle with gold/red divider lines */
+        .wg-outcome-v2-subtitle-container {
+          width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 260px;
+          gap: 12px;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
         }
 
-        .wg-outcome-v2-ribbon-main {
+        .wg-outcome-v2-sub-line {
           flex: 1;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 6px;
-          font-family: "Georgia", "Times New Roman", serif;
-          font-weight: bold;
-          font-size: 0.85rem;
-          text-transform: capitalize;
-          padding: 0 15px;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-          position: relative;
-          z-index: 5;
+          height: 1px;
         }
-        .win .wg-outcome-v2-ribbon-main {
-          background: linear-gradient(135deg, #e6ca65 0%, #d4af37 50%, #aa841d 100%);
-          border: 1px solid #ffea9f;
-          color: #241c09;
+        .win .wg-outcome-v2-sub-line {
+          background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.5), transparent);
         }
-        .loss .wg-outcome-v2-ribbon-main {
-          background: linear-gradient(135deg, #ef4444 0%, #b91c1c 50%, #7f1d1d 100%);
-          border: 1px solid #fca5a5;
-          color: #ffffff;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        .lose .wg-outcome-v2-sub-line {
+          background: linear-gradient(90deg, transparent, rgba(185, 28, 28, 0.5), transparent);
         }
 
-        /* Ribbon fold tails */
-        .wg-outcome-v2-ribbon-fold-left,
-        .wg-outcome-v2-ribbon-fold-right {
-          width: 0;
-          height: 0;
-          border-style: solid;
-          position: absolute;
-          top: 16px;
-          z-index: 2;
-        }
-        .wg-outcome-v2-ribbon-fold-left {
-          left: -4px;
-          border-width: 8px 6px 0 0;
-        }
-        .win .wg-outcome-v2-ribbon-fold-left { border-color: #8a6d1c transparent transparent transparent; }
-        .loss .wg-outcome-v2-ribbon-fold-left { border-color: #7f1d1d transparent transparent transparent; }
-
-        .wg-outcome-v2-ribbon-fold-right {
-          right: -4px;
-          border-width: 8px 0 0 6px;
-        }
-        .win .wg-outcome-v2-ribbon-fold-right { border-color: #8a6d1c transparent transparent transparent; }
-        .loss .wg-outcome-v2-ribbon-fold-right { border-color: #7f1d1d transparent transparent transparent; }
-
-        .wg-outcome-v2-subtitle {
-          margin-top: 1.25rem;
-          font-size: 0.725rem;
+        .wg-outcome-v2-subtitle-text {
+          font-size: 0.75rem;
           font-weight: 800;
-          letter-spacing: 0.12em;
-          color: rgba(255, 255, 255, 0.6);
-          display: flex;
-          align-items: center;
-          gap: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.15em;
         }
-        .wg-outcome-v2-sub-star {
-          color: var(--theme-gold, #d4af37);
-          font-size: 0.6rem;
+        .win .wg-outcome-v2-subtitle-text {
+          color: #fcd974;
+          text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+        }
+        .lose .wg-outcome-v2-subtitle-text {
+          color: #fca5a5;
+          text-shadow: 0 0 8px rgba(185, 28, 28, 0.3);
         }
 
         .wg-outcome-v2-main-result {
-          margin: 0.5rem 0 1rem;
+          margin: 0.5rem 0 1.25rem;
+          min-height: 52px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .wg-outcome-v2-win-amount {
-          font-size: 2.7rem;
+          font-size: 3.15rem;
           font-weight: 900;
-          background: linear-gradient(180deg, #FFFFFF 20%, #f4d77d 60%, #d4af37 100%);
+          background: linear-gradient(180deg, #FFFFFF 15%, #fcd974 60%, #d4af37 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+          filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.4));
           display: block;
           line-height: 1;
+          letter-spacing: -0.02em;
+          animation: text-pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes text-pulse {
+          0%, 100% { filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.4)); }
+          50% { filter: drop-shadow(0 2px 14px rgba(212, 175, 55, 0.6)); }
         }
 
         .wg-outcome-v2-loss-quote {
           color: #94a3b8;
-          font-size: 0.8rem;
+          font-size: 0.875rem;
           line-height: 1.5;
           font-weight: 500;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
         .wg-outcome-v2-loss-quote p {
           margin: 0;
         }
 
-        /* Winning details card with border title overlay */
+        /* Glass details container */
         .wg-outcome-v2-details-container {
           width: 100%;
           border-radius: 16px;
-          padding: 1.25rem 1rem 0.65rem;
+          padding: 1.25rem 1.125rem 0.65rem;
           box-sizing: border-box;
           position: relative;
-          margin-bottom: 0.85rem;
+          margin-bottom: 0.875rem;
           text-align: left;
-          background: rgba(0, 0, 0, 0.35);
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(10px);
+          border: 1px solid;
         }
         .win .wg-outcome-v2-details-container {
-          border: 1.2px solid rgba(212, 175, 55, 0.22);
+          border-color: rgba(212, 175, 55, 0.15);
         }
-        .loss .wg-outcome-v2-details-container {
-          border: 1.2px solid rgba(185, 28, 28, 0.25);
+        .lose .wg-outcome-v2-details-container {
+          border-color: rgba(185, 28, 28, 0.18);
         }
 
         .wg-outcome-v2-details-title-tag {
           position: absolute;
           top: -9px;
-          left: 50%;
-          transform: translateX(-50%);
+          left: 18px;
           background: #111115;
-          padding: 0 12px;
+          padding: 0 10px;
           font-size: 0.6875rem;
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.08em;
         }
-        .win .wg-outcome-v2-details-title-tag { color: var(--theme-gold, #d4af37); }
-        .loss .wg-outcome-v2-details-title-tag { color: #fca5a5; }
+        .win .wg-outcome-v2-details-title-tag { color: #d4af37; }
+        .lose .wg-outcome-v2-details-title-tag { color: #fca5a5; }
 
         .wg-outcome-v2-details-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 0.45rem 0;
-          border-bottom: 1.2px dashed rgba(255, 255, 255, 0.04);
+          padding: 0.55rem 0;
+          border-bottom: 1.2px dashed rgba(255, 255, 255, 0.05);
         }
         .wg-outcome-v2-details-row:last-child {
           border-bottom: none;
@@ -1466,7 +1490,7 @@ export default function WingoGameScreen() {
 
         .wg-outcome-v2-details-label {
           font-size: 0.75rem;
-          color: #94a3b8;
+          color: #8892b0;
         }
 
         .wg-outcome-v2-details-value {
@@ -1477,6 +1501,7 @@ export default function WingoGameScreen() {
         .wg-outcome-v2-details-value.period-num {
           font-variant-numeric: tabular-nums;
           letter-spacing: 0.02em;
+          color: #e2e8f0;
         }
 
         .wg-outcome-v2-result-color-row {
@@ -1485,17 +1510,20 @@ export default function WingoGameScreen() {
           gap: 6px;
         }
 
+        /* Result pills & badges */
         .wg-outcome-v2-color-text {
           font-weight: 800;
           font-size: 0.75rem;
+          padding: 2px 8px;
+          border-radius: 4px;
         }
-        .wg-outcome-v2-color-text.green { color: #22c55e; }
-        .wg-outcome-v2-color-text.red { color: #ef4444; }
-        .wg-outcome-v2-color-text.violet { color: #c084fc; }
+        .wg-outcome-v2-color-text.green { color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .wg-outcome-v2-color-text.red { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .wg-outcome-v2-color-text.violet { color: #c084fc; background: rgba(192, 132, 252, 0.1); }
 
         .wg-outcome-v2-num-circle {
-          width: 17px;
-          height: 17px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           display: inline-flex;
           align-items: center;
@@ -1511,22 +1539,27 @@ export default function WingoGameScreen() {
         .wg-outcome-v2-size-text {
           font-weight: 700;
           font-size: 0.75rem;
-          color: #94a3b8;
+          color: #e2e8f0;
+          padding: 2px 6px;
+          border-radius: 4px;
+          background: rgba(255, 255, 255, 0.05);
         }
 
         .wg-outcome-v2-secondary-box {
           width: 100%;
-          margin-bottom: 1rem;
+          margin-bottom: 1.125rem;
         }
 
+        /* Wallet glass card */
         .wg-outcome-v2-balance-card {
           border-radius: 14px;
-          padding: 0.625rem 0.875rem;
+          padding: 0.65rem 0.875rem;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: linear-gradient(90deg, #241c09 0%, #151004 100%);
-          border: 1px solid rgba(212, 175, 55, 0.22);
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(212, 175, 55, 0.15);
         }
 
         .wg-outcome-v2-balance-left {
@@ -1539,8 +1572,9 @@ export default function WingoGameScreen() {
         .wg-outcome-v2-balance-text span {
           display: block;
           font-size: 0.6875rem;
-          color: var(--theme-gold-bright, #f4d77d);
-          opacity: 0.8;
+          color: #d4af37;
+          opacity: 0.85;
+          font-weight: 600;
         }
         .wg-outcome-v2-balance-text strong {
           display: block;
@@ -1550,19 +1584,21 @@ export default function WingoGameScreen() {
           margin-top: 1px;
         }
 
+        /* Loss motivation card */
         .wg-outcome-v2-motivation-card {
           border-radius: 14px;
-          padding: 0.625rem 0.875rem;
+          padding: 0.65rem 0.875rem;
           display: flex;
           align-items: center;
           gap: 12px;
           text-align: left;
-          background: linear-gradient(90deg, #271212 0%, #130505 100%);
-          border: 1px solid rgba(239, 68, 68, 0.25);
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(185, 28, 28, 0.15);
         }
 
         .wg-outcome-v2-motivation-text {
-          font-size: 0.75rem;
+          font-size: 0.78rem;
           color: #fca5a5;
           font-weight: 700;
           letter-spacing: 0.02em;
@@ -1572,68 +1608,63 @@ export default function WingoGameScreen() {
           width: 100%;
         }
 
+        /* Premium Buttons */
         .wg-outcome-v2-action-btn {
           width: 100%;
-          padding: 0.8rem;
-          border-radius: 999px;
+          padding: 0.9rem;
+          border-radius: 16px;
           font-size: 0.95rem;
           font-weight: 900;
           border: none;
           cursor: pointer;
-          transition: filter 0.2s;
-        }
-        .wg-outcome-v2-action-btn:hover {
-          filter: brightness(1.1);
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .wg-outcome-v2-action-btn.win {
-          background: linear-gradient(180deg, #f4d77d 0%, #d4af37 50%, #a37f1a 100%);
+          background: linear-gradient(180deg, #f4d77d 0%, #d4af37 50%, #b8860b 100%);
           color: #302002;
-          box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+          box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+        }
+        .wg-outcome-v2-action-btn.win:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+          filter: brightness(1.05);
+        }
+        .wg-outcome-v2-action-btn.win:active {
+          transform: translateY(0);
         }
 
         .wg-outcome-v2-action-btn.loss {
           background: linear-gradient(180deg, #ef4444 0%, #b91c1c 50%, #7f1d1d 100%);
           color: #fff;
-          box-shadow: 0 4px 15px rgba(185, 28, 28, 0.3);
+          box-shadow: 0 4px 15px rgba(185, 28, 28, 0.25);
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
         }
+        .wg-outcome-v2-action-btn.loss:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(185, 28, 28, 0.35);
+          filter: brightness(1.05);
+        }
+        .wg-outcome-v2-action-btn.loss:active {
+          transform: translateY(0);
+        }
 
-        .wg-outcome-v2-countdown {
+        /* Auto-close loading indicator */
+        .wg-outcome-v2-countdown-wrap {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 0.875rem;
+        }
+
+        .wg-outcome-v2-countdown-text {
           font-size: 0.6875rem;
           color: #64748b;
-          margin-top: 0.75rem;
           font-weight: 600;
           letter-spacing: 0.02em;
         }
 
-        .wg-outcome-v2-logo-row {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          margin-top: 1.25rem;
-          opacity: 0.55;
-        }
-
-        .wg-outcome-v2-brand-circle {
-          border: 1px solid var(--theme-gold, #d4af37);
-          color: var(--theme-gold, #d4af37);
-          border-radius: 50%;
-          width: 17px;
-          height: 17px;
-          font-size: 0.55rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: Georgia, serif;
-          font-weight: bold;
-        }
-        .wg-outcome-v2-brand-name {
-          font-size: 0.625rem;
-          font-weight: 800;
-          background: rgba(255, 255, 255, 0.01) !important;
-        }
         .wg-details-card {
           background: #1e1e24;
           border-radius: 12px;
