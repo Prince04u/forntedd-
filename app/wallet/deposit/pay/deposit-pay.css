@@ -330,7 +330,7 @@
   padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
   background: #fff;
   border-top: 1px solid #e8eaf3;
-  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 -4px 20px rgba(18, 18, 18, 0.06);
 }
 
 .arupi-pay-cancel {

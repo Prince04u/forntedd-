@@ -1403,7 +1403,7 @@
     background:
         radial-gradient(circle at 30% 28%, rgba(56,189,248,.28), transparent 34%),
         radial-gradient(circle at 72% 38%, rgba(34,197,94,.22), transparent 30%),
-        linear-gradient(180deg, #0f172a 0%, #111827 58%, #0b1220 100%);
+        linear-gradient(180deg, #0f172a 0%, #121212 58%, #0b1220 100%);
 }
 
 .club-popular-card.mines .club-popular-card-art{

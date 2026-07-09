@@ -271,8 +271,8 @@
 }
 
 .aq-vip {
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.35);
   color: #93c5fd;
 }
 
@@ -322,11 +322,11 @@
 }
 
 .account-history-card.blue {
-  border-color: rgba(59, 130, 246, 0.2);
+  border-color: rgba(212, 175, 55, 0.2);
 }
 .account-history-card.blue:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.08);
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.08);
 }
 
 .account-history-card.green {
@@ -520,7 +520,7 @@
   padding: 0.625rem 0.125rem 0.5rem;
   min-height: 78px;
   border-radius: 10px;
-  background: rgba(8, 14, 32, 0.95);
+  background: rgba(18, 18, 18, 0.95);
   border: 1px solid var(--theme-green-soft-bg);
   color: var(--theme-text-dim);
   font-size: 0.5rem;
@@ -720,7 +720,7 @@
   z-index: 10001;
   padding: 0.625rem 1rem;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(18, 18, 18, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--theme-text-secondary);
   font-size: 0.8125rem;

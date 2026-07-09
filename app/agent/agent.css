@@ -110,7 +110,7 @@
 .agent-code-row button,
 .agent-share-actions button {
   border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(18, 18, 18, 0.9);
   color: var(--theme-text-secondary);
   border-radius: 10px;
   padding: 0.5rem 0.875rem;
@@ -369,7 +369,7 @@
   margin: 1rem;
   padding: 1rem;
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(18, 18, 18, 0.75);
   border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
@@ -431,7 +431,7 @@
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(18, 18, 18, 0.9);
   color: var(--theme-text-secondary);
   font-size: 0.8125rem;
   cursor: pointer;
@@ -451,7 +451,7 @@
   margin: 1rem;
   padding: 1rem;
   border-radius: 14px;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(18, 18, 18, 0.72);
   border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
