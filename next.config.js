@@ -33,6 +33,10 @@ const nextConfig = {
         source: "/api/:path*",
         destination: `${backendOrigin}/api/:path*`,
       },
+      {
+        source: "/uploads/:path*",
+        destination: `${backendOrigin}/uploads/:path*`,
+      },
     ];
   },
 };
