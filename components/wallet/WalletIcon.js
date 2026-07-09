@@ -30,47 +30,29 @@ const ICONS = {
     </svg>
   ),
   deposit: (
-    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
-      <path
-        d="M24 8c-7 6-12 11.5-12 18.5C12 33.4 17.6 39 24 39s12-5.6 12-12.5C36 19.5 31 14 24 8Z"
-        fill="#fbbf24"
-      />
-      <path
-        d="M24 12c-5.5 4.5-9 8.8-9 14.5 0 5.2 4 9.5 9 9.5s9-4.3 9-9.5C33 20.8 29.5 16.5 24 12Z"
-        fill="#f59e0b"
-        opacity="0.35"
-      />
-      <text x="24" y="27" textAnchor="middle" fill="#92400e" fontSize="13" fontWeight="700">
-        ₹
-      </text>
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="7.5" />
+      <path d="M12 8.5v7M8.8 12h6.4" />
     </svg>
   ),
   withdraw: (
-    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
-      <rect x="8" y="14" width="32" height="22" rx="4" fill="#3b82f6" />
-      <rect x="8" y="20" width="32" height="6" fill="#1d4ed8" />
-      <rect x="12" y="30" width="10" height="2" rx="1" fill="#bfdbfe" />
-      <circle cx="34" cy="31" r="4" fill="#fde68a" />
-      <circle cx="34" cy="31" r="2.2" fill="#f59e0b" />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="7.5" />
+      <path d="M8.8 12h6.4" />
     </svg>
   ),
   "deposit-history": (
-    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
-      <rect x="12" y="8" width="24" height="32" rx="3" fill="#ef4444" />
-      <rect x="16" y="6" width="16" height="6" rx="2" fill="#fca5a5" />
-      <path d="M18 20h12M18 26h12M18 32h8" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="6" width="16" height="12" rx="2.2" />
+      <path d="M4 10h16" />
+      <path d="M12 13.5v4M9.5 15.5 12 18.2 14.5 15.5" />
     </svg>
   ),
   "withdraw-history": (
-    <svg viewBox="0 0 48 48" fill="none" aria-hidden>
-      <circle cx="24" cy="24" r="16" fill="#22c55e" />
-      <path
-        d="M16 24.5 21.5 30 32 18.5"
-        stroke="#fff"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="6" width="16" height="12" rx="2.2" />
+      <path d="M4 10h16" />
+      <path d="M12 14.7V10.5M9.5 12.7 12 10 14.5 12.7" />
     </svg>
   ),
   transactions: (
