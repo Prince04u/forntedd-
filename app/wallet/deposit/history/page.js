@@ -254,49 +254,6 @@ export default function DepositHistoryPage() {
 
                 </div>
 
-                {/* VIEW PROOF OR SUBMIT RECEIPT */}
-                {isPending ? (
-                  <button
-                    onClick={() => handleSubmitReceipt(d)}
-                    style={{
-                      background: "#00a685",
-                      color: "#ffffff",
-                      border: "none",
-                      borderRadius: "10px",
-                      padding: "0.85rem",
-                      fontWeight: "bold",
-                      fontSize: "0.9rem",
-                      cursor: "pointer",
-                      width: "100%",
-                      marginTop: "6px",
-                      textAlign: "center"
-                    }}
-                  >
-                    Submit Receipt
-                  </button>
-                ) : d.proofImage ? (
-                  <button
-                    onClick={() => setProofPreview({
-                      depositId: d._id,
-                      proofUrl: d.proofImage,
-                      title: `Deposit proof · ₹${formatAmount(d.amount)}`,
-                    })}
-                    style={{
-                      background: "#222",
-                      color: "#ccc",
-                      border: "none",
-                      borderRadius: "10px",
-                      padding: "0.6rem",
-                      fontWeight: "bold",
-                      fontSize: "0.8rem",
-                      cursor: "pointer",
-                      width: "100%",
-                      marginTop: "6px"
-                    }}
-                  >
-                    View payment proof
-                  </button>
-                ) : null}
 
               </div>
             );
