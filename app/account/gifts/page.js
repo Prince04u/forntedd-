@@ -141,8 +141,8 @@ export default function GiftsPage() {
       {/* History card */}
       <section className="gift-history-card">
         <div className="gift-history-head">
-          {/* Document green icon */}
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          {/* Document gold icon */}
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--theme-gold, #D4AF37)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
             <line x1="16" y1="13" x2="8" y2="13"/>
@@ -159,8 +159,8 @@ export default function GiftsPage() {
             <svg viewBox="0 0 200 140" width="120" height="84" fill="none" style={{ opacity: 0.35, color: "#64748b" }}>
               <rect x="60" y="20" width="80" height="100" rx="8" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4"/>
               <path d="M75 45 h50 M75 65 h50 M75 85 h30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <circle cx="140" cy="95" r="16" fill="rgba(34, 197, 94, 0.08)" stroke="#22c55e" strokeWidth="2"/>
-              <path d="M135 95 h10 M140 90 v10" stroke="#22c55e" strokeWidth="2" strokeLinecap="round"/>
+              <circle cx="140" cy="95" r="16" fill="rgba(212, 175, 55, 0.08)" stroke="var(--theme-gold, #D4AF37)" strokeWidth="2"/>
+              <path d="M135 95 h10 M140 90 v10" stroke="var(--theme-gold, #D4AF37)" strokeWidth="2" strokeLinecap="round"/>
             </svg>
             <p>No data</p>
           </div>
@@ -182,7 +182,7 @@ export default function GiftsPage() {
       {/* Styled encapsulation */}
       <style>{`
         .account-page.account-sub-page {
-          background-color: var(--theme-bg, #0d0e12);
+          background-color: var(--theme-bg, #080808);
           min-height: 100vh;
           padding-bottom: 2rem;
           color: #fff;
@@ -193,7 +193,7 @@ export default function GiftsPage() {
           height: 48px;
           display: flex;
           align-items: center;
-          background-color: var(--theme-bg-muted, #1a1c24);
+          background-color: var(--theme-bg-soft, #0d0d0d);
           position: sticky;
           top: 0;
           z-index: 10;
@@ -236,7 +236,7 @@ export default function GiftsPage() {
 
         .gift-card-content {
           margin: 0.75rem;
-          background-color: var(--theme-bg-muted, #1a1c24);
+          background-color: var(--theme-bg-card, #191919);
           border-radius: 12px;
           padding: 1.25rem 1rem;
           text-align: left;
@@ -246,7 +246,7 @@ export default function GiftsPage() {
         .gift-card-hi {
           font-size: 1.2rem;
           font-weight: 800;
-          color: #22c55e;
+          color: var(--theme-gold, #D4AF37);
           margin-bottom: 0.25rem;
         }
 
@@ -269,8 +269,8 @@ export default function GiftsPage() {
         }
 
         .gift-input-box {
-          background-color: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          background-color: var(--theme-bg-input, #131313);
+          border: 1px solid var(--theme-border-strong, rgba(255, 255, 255, 0.12));
           border-radius: 99px;
           padding: 0.875rem 1.25rem;
           font-size: 0.85rem;
@@ -281,7 +281,7 @@ export default function GiftsPage() {
         }
 
         .gift-input-box:focus {
-          border-color: rgba(34, 197, 94, 0.5);
+          border-color: var(--theme-gold, #D4AF37);
         }
 
         .gift-input-box::placeholder {
@@ -303,14 +303,14 @@ export default function GiftsPage() {
         }
 
         .gift-msg.success {
-          background-color: rgba(34, 197, 94, 0.1);
-          border: 1px solid rgba(34, 197, 94, 0.2);
-          color: #4ade80;
+          background-color: rgba(212, 175, 55, 0.08);
+          border: 1px solid rgba(212, 175, 55, 0.18);
+          color: var(--theme-gold-bright, #F4D77D);
         }
 
         .gift-submit-btn {
-          background: linear-gradient(90deg, #00e08f 0%, #00b97c 100%);
-          color: #032d1f;
+          background: linear-gradient(135deg, var(--theme-gold-bright, #F4D77D) 0%, var(--theme-gold, #D4AF37) 100%);
+          color: #000;
           font-weight: 800;
           font-size: 0.9rem;
           padding: 0.875rem;
@@ -319,7 +319,7 @@ export default function GiftsPage() {
           cursor: pointer;
           transition: filter 0.2s;
           text-align: center;
-          box-shadow: 0 4px 12px rgba(0, 185, 124, 0.25);
+          box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
         }
 
         .gift-submit-btn:hover {
@@ -335,7 +335,7 @@ export default function GiftsPage() {
 
         .gift-history-card {
           margin: 0 0.75rem;
-          background-color: var(--theme-bg-muted, #1a1c24);
+          background-color: var(--theme-bg-card, #191919);
           border-radius: 12px;
           padding: 1.25rem 1rem;
           text-align: left;
@@ -416,7 +416,7 @@ export default function GiftsPage() {
         .gift-history-amount {
           font-size: 0.85rem;
           font-weight: 800;
-          color: #22c55e;
+          color: var(--theme-gold, #D4AF37);
         }
       `}</style>
     </main>

@@ -1,0 +1,20 @@
+- `[x]` Step 1: Add UID to User schema in backend, implement auto-increment pre-save hook and boot-time migration script.
+- `[x]` Step 2: Include user UID in profile payload responses (registration, login, profile).
+- `[x]` Step 3: Expose active bets endpoint `/api/admin/games/active-bets` in admin routes and controller.
+- `[x]` Step 4: Hook up uploaded promo banner image support in frontend homepage scroller.
+- `[x]` Step 5: Remove KYC items and layouts in AccountScreen and other frontend locations.
+- `[x]` Step 6: Refactor wallet pages, replace emojis with clean SVGs, style professionally.
+- `[x]` Step 7: Fix "Failed to load wallet" issue by supporting direct transaction arrays and wrappers in client.
+- `[x]` Step 8: Fill the 4th quick action circle on Account Screen with an "Invite" link referencing the `/referral` page.
+- `[x]` Step 9: Remove emojis from Account Screen header and actions, substituting custom premium SVG graphics.
+- `[x]` Step 10: Repair Mines game body payload parameters mapping, permitting any count between 1 and 24.
+- `[x]` Step 11: Connect Aviator socket event listeners and handshakes on the backend to synchronize state updates.
+- `[x]` Step 12: Re-engineer Wingo Win/Loss popups using gold/red ribbon gradients, serif IN badge initials, crowns, custom icons, and auto close timers.
+- `[x]` Step 13: Standardize 30% winning and 70% losing game odds across Mines, Dice, and Wingo backends.
+- `[x]` Step 14: Implement Gift Codes model schema, redeem handlers, and claiming history endpoints.
+- `[x]` Step 15: Re-engineer frontend Gifts page as a code entry form card and redemption list matching screenshot reference.
+- `[x]` Step 16: Implement admin toggle user ban status suspension hooks.
+- `[x]` Step 17: Expose edit/update and list methods for hero promotional banners inside admin routes and controller.
+- `[x]` Step 18: Build Wingo historical and active period betting statistics dashboard aggregates.
+- `[x]` Step 19: Modify the static admin dashboard web panel (index.html) to render tabs for Hero Banners, Gift Codes management, user ban actions, and Wingo aggregate metrics.
+- `[x]` Step 20: Stage, commit, and push updates live.
