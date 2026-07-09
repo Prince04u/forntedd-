@@ -715,8 +715,8 @@
             <div class="form-group" style="margin-bottom:0; flex: 2">
               <textarea id="add-addr-val" class="form-input" placeholder="USDT Wallet Address(es) - Paste one per line for bulk add" style="min-height: 40px; resize: vertical; padding: 0.5rem;"></textarea>
             </div>
-            <div class="form-group" style="margin-bottom:0">
-              <input type="text" id="add-addr-qr" class="form-input" placeholder="QR Code Image URL (optional)" />
+            <div class="form-group" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
+              <input type="file" id="add-addr-qr-file" class="form-input" accept="image/*" style="padding-top:6px;" />
             </div>
             <div class="form-group" style="margin-bottom:0">
               <select id="add-addr-net" class="form-input">
@@ -1111,28 +1111,35 @@
       const label = document.getElementById("add-addr-label").value;
       const address = document.getElementById("add-addr-val").value;
       const network = document.getElementById("add-addr-net").value;
-      const qrCodeUrl = document.getElementById("add-addr-qr").value;
+      const qrFile = document.getElementById("add-addr-qr-file").files[0];
       
       if (!address) {
         alert("Please enter a valid wallet destination address.");
         return;
       }
 
+      const formData = new FormData();
+      formData.append("address", address);
+      formData.append("network", network);
+      formData.append("label", label);
+      if (qrFile) {
+        formData.append("qrCode", qrFile);
+      }
+
       try {
         const response = await fetch("/api/admin/config/usdt/addresses", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
           },
-          body: JSON.stringify({ address, network, label, qrCodeUrl }),
+          body: formData,
         });
         const res = await response.json();
         if (res.success) {
           alert("Wallet address registered successfully.");
           document.getElementById("add-addr-val").value = "";
           document.getElementById("add-addr-label").value = "";
-          document.getElementById("add-addr-qr").value = "";
+          document.getElementById("add-addr-qr-file").value = "";
           loadAddressesData();
         } else {
           alert(res.message);

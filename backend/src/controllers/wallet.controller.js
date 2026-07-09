@@ -41,7 +41,7 @@ const getTransactions = async (req, res, next) => {
 
 const requestDeposit = async (req, res, next) => {
   try {
-    let { amount, channel, method } = req.body;
+    let { amount, channel, method, reference, proofUrl } = req.body;
 
     if (!channel && method) {
       const parts = method.split("-");
@@ -91,6 +91,8 @@ const requestDeposit = async (req, res, next) => {
       channel,
       status: "pending",
       address: targetAddress,
+      txHash: reference || "",
+      proofImage: proofUrl || "",
     });
     await deposit.save();
 
@@ -112,28 +114,21 @@ const requestDeposit = async (req, res, next) => {
 
 const uploadDepositProof = async (req, res, next) => {
   try {
-    const { txHash, depositId } = req.body;
     const file = req.file;
-
-    // Find the latest pending deposit or matching depositId
-    let query = { user: req.user._id, status: "pending" };
-    if (depositId) query._id = depositId;
-
-    const deposit = await Deposit.findOne(query).sort({ createdAt: -1 });
-    if (!deposit) {
-      return res.status(404).json({ message: "No active pending deposit request found." });
+    if (!file) {
+      return res.status(400).json({ message: "No screenshot file uploaded." });
     }
 
-    if (txHash) deposit.txHash = txHash;
-    if (file) {
-      deposit.proofImage = `/uploads/proofs/${file.filename}`;
-    }
+    const proofPath = `/uploads/proofs/${file.filename}`;
+    logger.info(`Deposit proof screenshot uploaded by user ${req.user.mobile || req.user._id}: ${proofPath}`);
 
-    await deposit.save();
-
-    logger.info(`Deposit proof submitted for request ID ${deposit._id} (TXID: ${txHash || "Uploaded Image"})`);
-
-    return res.json({ success: true, message: "Payment proof uploaded successfully.", data: deposit });
+    return res.json({
+      success: true,
+      message: "Payment proof uploaded successfully.",
+      data: {
+        proofPath: proofPath
+      }
+    });
   } catch (error) {
     return next(error);
   }

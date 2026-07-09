@@ -1,4 +1,7 @@
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const {
   getActiveBetsSummary,
   getUsers,
@@ -41,6 +44,20 @@ const {
 } = require("../controllers/admin.controller");
 const { protect, adminOnly } = require("../middlewares/auth");
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(process.env.UPLOADS_DIR || "./uploads", "qrcodes");
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `qr-${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+const upload = multer({ storage });
+
 const router = express.Router();
 
 // Apply admin locks to all subroutes
@@ -69,7 +86,7 @@ router.get("/config/usdt", getUsdtSettings);
 router.patch("/config/usdt", updateUsdtSettings);
 
 router.get("/config/usdt/addresses", getUsdtAddresses);
-router.post("/config/usdt/addresses", addUsdtAddress);
+router.post("/config/usdt/addresses", upload.single("qrCode"), addUsdtAddress);
 router.delete("/config/usdt/addresses/:id", deleteUsdtAddress);
 router.patch("/config/usdt/addresses/:id/toggle", toggleUsdtAddress);
 

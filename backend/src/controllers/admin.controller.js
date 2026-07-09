@@ -692,8 +692,14 @@ const getUsdtAddresses = async (req, res, next) => {
 
 const addUsdtAddress = async (req, res, next) => {
   try {
-    const { address, network, label, qrCodeUrl } = req.body;
+    const { address, network, label } = req.body;
+    const file = req.file;
     if (!address) return res.status(400).json({ message: "Address is required." });
+
+    let qrCodeUrl = "";
+    if (file) {
+      qrCodeUrl = `/uploads/qrcodes/${file.filename}`;
+    }
 
     // Support bulk add by splitting on newlines, commas, or semicolons
     let addresses = [];
