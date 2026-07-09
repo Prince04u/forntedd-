@@ -48,8 +48,9 @@ const getOrCreateActivePeriod = async (duration) => {
 
 const generatePeriodId = (duration) => {
   const prefix = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const rand = Math.floor(10000 + Math.random() * 90000);
-  return `${prefix}${duration.toUpperCase()}${rand}`;
+  const seconds = duration === "30s" ? "30" : duration === "1m" ? "60" : duration === "3m" ? "180" : "300";
+  const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
+  return `${prefix}${seconds}${rand}`;
 };
 
 const tickWingo = async () => {
@@ -79,10 +80,14 @@ const resolvePeriod = async (duration, period) => {
   try {
     const io = getIO();
 
+    // Reload latest period document from MongoDB to pick up admin overrides
+    const dbPeriod = await Period.findById(period._id);
+    if (!dbPeriod) return;
+
     // Determine final number result
     let number = Math.floor(Math.random() * 10);
-    if (period.resultOverridden && period.overrideResult !== null) {
-      number = Number(period.overrideResult);
+    if (dbPeriod.resultOverridden && dbPeriod.overrideResult !== null && dbPeriod.overrideResult !== undefined) {
+      number = Number(dbPeriod.overrideResult);
     }
 
     // Set colors & sizes
