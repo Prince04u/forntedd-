@@ -123,8 +123,8 @@ export default function DepositHistoryPage() {
       {/* METHOD FILTER HORIZONTAL TABS */}
       <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "0.75rem", marginBottom: "1rem" }}>
         <button onClick={() => setMethodFilter("all")} style={{
-          background: methodFilter === "all" ? "#00a685" : "#121212",
-          color: "#ffffff",
+          background: methodFilter === "all" ? "#D4AF37" : "#121212",
+          color: methodFilter === "all" ? "#000" : "#ffffff",
           border: methodFilter === "all" ? "none" : "1px solid #222",
           borderRadius: "8px",
           padding: "0.5rem 1rem",
@@ -136,8 +136,8 @@ export default function DepositHistoryPage() {
           All
         </button>
         <button onClick={() => setMethodFilter("trc20")} style={{
-          background: methodFilter === "trc20" ? "#00a685" : "#121212",
-          color: "#ffffff",
+          background: methodFilter === "trc20" ? "#D4AF37" : "#121212",
+          color: methodFilter === "trc20" ? "#000" : "#ffffff",
           border: methodFilter === "trc20" ? "none" : "1px solid #222",
           borderRadius: "8px",
           padding: "0.5rem 1rem",
@@ -149,8 +149,8 @@ export default function DepositHistoryPage() {
           USDT-TRC20
         </button>
         <button onClick={() => setMethodFilter("bep20")} style={{
-          background: methodFilter === "bep20" ? "#00a685" : "#121212",
-          color: "#ffffff",
+          background: methodFilter === "bep20" ? "#D4AF37" : "#121212",
+          color: methodFilter === "bep20" ? "#000" : "#ffffff",
           border: methodFilter === "bep20" ? "none" : "1px solid #222",
           borderRadius: "8px",
           padding: "0.5rem 1rem",
@@ -206,7 +206,7 @@ export default function DepositHistoryPage() {
                 
                 {/* TOP HEADER */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ background: "#00a685", color: "#ffffff", padding: "3px 9px", borderRadius: "6px", fontSize: "0.75rem", fontWeight: "bold" }}>
+                  <span style={{ background: "rgba(212, 175, 55, 0.12)", color: "#D4AF37", border: "1px solid rgba(212, 175, 55, 0.3)", padding: "3px 9px", borderRadius: "6px", fontSize: "0.75rem", fontWeight: "bold" }}>
                     Deposit
                   </span>
                   <span style={{
