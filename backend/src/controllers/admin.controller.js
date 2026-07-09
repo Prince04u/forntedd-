@@ -692,10 +692,10 @@ const getUsdtAddresses = async (req, res, next) => {
 
 const addUsdtAddress = async (req, res, next) => {
   try {
-    const { address, network } = req.body;
+    const { address, network, label } = req.body;
     if (!address) return res.status(400).json({ message: "Address is required." });
 
-    const newAddr = new UsdtAddress({ address, network: network || "TRC20" });
+    const newAddr = new UsdtAddress({ address, network: network || "TRC20", label: label || "" });
     await newAddr.save();
     return res.status(201).json({ success: true, message: "USDT Address added successfully.", data: newAddr });
   } catch (error) {

@@ -79,6 +79,7 @@ const requestDeposit = async (req, res, next) => {
       amount,
       channel,
       status: "pending",
+      address: targetAddress,
     });
     await deposit.save();
 

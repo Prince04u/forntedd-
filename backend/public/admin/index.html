@@ -363,7 +363,7 @@
 
     .address-form-box {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-columns: 1fr 2fr 1fr 1fr;
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
@@ -541,7 +541,7 @@
               <tr>
                 <th>Player</th>
                 <th>Amount</th>
-                <th>Network</th>
+                <th>Assigned Target Wallet</th>
                 <th>TXID</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -579,7 +579,10 @@
           <div class="config-title">Add Rotating USDT Address (Support 30+)</div>
           <div class="address-form-box">
             <div class="form-group" style="margin-bottom:0">
-              <input type="text" id="add-addr-val" class="form-input" placeholder="Enter USDT Wallet Destination Address" />
+              <input type="text" id="add-addr-label" class="form-input" placeholder="Label Description (e.g. Binance A)" />
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <input type="text" id="add-addr-val" class="form-input" placeholder="USDT Wallet Address" />
             </div>
             <div class="form-group" style="margin-bottom:0">
               <select id="add-addr-net" class="form-input">
@@ -599,6 +602,7 @@
             <table>
               <thead>
                 <tr>
+                  <th>Description</th>
                   <th>Address</th>
                   <th>Network</th>
                   <th>Use Count</th>
@@ -618,7 +622,19 @@
           
           <!-- Live Period Monitor Card -->
           <div class="live-monitor-card">
-            <div class="badge badge-warning" style="margin-bottom: 1.5rem; font-size: 0.9rem">Live Wingo Ticker (30s)</div>
+            <div class="badge badge-warning" style="margin-bottom: 1.5rem; font-size: 0.9rem">Live Wingo Ticker</div>
+            
+            <!-- Game Duration Selector -->
+            <div class="form-group" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+              <label style="margin-bottom:0; font-size: 0.9rem">Duration:</label>
+              <select id="wingo-duration-select" class="form-input" style="width: auto; padding: 0.5rem 1rem; border-radius: 10px;" onchange="changeWingoDuration()">
+                <option value="30s">WinGo 30s</option>
+                <option value="1m">WinGo 1m</option>
+                <option value="3m">WinGo 3m</option>
+                <option value="5m">WinGo 5m</option>
+              </select>
+            </div>
+
             <div class="live-period-id">Active Period: <span id="live-period-val">Loading...</span></div>
             <div class="live-timer-val" id="live-countdown-val">00:00</div>
             <div class="override-status-label" id="override-status-val">Override Status: <span class="badge badge-success">None</span></div>
@@ -640,7 +656,7 @@
               <button class="num-btn num-green" onclick="injectNumberOutcome(9)">9</button>
             </div>
             <div style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.4">
-              👉 Clicking any color-coded button above will instantly override the active round period outcome. Standard payout distribution will resolve with this number.
+              👉 Click any button above to instantly override the active round outcome. Outcomes apply to the selected WinGo game duration.
             </div>
           </div>
 
@@ -654,6 +670,7 @@
     let token = localStorage.getItem("admin_token");
     let activeWingoPeriod = "";
     let activeWingoCountdown = 0;
+    let selectedWingoDuration = "30s";
     let liveTimerInterval = null;
 
     window.onload = () => {
@@ -797,7 +814,7 @@
             tr.innerHTML = `
               <td>${dep.user ? dep.user.name : "System User"} (${dep.user ? dep.user.mobile : "Unknown"})</td>
               <td>₹${dep.amount}</td>
-              <td>${dep.channel}</td>
+              <td style="font-family: monospace; font-size:0.85rem">${dep.address || "—"}</td>
               <td>${dep.txHash || "—"}</td>
               <td><span class="badge badge-${dep.status === "approved" ? "success" : dep.status === "pending" ? "warning" : "danger"}">${dep.status}</span></td>
               <td>
@@ -898,6 +915,7 @@
           res.data.forEach((addr) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
+              <td><strong>${addr.label || "No Label"}</strong></td>
               <td style="font-family: monospace; font-size: 0.85rem">${addr.address}</td>
               <td><span class="badge badge-warning">${addr.network}</span></td>
               <td>${addr.useCount} times</td>
@@ -919,6 +937,7 @@
     }
 
     async function addUsdtAddress() {
+      const label = document.getElementById("add-addr-label").value;
       const address = document.getElementById("add-addr-val").value;
       const network = document.getElementById("add-addr-net").value;
       
@@ -934,12 +953,13 @@
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
           },
-          body: JSON.stringify({ address, network }),
+          body: JSON.stringify({ address, network, label }),
         });
         const res = await response.json();
         if (res.success) {
           alert("Wallet address registered successfully.");
           document.getElementById("add-addr-val").value = "";
+          document.getElementById("add-addr-label").value = "";
           loadAddressesData();
         } else {
           alert(res.message);
@@ -976,16 +996,19 @@
 
     /* Live Game Control & Ticker implementation */
     function startLiveWingoPoll() {
-      // Poll active Wingo 30s period status every 2 seconds
       fetchLiveWingoPeriod();
       liveTimerInterval = setInterval(fetchLiveWingoPeriod, 2000);
+    }
+
+    function changeWingoDuration() {
+      selectedWingoDuration = document.getElementById("wingo-duration-select").value;
+      fetchLiveWingoPeriod();
     }
 
     async function fetchLiveWingoPeriod() {
       if (!token) return;
       try {
-        // Query active period (Wingo 30s is default duration 30)
-        const response = await fetch("/api/wingo/30/current", {
+        const response = await fetch(`/api/wingo/${selectedWingoDuration}/current`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         const res = await response.json();
@@ -1023,7 +1046,6 @@
         return;
       }
 
-      // High-lighting target button visually
       highlightActiveButton(number);
 
       try {

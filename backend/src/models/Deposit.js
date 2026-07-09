@@ -22,6 +22,11 @@ const DepositSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    address: {
+      type: String,
+      trim: true,
+      default: "", // The assigned rotating address for this deposit
+    },
     proofImage: {
       type: String,
       default: "", // Path to uploaded screenshot file

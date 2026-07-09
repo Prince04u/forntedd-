@@ -8,6 +8,11 @@ const UsdtAddressSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    label: {
+      type: String,
+      trim: true,
+      default: "", // Description label for dashboard identification
+    },
     network: {
       type: String,
       enum: ["TRC20", "BEP20", "ERC20"],
