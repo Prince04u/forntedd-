@@ -112,14 +112,24 @@ export default function WingoGameScreen() {
     let cancelled = false;
     const durationSec = DURATION_SEC[duration];
 
-    const onTimer = (data) => {
-      if (String(data.duration) === String(durationSec)) {
-        setPeriod((prev) => ({
-          ...prev,
-          periodId: data.periodId,
-          status: data.status,
-          remainingSeconds: data.remainingSeconds,
-        }));
+    const onTick = (data) => {
+      if (data.duration === duration) {
+        setPeriod((prev) => {
+          if (prev && prev.periodId !== data.periodId) {
+            loadData();
+          }
+          return {
+            ...prev,
+            periodId: data.periodId,
+            remainingSeconds: data.remainingSeconds,
+          };
+        });
+      }
+    };
+
+    const onResult = (data) => {
+      if (data.duration === duration) {
+        loadData();
       }
     };
 
@@ -129,18 +139,16 @@ export default function WingoGameScreen() {
       activeSocket = socket;
       socket.emit("join:duration", { duration: durationSec });
       socket.emit("join:user");
-      socket.on("timer:update", onTimer);
-      socket.on("period:created", loadData);
-      socket.on("result:declared", loadData);
+      socket.on("wingo:tick", onTick);
+      socket.on("wingo:result", onResult);
       socket.on("wallet:updated", (data) => setBalance(data.balance));
     });
 
     return () => {
       cancelled = true;
       if (activeSocket) {
-        activeSocket.off("timer:update", onTimer);
-        activeSocket.off("period:created", loadData);
-        activeSocket.off("result:declared", loadData);
+        activeSocket.off("wingo:tick", onTick);
+        activeSocket.off("wingo:result", onResult);
         activeSocket.off("wallet:updated");
       }
     };
