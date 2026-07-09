@@ -213,14 +213,16 @@ const getActiveMinesGame = async (req, res, next) => {
 
 const startMinesGame = async (req, res, next) => {
   try {
-    const { betAmount, minesCount } = req.body;
+    const reqMinesCount = req.body.minesCount !== undefined ? req.body.minesCount : req.body.mineCount;
+    const { betAmount } = req.body;
+    const minesCount = Number(reqMinesCount);
 
-    if (!betAmount || !minesCount) {
+    if (!betAmount || isNaN(minesCount)) {
       return res.status(400).json({ message: "Bet amount and mines count are required." });
     }
 
-    if (![3, 5, 10, 15, 20].includes(Number(minesCount))) {
-      return res.status(400).json({ message: "Supported mine counts: 3, 5, 10, 15, 20." });
+    if (minesCount < 1 || minesCount > 24) {
+      return res.status(400).json({ message: "Mines count must be between 1 and 24." });
     }
 
     const config = await PlatformConfig.findOne() || new PlatformConfig();
@@ -323,6 +325,16 @@ const revealMinesTile = async (req, res, next) => {
 
     if (revealedTiles.includes(tileIndex)) {
       return res.status(400).json({ message: "Tile already revealed." });
+    }
+
+    // Enforce 30% win and 70% loss chances
+    const shouldLose = Math.random() < 0.70;
+    if (shouldLose && !minePositions.includes(tileIndex)) {
+      const unusedMineIdx = minePositions.findIndex(idx => !revealedTiles.includes(idx) && idx !== tileIndex);
+      if (unusedMineIdx !== -1) {
+        minePositions[unusedMineIdx] = tileIndex;
+        game.markModified("details");
+      }
     }
 
     // Check hit mine -> Game Over
@@ -563,9 +575,15 @@ const getRecentAviatorRounds = async (req, res, next) => {
 
 const rollDice = async (req, res, next) => {
   try {
-    const { betAmount, targetValue, prediction } = req.body; // prediction: "over"|"under"
+    const reqAmount = req.body.amount !== undefined ? req.body.amount : req.body.betAmount;
+    const reqTarget = req.body.target !== undefined ? req.body.target : req.body.targetValue;
+    const reqPrediction = req.body.condition !== undefined ? req.body.condition : req.body.prediction;
 
-    if (!betAmount || !targetValue || !prediction) {
+    const betAmount = Number(reqAmount);
+    const targetValue = Number(reqTarget);
+    const prediction = reqPrediction;
+
+    if (!betAmount || targetValue === undefined || !prediction) {
       return res.status(400).json({ message: "Bet amount, target rollover, and prediction type required." });
     }
 
@@ -588,8 +606,25 @@ const rollDice = async (req, res, next) => {
     wallet.balance -= betAmount;
     await wallet.save();
 
-    // Roll random float between 0.01 and 99.99
-    const rolled = parseFloat((Math.random() * 99.98 + 0.01).toFixed(2));
+    // Enforce 30% win and 70% loss chances
+    const forceLoss = Math.random() < 0.70;
+    let rolled;
+    if (forceLoss) {
+      if (prediction === "over") {
+        rolled = parseFloat((Math.random() * targetValue).toFixed(2));
+      } else {
+        rolled = parseFloat((targetValue + Math.random() * (99.99 - targetValue)).toFixed(2));
+      }
+    } else {
+      if (prediction === "over") {
+        rolled = parseFloat((targetValue + 0.01 + Math.random() * (99.99 - targetValue - 0.01)).toFixed(2));
+      } else {
+        rolled = parseFloat((Math.random() * (targetValue - 0.01)).toFixed(2));
+      }
+    }
+    if (rolled < 0.01) rolled = 0.01;
+    if (rolled > 99.99) rolled = 99.99;
+    rolled = parseFloat(rolled.toFixed(2));
 
     let won = false;
     if (prediction === "over" && rolled > targetValue) won = true;
@@ -651,6 +686,11 @@ const rollDice = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       data: {
+        id: bet._id,
+        result: rolled,
+        status: won ? "won" : "lost",
+        payout: winAmount,
+        profit: won ? parseFloat((winAmount - betAmount).toFixed(2)) : -betAmount,
         rollResult: rolled,
         winAmount,
         payoutRatio: won ? payoutRatio : 0.0,

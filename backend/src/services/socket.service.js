@@ -3,11 +3,35 @@ const logger = require("../config/logger");
 let io;
 const activeUsers = new Map(); // socketId -> userId
 
+const jwt = require("jsonwebtoken");
+
 const initSocket = (socketIoInstance) => {
   io = socketIoInstance;
 
+  // Middleware to decode token from handshake
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || "luckynova-super-secret-jwt-key-2026");
+        socket.userId = decoded.id;
+      } catch (err) {
+        logger.warn(`Socket auth token validation failed: ${err.message}`);
+      }
+    }
+    next();
+  });
+
   io.on("connection", (socket) => {
     logger.info(`Socket connected: ${socket.id}`);
+
+    // If verified by handshake middleware, automatically join room
+    if (socket.userId) {
+      socket.join(`user:${socket.userId}`);
+      activeUsers.set(socket.id, socket.userId);
+      logger.info(`Socket ${socket.id} automatically authenticated for user ID ${socket.userId}`);
+      io.emit("status:online", activeUsers.size);
+    }
 
     // Join room for Wingo duration updates
     socket.on("join:wingo", (duration) => {
@@ -20,13 +44,20 @@ const initSocket = (socketIoInstance) => {
       logger.info(`Socket ${socket.id} joined Aviator flight room`);
     });
 
-    // Authenticated connection mapping
+    // Support client manual room join
+    socket.on("join:user", () => {
+      if (socket.userId) {
+        socket.join(`user:${socket.userId}`);
+        logger.info(`Socket ${socket.id} manually joined user room: user:${socket.userId}`);
+      }
+    });
+
+    // Authenticated connection mapping (legacy event)
     socket.on("auth:register", (userId) => {
       if (userId) {
         socket.join(`user:${userId}`);
         activeUsers.set(socket.id, userId);
-        logger.info(`Socket ${socket.id} authenticated for user ID ${userId}`);
-        // Broadcast active users count
+        logger.info(`Socket ${socket.id} authenticated for user ID ${userId} via auth:register`);
         io.emit("status:online", activeUsers.size);
       }
     });

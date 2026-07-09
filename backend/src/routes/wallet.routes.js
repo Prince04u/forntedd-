@@ -38,6 +38,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.get("/balance", protect, getBalance);
+router.get("/transactions", protect, getTransactions);
 router.get("/deposits", protect, getDeposits);
 router.get("/deposits/:id/proof", protect, fetchDepositProofBlob);
 router.get("/withdrawals", protect, getWithdrawals);

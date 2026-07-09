@@ -62,7 +62,7 @@ export default function WalletScreen() {
 
       setBalance(balRes.data.balance);
       setLockedBalance(balRes.data.locked || 0);
-      const txs = txRes.data.transactions || [];
+      const txs = Array.isArray(txRes.data) ? txRes.data : (txRes.data?.transactions || []);
       setTransactionCount(txRes.data?.pagination?.total ?? txs.length);
 
       const depositSum = txs

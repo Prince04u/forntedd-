@@ -940,16 +940,40 @@ export default function WingoGameScreen() {
       {outcomePopup && (
         <div className="wg-popup-overlay" onClick={() => setOutcomePopup(null)}>
           <div className="wg-outcome-card-container" onClick={(e) => e.stopPropagation()}>
-            <div className={`wg-outcome-card ${outcomePopup.type}`}>
+            <div className={`wg-outcome-card-v2 ${outcomePopup.type}`}>
               
-              {/* Header section with Emblem, Wings & Ribbon */}
-              <div className={`wg-outcome-header ${outcomePopup.type}`}>
-                {/* SVG Wings */}
-                <div className={`wg-outcome-wings ${outcomePopup.type}`}>
-                  <svg viewBox="0 0 200 80" className="wg-wings-svg" style={{ width: "240px", height: "96px" }}>
+              {/* Close Button Top Right */}
+              <button 
+                type="button" 
+                className="wg-outcome-v2-close-top"
+                onClick={() => setOutcomePopup(null)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+
+              {/* Glowing Wings & Badge Header */}
+              <div className="wg-outcome-v2-header">
+                {/* Crown over the circle badge (Only for Win!) */}
+                {outcomePopup.type === "win" && (
+                  <div className="wg-outcome-v2-crown">
+                    <svg viewBox="0 0 24 24" width="42" height="42" fill="none">
+                      <path d="M2 17.5l2-8 5 3.2L12 6.5l3 6.2 5-3.2 2 8H2z" fill="#ffe58f" stroke="#d4af37" strokeWidth="1"/>
+                      <circle cx="2" cy="9.5" r="1" fill="#fff"/>
+                      <circle cx="7" cy="12.7" r="1" fill="#fff"/>
+                      <circle cx="12" cy="6.5" r="1" fill="#fff"/>
+                      <circle cx="17" cy="12.7" r="1" fill="#fff"/>
+                      <circle cx="22" cy="9.5" r="1" fill="#fff"/>
+                    </svg>
+                  </div>
+                )}
+
+                {/* IN Emblem Badge with Wings */}
+                <div className={`wg-outcome-v2-emblem-wrap ${outcomePopup.type}`}>
+                  {/* Wings SVG */}
+                  <svg viewBox="0 0 200 80" className="wg-outcome-v2-wings-svg">
                     {outcomePopup.type === "win" ? (
                       <>
-                        {/* Gold Win Wings */}
                         <path d="M 100 45 C 50 45, 20 20, 5 10 C 25 35, 45 60, 100 65 Z" fill="#aa841d" opacity="0.8" />
                         <path d="M 100 45 C 60 40, 35 15, 18 5 C 32 22, 50 48, 100 55 Z" fill="#FFE07D" />
                         <path d="M 100 45 C 150 45, 180 20, 195 10 C 175 35, 155 60, 100 65 Z" fill="#aa841d" opacity="0.8" />
@@ -957,7 +981,6 @@ export default function WingoGameScreen() {
                       </>
                     ) : (
                       <>
-                        {/* Silver Loss Wings */}
                         <path d="M 100 45 C 50 45, 20 20, 5 10 C 25 35, 45 60, 100 65 Z" fill="#4b5563" opacity="0.8" />
                         <path d="M 100 45 C 60 40, 35 15, 18 5 C 32 22, 50 48, 100 55 Z" fill="#cbd5e1" />
                         <path d="M 100 45 C 150 45, 180 20, 195 10 C 175 35, 155 60, 100 65 Z" fill="#4b5563" opacity="0.8" />
@@ -965,72 +988,144 @@ export default function WingoGameScreen() {
                       </>
                     )}
                   </svg>
+
+                  {/* Circle Badge */}
+                  <div className={`wg-outcome-v2-circle-badge ${outcomePopup.type}`}>
+                    <span className="wg-outcome-v2-in-initials">IN</span>
+                  </div>
                 </div>
 
-                {/* Emblem Badge */}
-                <div className={`wg-outcome-emblem ${outcomePopup.type}`}>
-                  <span className="wg-outcome-rocket">🚀</span>
-                </div>
-
-                {/* Ribbon Banner */}
-                <div className={`wg-outcome-ribbon ${outcomePopup.type}`}>
-                  {outcomePopup.type === "win" ? "Congratulations" : "Sorry"}
+                {/* Curved Ribbon Banner */}
+                <div className={`wg-outcome-v2-ribbon-banner ${outcomePopup.type}`}>
+                  <span className="wg-outcome-v2-ribbon-text">
+                    {outcomePopup.type === "win" ? "Congratulations!" : "Better Luck Next Time!"}
+                  </span>
                 </div>
               </div>
 
-              {/* Body Section */}
-              <div className="wg-outcome-body">
-                
-                {/* Lottery results details */}
-                <div className="wg-outcome-details">
-                  <span className="wg-outcome-details-label">Lottery results</span>
-                  <div className="wg-outcome-details-badges">
-                    {outcomePopup.colors?.map((col) => (
-                      <span key={col} className={`wg-outcome-badge ${col}`} style={{ textTransform: "capitalize" }}>
-                        {col}
+              {/* Sub-Title */}
+              <div className={`wg-outcome-v2-subtitle ${outcomePopup.type}`}>
+                {outcomePopup.type === "win" ? "★ YOU WON ★" : "★ YOU LOST ★"}
+              </div>
+
+              {/* Amount or Quote */}
+              <div className="wg-outcome-v2-main-result">
+                {outcomePopup.type === "win" ? (
+                  <strong className="wg-outcome-v2-win-amount">
+                    ₹{outcomePopup.amount.toFixed(2)}
+                  </strong>
+                ) : (
+                  <div className="wg-outcome-v2-loss-quote">
+                    <p>Keep trying,</p>
+                    <p>fortune is just one step away!</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Details Border Box (Winning Details / Game Details) */}
+              <div className={`wg-outcome-v2-details-section ${outcomePopup.type}`}>
+                <div className="wg-outcome-v2-details-title-row">
+                  <span className="wg-outcome-v2-details-title-line" />
+                  <span className="wg-outcome-v2-details-title-text">
+                    {outcomePopup.type === "win" ? "Winning Details" : "Game Details"}
+                  </span>
+                  <span className="wg-outcome-v2-details-title-line" />
+                </div>
+
+                <div className="wg-outcome-v2-details-box">
+                  <div className="wg-outcome-v2-details-row">
+                    <span className="wg-outcome-v2-details-label">Game</span>
+                    <strong className="wg-outcome-v2-details-value">Lottery</strong>
+                  </div>
+                  
+                  <div className="wg-outcome-v2-details-row">
+                    <span className="wg-outcome-v2-details-label">Result</span>
+                    <div className="wg-outcome-v2-details-value">
+                      <span className="wg-outcome-v2-result-color-row">
+                        {outcomePopup.colors?.map((col) => (
+                          <span key={col} className={`wg-outcome-v2-dot ${col}`} />
+                        ))}
+                        {outcomePopup.colors?.map((col) => (
+                          <span key={col} className={`wg-outcome-v2-color-text ${col}`}>
+                            {col.charAt(0).toUpperCase() + col.slice(1)}
+                          </span>
+                        ))}
+                        <span className="wg-outcome-v2-num-circle">{outcomePopup.number}</span>
+                        <span className="wg-outcome-v2-size-text" style={{ textTransform: "capitalize" }}>{outcomePopup.size}</span>
                       </span>
-                    ))}
-                    <span className="wg-outcome-badge number">{outcomePopup.number}</span>
-                    <span className="wg-outcome-badge size">{outcomePopup.size}</span>
-                  </div>
-                </div>
-
-                {/* Envelope Paper Sheet */}
-                <div className="wg-outcome-envelope">
-                  <div className="wg-outcome-paper">
-                    <div className="wg-outcome-paper-title">
-                      {outcomePopup.type === "win" ? "Bonus" : "Lose"}
-                    </div>
-                    <div className={`wg-outcome-paper-val ${outcomePopup.type}`}>
-                      {outcomePopup.type === "win" ? `₹${outcomePopup.amount.toFixed(2)}` : "Lose"}
-                    </div>
-                    <div className="wg-outcome-paper-period">
-                      Period: WinGo {durationMeta.short} {outcomePopup.periodId}
                     </div>
                   </div>
-                </div>
 
-                {/* Footer Close timer */}
-                <div className="wg-outcome-footer-timer">
-                  <span className="wg-outcome-timer-circle"></span>
-                  <span>{popupCountdown} seconds auto close</span>
+                  <div className="wg-outcome-v2-details-row">
+                    <span className="wg-outcome-v2-details-label">Period</span>
+                    <strong className="wg-outcome-v2-details-value period-num">
+                      {outcomePopup.periodId}
+                    </strong>
+                  </div>
                 </div>
               </div>
-              
-            </div>
 
-            {/* Floating Close Button */}
-            <button 
-              type="button" 
-              className="wg-outcome-close-btn"
-              onClick={() => setOutcomePopup(null)}
-              title="Close"
-            >
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" fill="none">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
+              {/* Secondary Balance Box (Win) or Motivation Box (Loss) */}
+              <div className="wg-outcome-v2-secondary-box">
+                {outcomePopup.type === "win" ? (
+                  <div className="wg-outcome-v2-balance-card">
+                    <div className="wg-outcome-v2-balance-left">
+                      {/* Gold Coin Stack SVG */}
+                      <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                        <ellipse cx="8" cy="18" rx="6" ry="2" fill="#ffd700" stroke="#b8860b" strokeWidth="0.8"/>
+                        <ellipse cx="8" cy="15" rx="6" ry="2" fill="#ffd700" stroke="#b8860b" strokeWidth="0.8"/>
+                        <ellipse cx="8" cy="12" rx="6" ry="2" fill="#ffd700" stroke="#b8860b" strokeWidth="0.8"/>
+                        <ellipse cx="16" cy="19" rx="6" ry="2" fill="#ffd700" stroke="#b8860b" strokeWidth="0.8"/>
+                        <ellipse cx="16" cy="16" rx="6" ry="2" fill="#ffd700" stroke="#b8860b" strokeWidth="0.8"/>
+                      </svg>
+                      <div className="wg-outcome-v2-balance-text">
+                        <span>Your Balance</span>
+                        <strong>₹{balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      </div>
+                    </div>
+                    <span className="wg-outcome-v2-balance-arrow">→</span>
+                  </div>
+                ) : (
+                  <div className="wg-outcome-v2-motivation-card">
+                    {/* Target SVG */}
+                    <svg viewBox="0 0 24 24" width="30" height="30" stroke="#ef4444" strokeWidth="1.5" fill="none">
+                      <circle cx="12" cy="12" r="10" />
+                      <circle cx="12" cy="12" r="7" stroke="#cbd5e1" />
+                      <circle cx="12" cy="12" r="4" />
+                      <circle cx="12" cy="12" r="1.2" fill="#ef4444" />
+                      <path d="M12 12l6-6" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M16.5 7.5l1.5-1.5M17.5 8.5l1-1" stroke="#ef4444" strokeWidth="1.5"/>
+                    </svg>
+                    <span className="wg-outcome-v2-motivation-text">
+                      Stay consistent, win big soon!
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Button (Awesome! / Try Again) */}
+              <div className="wg-outcome-v2-action-row">
+                <button 
+                  type="button"
+                  className={`wg-outcome-v2-action-btn ${outcomePopup.type}`}
+                  onClick={() => setOutcomePopup(null)}
+                >
+                  {outcomePopup.type === "win" ? "Awesome!" : "Try Again"}
+                </button>
+              </div>
+
+              {/* Close Countdown */}
+              <div className="wg-outcome-v2-countdown">
+                {popupCountdown} seconds auto close
+              </div>
+
+              {/* Bottom Brand Logo */}
+              <div className="wg-outcome-v2-logo-row">
+                <span className="wg-outcome-v2-brand-emblem">IN</span>
+                <span className="wg-outcome-v2-brand-name">LUCKY NOVA</span>
+              </div>
+
+            </div>
           </div>
         </div>
       )}
@@ -1043,6 +1138,456 @@ export default function WingoGameScreen() {
         @keyframes balance-spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+
+        /* V2 Premium Outcome Modal */
+        .wg-outcome-card-v2 {
+          width: 320px;
+          border-radius: 20px;
+          padding: 1.5rem 1.25rem 1.25rem;
+          box-sizing: border-box;
+          position: relative;
+          color: #fff;
+          font-family: var(--font-inter, sans-serif);
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          animation: popup-scaleup 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        }
+        
+        .wg-outcome-card-v2.win {
+          background: linear-gradient(180deg, #161106 0%, #080502 100%);
+          border: 1.5px solid #d4af37;
+        }
+
+        .wg-outcome-card-v2.loss {
+          background: linear-gradient(180deg, #180a0a 0%, #0a0202 100%);
+          border: 1.5px solid #b91c1c;
+        }
+
+        .wg-outcome-v2-close-top {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: rgba(255, 255, 255, 0.1);
+          border: none;
+          color: rgba(255, 255, 255, 0.7);
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 0.8rem;
+          transition: background 0.2s;
+          z-index: 10;
+        }
+        .wg-outcome-v2-close-top:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: #fff;
+        }
+
+        .wg-outcome-v2-header {
+          position: relative;
+          width: 100%;
+          height: 110px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-end;
+          margin-bottom: 0.5rem;
+        }
+
+        .wg-outcome-v2-crown {
+          position: absolute;
+          top: -24px;
+          z-index: 5;
+          animation: float-crown 3s ease-in-out infinite;
+        }
+
+        @keyframes float-crown {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+
+        .wg-outcome-v2-emblem-wrap {
+          position: relative;
+          width: 220px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .wg-outcome-v2-wings-svg {
+          position: absolute;
+          width: 240px;
+          height: 96px;
+          top: -8px;
+          z-index: 1;
+        }
+
+        .wg-outcome-v2-circle-badge {
+          width: 58px;
+          height: 58px;
+          border-radius: 50%;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        .wg-outcome-v2-circle-badge.win {
+          background: radial-gradient(circle at 35% 25%, #fff 0%, #d4af37 60%, #8a6d1c 100%);
+          border: 2px solid #ffea9f;
+        }
+
+        .wg-outcome-v2-circle-badge.loss {
+          background: radial-gradient(circle at 35% 25%, #cbd5e1 0%, #475569 60%, #1e293b 100%);
+          border: 2px solid #94a3b8;
+        }
+
+        .wg-outcome-v2-in-initials {
+          font-family: "Georgia", serif;
+          font-weight: 900;
+          font-size: 1.45rem;
+          letter-spacing: -1px;
+          position: relative;
+        }
+        .wg-outcome-v2-circle-badge.win .wg-outcome-v2-in-initials {
+          color: #3b2a07;
+          text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        .wg-outcome-v2-circle-badge.loss .wg-outcome-v2-in-initials {
+          color: #f8fafc;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        }
+
+        .wg-outcome-v2-in-initials::after {
+          content: "✦";
+          position: absolute;
+          top: -2px;
+          right: -8px;
+          font-size: 0.55rem;
+          color: #fff;
+        }
+
+        .wg-outcome-v2-ribbon-banner {
+          position: absolute;
+          bottom: -10px;
+          z-index: 3;
+          width: 240px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .wg-outcome-v2-ribbon-banner.win {
+          background: linear-gradient(90deg, #b8860b 0%, #e6ca65 50%, #b8860b 100%);
+          border: 1px solid #ffea9f;
+        }
+
+        .wg-outcome-v2-ribbon-banner.loss {
+          background: linear-gradient(90deg, #7f1d1d 0%, #ef4444 50%, #7f1d1d 100%);
+          border: 1px solid #fca5a5;
+        }
+
+        .wg-outcome-v2-ribbon-text {
+          font-weight: 900;
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .wg-outcome-v2-ribbon-banner.win .wg-outcome-v2-ribbon-text {
+          color: #302002;
+        }
+        .wg-outcome-v2-ribbon-banner.loss .wg-outcome-v2-ribbon-text {
+          color: #ffffff;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .wg-outcome-v2-subtitle {
+          margin-top: 1rem;
+          font-size: 0.6875rem;
+          font-weight: 800;
+          letter-spacing: 0.1em;
+        }
+        .wg-outcome-v2-subtitle.win {
+          color: #ffe07d;
+        }
+        .wg-outcome-v2-subtitle.loss {
+          color: #fca5a5;
+        }
+
+        .wg-outcome-v2-main-result {
+          margin: 0.5rem 0 1rem;
+        }
+
+        .wg-outcome-v2-win-amount {
+          font-size: 2.35rem;
+          font-weight: 900;
+          color: #fcd974;
+          background: linear-gradient(180deg, #fff 30%, #fcd974 80%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+          display: block;
+          line-height: 1;
+        }
+
+        .wg-outcome-v2-loss-quote {
+          color: #cbd5e1;
+          font-size: 0.8125rem;
+          line-height: 1.4;
+          font-weight: 500;
+          opacity: 0.9;
+        }
+        .wg-outcome-v2-loss-quote p {
+          margin: 0;
+        }
+
+        .wg-outcome-v2-details-section {
+          width: 100%;
+          margin-bottom: 0.75rem;
+        }
+
+        .wg-outcome-v2-details-title-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-bottom: 0.5rem;
+        }
+
+        .wg-outcome-v2-details-title-line {
+          flex: 1;
+          height: 1px;
+        }
+        .wg-outcome-v2-details-section.win .wg-outcome-v2-details-title-line {
+          background: rgba(212, 175, 55, 0.25);
+        }
+        .wg-outcome-v2-details-section.loss .wg-outcome-v2-details-title-line {
+          background: rgba(239, 68, 68, 0.25);
+        }
+
+        .wg-outcome-v2-details-title-text {
+          font-size: 0.6875rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .wg-outcome-v2-details-box {
+          border-radius: 12px;
+          padding: 0.625rem 0.875rem;
+          text-align: left;
+        }
+        .win .wg-outcome-v2-details-box {
+          background: rgba(212, 175, 55, 0.03);
+          border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+        .loss .wg-outcome-v2-details-box {
+          background: rgba(239, 68, 68, 0.02);
+          border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .wg-outcome-v2-details-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.4375rem 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .wg-outcome-v2-details-row:last-child {
+          border-bottom: none;
+        }
+
+        .wg-outcome-v2-details-label {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+
+        .wg-outcome-v2-details-value {
+          font-size: 0.75rem;
+          color: #f8fafc;
+          font-weight: 700;
+        }
+        .wg-outcome-v2-details-value.period-num {
+          font-variant-numeric: tabular-nums;
+          letter-spacing: 0.02em;
+        }
+
+        .wg-outcome-v2-result-color-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .wg-outcome-v2-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+        .wg-outcome-v2-dot.green { background-color: #22c55e; }
+        .wg-outcome-v2-dot.red { background-color: #ef4444; }
+        .wg-outcome-v2-dot.violet { background-color: #a855f7; }
+
+        .wg-outcome-v2-color-text {
+          font-weight: 800;
+        }
+        .wg-outcome-v2-color-text.green { color: #22c55e; }
+        .wg-outcome-v2-color-text.red { color: #ef4444; }
+        .wg-outcome-v2-color-text.violet { color: #c084fc; }
+
+        .wg-outcome-v2-num-circle {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          border: 1px solid rgba(255,255,255,0.4);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.625rem;
+          font-weight: 800;
+          color: #fff;
+        }
+
+        .wg-outcome-v2-size-text {
+          font-weight: 700;
+        }
+
+        .wg-outcome-v2-secondary-box {
+          width: 100%;
+          margin-bottom: 1rem;
+        }
+
+        .wg-outcome-v2-balance-card {
+          border-radius: 12px;
+          padding: 0.625rem 0.875rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: linear-gradient(90deg, #241c09 0%, #151004 100%);
+          border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .wg-outcome-v2-balance-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-align: left;
+        }
+
+        .wg-outcome-v2-balance-text span {
+          display: block;
+          font-size: 0.6875rem;
+          color: #ffe07d;
+          opacity: 0.8;
+        }
+        .wg-outcome-v2-balance-text strong {
+          display: block;
+          font-size: 0.875rem;
+          color: #fff;
+          font-weight: 800;
+          margin-top: 2px;
+        }
+
+        .wg-outcome-v2-balance-arrow {
+          color: #ffd700;
+          font-size: 1.1rem;
+          font-weight: bold;
+        }
+
+        .wg-outcome-v2-motivation-card {
+          border-radius: 12px;
+          padding: 0.625rem 0.875rem;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          text-align: left;
+          background: linear-gradient(90deg, #271212 0%, #130505 100%);
+          border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .wg-outcome-v2-motivation-text {
+          font-size: 0.75rem;
+          color: #fca5a5;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+        }
+
+        .wg-outcome-v2-action-row {
+          width: 100%;
+        }
+
+        .wg-outcome-v2-action-btn {
+          width: 100%;
+          padding: 0.75rem;
+          border-radius: 999px;
+          font-size: 0.9375rem;
+          font-weight: 900;
+          border: none;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+          transition: filter 0.2s;
+        }
+        .wg-outcome-v2-action-btn:hover {
+          filter: brightness(1.1);
+        }
+
+        .wg-outcome-v2-action-btn.win {
+          background: linear-gradient(180deg, #ffe58f 0%, #d4af37 100%);
+          color: #3b2a07;
+        }
+
+        .wg-outcome-v2-action-btn.loss {
+          background: linear-gradient(180deg, #f87171 0%, #b91c1c 100%);
+          color: #fff;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .wg-outcome-v2-countdown {
+          font-size: 0.6875rem;
+          color: #64748b;
+          margin-top: 0.625rem;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
+
+        .wg-outcome-v2-logo-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          margin-top: 1.25rem;
+          opacity: 0.35;
+        }
+
+        .wg-outcome-v2-brand-emblem {
+          border: 1px solid #fff;
+          border-radius: 50%;
+          width: 16px;
+          height: 16px;
+          font-size: 0.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: serif;
+          font-weight: bold;
+        }
+        .wg-outcome-v2-brand-name {
+          font-size: 0.625rem;
+          font-weight: 800;
+          letter-spacing: 0.1em;
         }
 
         /* Details cards styling */

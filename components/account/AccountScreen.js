@@ -17,10 +17,10 @@ import { usePlatformStatus } from "@/components/platform/PlatformStatusProvider"
 import { getAnnouncements, getVipProgram } from "@/lib/platformApi";
 
 const QUICK_ACTIONS = [
-  { iconId: "wallet", label: "Wallet", href: "/wallet", glyph: "👛" },
-  { iconId: "deposit", label: "Deposit", href: "/wallet/deposit", glyph: "+" },
-  { iconId: "withdraw", label: "Withdraw", href: "/wallet", glyph: "↑" },
-  { iconId: "vip", label: "VIP", href: "/account/vip", glyph: "◆", vipAction: true },
+  { iconId: "wallet", label: "Wallet", href: "/wallet" },
+  { iconId: "deposit", label: "Deposit", href: "/wallet/deposit" },
+  { iconId: "withdraw", label: "Withdraw", href: "/wallet/withdraw" },
+  { iconId: "invite-friends", label: "Invite", href: "/referral" },
 ];
 
 const HISTORY_ITEMS = [
@@ -306,8 +306,11 @@ export default function AccountScreen() {
     <main className="account-page">
       <section className="account-profile-header">
         <div className="account-profile-row">
-          <Link href="/account/profile" className="account-avatar account-profile-link">
-            {displayAvatar}
+          <Link href="/account/profile" className="account-avatar account-profile-link" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "var(--theme-bg-muted)", border: "1.5px solid rgba(255,255,255,0.08)" }}>
+            <svg viewBox="0 0 24 24" width="30" height="30" stroke="currentColor" strokeWidth="2" fill="none" style={{ color: "#d4af37" }}>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </Link>
           <div className="account-profile-info">
             <div className="account-name-row">
@@ -323,13 +326,10 @@ export default function AccountScreen() {
               </span>
             </button>
             <p className="account-last-login">Last login: {lastLogin}</p>
-            <Link href="/account/kyc" className={`account-kyc-pill ${kycStatus}`}>
-              {KYC_LABELS[kycStatus] || kycStatus}
-            </Link>
           </div>
         </div>
       </section>
-
+ 
       <section className="account-balance-card">
         <div className="account-balance-top">
           <span>Total balance</span>
@@ -342,7 +342,7 @@ export default function AccountScreen() {
           {quickActions.map((action) => (
             <Link key={action.iconId} href={action.href} className="account-quick-item">
               <span className={`aq-icon aq-${action.iconId}`}>
-                <span className="aq-glyph">{action.glyph}</span>
+                <AccountIcon id={action.iconId === "invite-friends" ? "invite-friends" : action.iconId} size={22} className="aq-icon-img" style={{ color: "currentColor" }} />
               </span>
               <span>{action.label}</span>
             </Link>

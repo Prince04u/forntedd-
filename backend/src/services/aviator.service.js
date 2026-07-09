@@ -41,6 +41,11 @@ const startWaitingState = async () => {
 
     logger.info(`Aviator round waiting: ${currentPeriodId}`);
 
+    const io = getIO();
+    io.to("aviator").emit("aviator:round:starting", {
+      roundId: currentPeriodId,
+    });
+
     // Wait loop tick
     tickInterval = setInterval(() => {
       flightTimer -= 0.1;
@@ -95,6 +100,11 @@ const startFlyingState = () => {
       return;
     }
 
+    io.to("aviator").emit("aviator:multiplier", {
+      roundId: currentPeriodId,
+      multiplier: Number(currentMultiplier),
+    });
+
     io.to("aviator").emit("aviator:state", {
       state: "flying",
       multiplier: currentMultiplier.toFixed(2),
@@ -127,6 +137,10 @@ const startCrashedState = async () => {
     );
 
     const io = getIO();
+    io.to("aviator").emit("aviator:crash", {
+      roundId: currentPeriodId,
+      crashMultiplier: Number(currentMultiplier),
+    });
 
     tickInterval = setInterval(() => {
       flightTimer -= 0.1;
