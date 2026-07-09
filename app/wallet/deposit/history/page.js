@@ -7,37 +7,34 @@ import { getToken } from "@/lib/auth";
 import { getDeposits } from "@/lib/walletApi";
 import ProofPreviewModal from "@/components/wallet/ProofPreviewModal";
 
-const METHOD_FILTERS = [
-  { id: "all", label: "All" },
-  { id: "innate", label: "Innate UPI-QR" },
-  { id: "expert", label: "Expert UPI-QR" },
-];
-
-const STATUS_FILTERS = [
-  { id: "All", label: "All" },
-  { id: "pending", label: "Pending" },
-  { id: "approved", label: "Approved" },
-  { id: "rejected", label: "Rejected" },
-];
-
-const formatStatus = (status) => {
-  if (!status) return "—";
-  return status.charAt(0).toUpperCase() + status.slice(1);
-};
-
 const formatAmount = (value) => {
   const num = Number(value);
   if (Number.isNaN(num)) return "0.00";
   return num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-const getMethodMeta = (method) => {
-  const id = (method || "").toLowerCase();
-  if (id.includes("expert")) return { icon: "💳", label: "Expert UPI-QR" };
-  if (id.includes("innate")) return { icon: "📱", label: "Innate UPI-QR" };
-  if (id.includes("paytm")) return { icon: "💠", label: "PAYTM" };
-  if (id.includes("arpay")) return { icon: "🅰️", label: "ARPay" };
-  return { icon: "💰", label: method || "UPI" };
+const getDeterministicOrderNo = (d) => {
+  if (!d || !d.createdAt || !d._id) return "RC20260709234605811095156a";
+  const date = new Date(d.createdAt);
+  const stamp = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+    String(date.getHours()).padStart(2, "0"),
+    String(date.getMinutes()).padStart(2, "0"),
+    String(date.getSeconds()).padStart(2, "0"),
+  ].join("");
+  const suffix = String(d._id).slice(-10).toLowerCase();
+  return `RC${stamp}${suffix}`;
+};
+
+const copyText = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("Order number copied!");
+  } catch {
+    /* ignore */
+  }
 };
 
 export default function DepositHistoryPage() {
@@ -73,21 +70,12 @@ export default function DepositHistoryPage() {
     loadDeposits();
   }, [router, loadDeposits]);
 
-  const hasActiveFilters =
-    methodFilter !== "all" || statusFilter !== "All" || Boolean(dateFilter);
-
-  const resetFilters = () => {
-    setMethodFilter("all");
-    setStatusFilter("All");
-    setDateFilter("");
-  };
-
   const filtered = deposits.filter((d) => {
-    const method = (d.method || "").toLowerCase();
+    const channel = (d.channel || "").toLowerCase();
     const matchMethod =
       methodFilter === "all" ||
-      (methodFilter === "innate" && method.includes("innate")) ||
-      (methodFilter === "expert" && method.includes("expert"));
+      (methodFilter === "trc20" && channel.includes("trc20")) ||
+      (methodFilter === "bep20" && channel.includes("bep20"));
     const matchStatus = statusFilter === "All" || d.status === statusFilter;
     const matchDate =
       !dateFilter ||
@@ -95,138 +83,225 @@ export default function DepositHistoryPage() {
     return matchMethod && matchStatus && matchDate;
   });
 
+  const handleSubmitReceipt = (d) => {
+    const isBep20 = String(d.channel).toUpperCase() === "BEP20";
+    const methodId = isBep20 ? "usdt_bep20" : "usdt_trc20";
+    const channelId = isBep20 ? "usdt-bep20" : "usdt-trc20";
+    const rate = 98;
+    const usdtAmount = Math.round((d.amount / rate) * 100) / 100;
+    const params = new URLSearchParams({
+      amount: String(usdtAmount),
+      method: methodId,
+      channel: channelId,
+      inr: String(d.amount),
+    });
+    window.open(`/wallet/deposit/pay?${params.toString()}`, "_blank");
+  };
+
   if (!mounted) {
     return (
-      <main className="withdraw-page">
-        <div className="wallet-screen-loading">Loading...</div>
+      <main style={{ background: "#080808", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+        <div>Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="withdraw-page">
-      <header className="withdraw-header center-title">
-        <Link href="/wallet/deposit" className="wallet-screen-back" aria-label="Back">
+    <main style={{ background: "#080808", minHeight: "100vh", color: "#ffffff", padding: "1.5rem 1rem", fontFamily: "sans-serif" }}>
+      
+      {/* HEADER */}
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+        <Link href="/wallet/deposit" style={{ color: "#ffffff", textDecoration: "none", fontSize: "2rem", padding: "0.25rem 0.5rem" }} aria-label="Back">
           ‹
         </Link>
-        <h1>Deposit history</h1>
-        <button
-          type="button"
-          className="withdraw-history-refresh"
-          onClick={loadDeposits}
-          disabled={loading}
-          aria-label="Refresh history"
-        >
+        <h1 style={{ fontSize: "1.25rem", fontWeight: "bold", margin: 0 }}>Deposit history</h1>
+        <button onClick={loadDeposits} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.3rem", cursor: "pointer", padding: "0.25rem" }} aria-label="Refresh">
           ↻
         </button>
       </header>
 
-      <section className="withdraw-history-toolbar">
-        <div className="withdraw-history-toolbar-meta">
-          <span className="withdraw-history-count">
-            {loading ? "Loading..." : `${filtered.length} deposit${filtered.length === 1 ? "" : "s"}`}
-          </span>
-          {hasActiveFilters ? (
-            <button type="button" className="withdraw-history-reset" onClick={resetFilters}>
-              Clear
-            </button>
-          ) : null}
-        </div>
-        <div className="withdraw-history-toolbar-fields withdraw-history-toolbar-fields--triple">
-          <select
-            className="withdraw-history-select"
-            value={methodFilter}
-            onChange={(e) => setMethodFilter(e.target.value)}
-            aria-label="Filter by method"
-          >
-            {METHOD_FILTERS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id === "all" ? "All methods" : item.label}
-              </option>
-            ))}
-          </select>
-          <select
-            className="withdraw-history-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            aria-label="Filter by status"
-          >
-            {STATUS_FILTERS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.id === "All" ? "All status" : item.label}
-              </option>
-            ))}
-          </select>
-          <input
-            className="withdraw-history-date-inline"
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            aria-label="Filter by date"
-          />
-        </div>
-      </section>
+      {/* METHOD FILTER HORIZONTAL TABS */}
+      <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "0.75rem", marginBottom: "1rem" }}>
+        <button onClick={() => setMethodFilter("all")} style={{
+          background: methodFilter === "all" ? "#00a685" : "#121212",
+          color: "#ffffff",
+          border: methodFilter === "all" ? "none" : "1px solid #222",
+          borderRadius: "8px",
+          padding: "0.5rem 1rem",
+          fontSize: "0.85rem",
+          fontWeight: "bold",
+          cursor: "pointer",
+          whiteSpace: "nowrap"
+        }}>
+          All
+        </button>
+        <button onClick={() => setMethodFilter("trc20")} style={{
+          background: methodFilter === "trc20" ? "#00a685" : "#121212",
+          color: "#ffffff",
+          border: methodFilter === "trc20" ? "none" : "1px solid #222",
+          borderRadius: "8px",
+          padding: "0.5rem 1rem",
+          fontSize: "0.85rem",
+          fontWeight: "bold",
+          cursor: "pointer",
+          whiteSpace: "nowrap"
+        }}>
+          USDT-TRC20
+        </button>
+        <button onClick={() => setMethodFilter("bep20")} style={{
+          background: methodFilter === "bep20" ? "#00a685" : "#121212",
+          color: "#ffffff",
+          border: methodFilter === "bep20" ? "none" : "1px solid #222",
+          borderRadius: "8px",
+          padding: "0.5rem 1rem",
+          fontSize: "0.85rem",
+          fontWeight: "bold",
+          cursor: "pointer",
+          whiteSpace: "nowrap"
+        }}>
+          USDT-BEP20
+        </button>
+      </div>
 
+      {/* FILTER CONTROLS */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "1.5rem" }}>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          style={{ flex: 1, background: "#121212", border: "1px solid #222", borderRadius: "8px", color: "#fff", padding: "0.75rem", outline: "none", fontSize: "0.85rem" }}
+          aria-label="Filter by status"
+        >
+          <option value="All">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Completed</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          style={{ flex: 1, background: "#121212", border: "1px solid #222", borderRadius: "8px", color: "#fff", padding: "0.75rem", outline: "none", fontSize: "0.85rem" }}
+          aria-label="Filter by date"
+        />
+      </div>
+
+      {/* CARDS LIST CONTAINER */}
       {loading && deposits.length === 0 ? (
-        <div className="withdraw-history-empty">
-          <div className="withdraw-history-empty-icon">↻</div>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#888" }}>
           <p>Loading deposit history...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="withdraw-history-empty">
-          <div className="withdraw-history-empty-icon">📜</div>
-          <p>No deposits found</p>
-          <span className="withdraw-history-empty-hint">
-            {methodFilter !== "all" || statusFilter !== "All" || dateFilter
-              ? "Try changing filters or pick another date."
-              : "Your deposit requests will appear here."}
-          </span>
-          <Link href="/wallet/deposit" className="withdraw-history-empty-link">
-            New deposit
-          </Link>
+        <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#888" }}>
+          <p style={{ fontSize: "1.1rem", margin: "0 0 0.5rem" }}>No deposits found</p>
+          <span style={{ fontSize: "0.82rem" }}>Your deposit transactions will appear here.</span>
         </div>
       ) : (
-        <ul className="withdraw-history-list">
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {filtered.map((d) => {
-            const methodMeta = getMethodMeta(d.method);
+            const orderNo = getDeterministicOrderNo(d);
+            const isPending = d.status === "pending";
 
             return (
-              <li key={d._id} className="withdraw-history-card">
-                <div className="withdraw-history-card-icon">{methodMeta.icon}</div>
-                <div className="withdraw-history-card-body">
-                  <div className="withdraw-history-card-top">
-                    <strong>₹{formatAmount(d.amount)}</strong>
-                    <span className={`withdraw-history-status ${d.status}`}>
-                      {formatStatus(d.status)}
+              <div key={d._id} style={{ background: "#121212", border: "1px solid #222", borderRadius: "14px", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "10px" }}>
+                
+                {/* TOP HEADER */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ background: "#00a685", color: "#ffffff", padding: "3px 9px", borderRadius: "6px", fontSize: "0.75rem", fontWeight: "bold" }}>
+                    Deposit
+                  </span>
+                  <span style={{
+                    color: d.status === "approved" ? "#00a685" : d.status === "rejected" ? "#ef4444" : "#ffb020",
+                    fontSize: "0.85rem",
+                    fontWeight: "bold"
+                  }}>
+                    {d.status === "approved" ? "Completed" : d.status === "rejected" ? "Rejected" : "To Be Paid"}
+                  </span>
+                </div>
+
+                {/* DETAILS ROWS */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "9px", borderTop: "1px solid #1e1e1e", paddingTop: "9px", marginTop: "2px" }}>
+                  
+                  {/* BALANCE */}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.88rem" }}>
+                    <span style={{ color: "#888888" }}>Balance</span>
+                    <span style={{ color: "var(--theme-gold-bright, #D4AF37)", fontWeight: "bold" }}>₹{formatAmount(d.amount)}</span>
+                  </div>
+
+                  {/* TYPE */}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.88rem" }}>
+                    <span style={{ color: "#888888" }}>Type</span>
+                    <span style={{ color: "#dddddd" }}>
+                      {String(d.channel).toUpperCase() === "BEP20" ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)"}
                     </span>
                   </div>
-                  <span className="withdraw-history-method">{methodMeta.label}</span>
-                  {d.reference ? (
-                    <span className="withdraw-history-account">UTR · {d.reference}</span>
-                  ) : null}
-                  {d.hasProof || d.proofUrl ? (
-                    <button
-                      type="button"
-                      className="withdraw-history-proof-btn"
-                      onClick={() =>
-                        setProofPreview({
-                          depositId: d._id,
-                          proofUrl: d.proofKind === "legacy" ? d.proofUrl : null,
-                          title: `Deposit proof · ₹${formatAmount(d.amount)}`,
-                        })
-                      }
-                    >
-                      View payment proof
-                    </button>
-                  ) : (
-                    <span className="withdraw-history-no-proof">No proof uploaded</span>
-                  )}
-                  <small>{new Date(d.createdAt).toLocaleString("en-IN")}</small>
+
+                  {/* TIME */}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.88rem" }}>
+                    <span style={{ color: "#888888" }}>Time</span>
+                    <span style={{ color: "#dddddd" }}>{new Date(d.createdAt).toLocaleString("en-IN")}</span>
+                  </div>
+
+                  {/* ORDER NUMBER */}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.88rem" }}>
+                    <span style={{ color: "#888888" }}>Order number</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ color: "#cccccc", fontFamily: "monospace", fontSize: "0.82rem" }}>{orderNo}</span>
+                      <button onClick={() => copyText(orderNo)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: 0 }} aria-label="Copy Order ID">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
-              </li>
+
+                {/* VIEW PROOF OR SUBMIT RECEIPT */}
+                {isPending ? (
+                  <button
+                    onClick={() => handleSubmitReceipt(d)}
+                    style={{
+                      background: "#00a685",
+                      color: "#ffffff",
+                      border: "none",
+                      borderRadius: "10px",
+                      padding: "0.85rem",
+                      fontWeight: "bold",
+                      fontSize: "0.9rem",
+                      cursor: "pointer",
+                      width: "100%",
+                      marginTop: "6px",
+                      textAlign: "center"
+                    }}
+                  >
+                    Submit Receipt
+                  </button>
+                ) : d.proofImage ? (
+                  <button
+                    onClick={() => setProofPreview({
+                      depositId: d._id,
+                      proofUrl: d.proofImage,
+                      title: `Deposit proof · ₹${formatAmount(d.amount)}`,
+                    })}
+                    style={{
+                      background: "#222",
+                      color: "#ccc",
+                      border: "none",
+                      borderRadius: "10px",
+                      padding: "0.6rem",
+                      fontWeight: "bold",
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      width: "100%",
+                      marginTop: "6px"
+                    }}
+                  >
+                    View payment proof
+                  </button>
+                ) : null}
+
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
 
       <ProofPreviewModal
