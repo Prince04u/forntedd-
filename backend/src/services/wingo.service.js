@@ -154,8 +154,11 @@ const resolvePeriod = async (duration, period) => {
         }
       }
 
+      const tax = bet.amount * 0.02;
+      const amountAfterTax = bet.amount - tax;
+
       if (won) {
-        const winAmount = bet.amount * multiplier;
+        const winAmount = amountAfterTax * multiplier;
         const wallet = await Wallet.findOne({ user: bet.user });
 
         if (wallet) {
@@ -179,6 +182,7 @@ const resolvePeriod = async (duration, period) => {
           bet.state = "won";
           bet.winAmount = winAmount;
           bet.payoutRatio = multiplier;
+          bet.details = { ...bet.details, tax, amountAfterTax, won: true };
           await bet.save();
 
           // Push balance adjustments to player
@@ -190,6 +194,7 @@ const resolvePeriod = async (duration, period) => {
       } else {
         bet.state = "lost";
         bet.winAmount = 0;
+        bet.details = { ...bet.details, tax, amountAfterTax, won: false };
         await bet.save();
       }
     }

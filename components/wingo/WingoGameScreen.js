@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { getSocket } from "@/lib/socket";
 import {
@@ -47,6 +47,11 @@ export default function WingoGameScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [gameHistoryPage, setGameHistoryPage] = useState(1);
+  const [expandedBetId, setExpandedBetId] = useState(null);
+  const [outcomePopup, setOutcomePopup] = useState(null);
+  const [popupCountdown, setPopupCountdown] = useState(3);
 
   const [betSheet, setBetSheet] = useState(null);
   const [baseAmount, setBaseAmount] = useState(1);
@@ -76,7 +81,7 @@ export default function WingoGameScreen() {
       const [balanceRes, periodRes, resultsRes, betsRes] = await Promise.all([
         getBalance(),
         getCurrentPeriod(duration),
-        getRecentResults(duration, 20),
+        getRecentResults(duration, 50),
         getMyBets({ limit: 20, duration }),
       ]);
       setBalance(balanceRes.data.balance);
@@ -89,13 +94,36 @@ export default function WingoGameScreen() {
   }, [duration]);
 
   const handleRefreshBalance = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
     try {
       const balanceRes = await getBalance();
       setBalance(balanceRes.data.balance);
     } catch (err) {
       console.error("Failed to refresh balance", err);
+    } finally {
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 800);
     }
   };
+
+  // Popup auto-close countdown timer effect
+  useEffect(() => {
+    if (!outcomePopup) return;
+    setPopupCountdown(3);
+    const popTimer = setInterval(() => {
+      setPopupCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(popTimer);
+          setOutcomePopup(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(popTimer);
+  }, [outcomePopup]);
 
   useEffect(() => {
     setMounted(true);
@@ -138,7 +166,27 @@ export default function WingoGameScreen() {
 
     const onResult = (data) => {
       if (data.duration === duration) {
-        loadData();
+        setTimeout(async () => {
+          await loadData();
+          try {
+            const betsRes = await getMyBets({ limit: 5, duration });
+            const myBetsList = betsRes.data?.bets || [];
+            const resolvedBet = myBetsList.find((b) => String(b.periodId) === String(data.periodId));
+            if (resolvedBet) {
+              setOutcomePopup({
+                show: true,
+                type: resolvedBet.state === "won" ? "win" : "lose",
+                amount: resolvedBet.state === "won" ? resolvedBet.winAmount : resolvedBet.amount,
+                periodId: resolvedBet.periodId,
+                number: data.result.number,
+                colors: data.result.colors,
+                size: data.result.size,
+              });
+            }
+          } catch (e) {
+            console.error("Failed to check resolved bet:", e);
+          }
+        }, 1000);
       }
     };
 
@@ -298,20 +346,41 @@ export default function WingoGameScreen() {
               <button
                 type="button"
                 onClick={handleRefreshBalance}
+                className={`wg-balance-refresh-btn ${refreshing ? "spinning" : ""}`}
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#D4AF37",
+                  color: "var(--gold)",
                   cursor: "pointer",
-                  fontSize: "1.1rem",
-                  padding: "2px",
-                  lineHeight: 1,
+                  padding: "0",
                   display: "inline-flex",
-                  alignItems: "center"
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "24px",
+                  height: "24px",
+                  transition: "all 0.5s ease",
+                  outline: "none"
                 }}
                 title="Refresh Balance"
               >
-                🔄
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    transform: refreshing ? "rotate(360deg)" : "rotate(0deg)",
+                    transition: refreshing ? "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
+                  }}
+                >
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
               </button>
             </span>
             <div className="wg-wallet-amount">
@@ -453,34 +522,66 @@ export default function WingoGameScreen() {
       {/* History content */}
       <section className="wg-history-panel">
         {historyTab === "game" && (
-          <table className="wg-table">
-            <thead>
-              <tr>
-                <th>Period</th>
-                <th>Number</th>
-                <th>Big/Small</th>
-                <th>Color</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((r) => (
-                <tr key={r.periodId}>
-                  <td className="wg-period-cell">{r.periodId?.slice(-8)}</td>
-                  <td>
-                    <span className={`wg-table-num ${colorClass(r.resultNumber)}`}>{r.resultNumber}</span>
-                  </td>
-                  <td>{getSize(r.resultNumber)}</td>
-                  <td>
-                    <div className="wg-color-dots">
-                      {getColorDots(r.resultNumber).map((c) => (
-                        <span key={c} className={`wg-dot ${c}`} />
-                      ))}
-                    </div>
-                  </td>
+          <>
+            <table className="wg-table">
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th>Number</th>
+                  <th>Big/Small</th>
+                  <th>Color</th>
                 </tr>
+              </thead>
+              <tbody>
+                {results.slice((gameHistoryPage - 1) * 10, gameHistoryPage * 10).map((r) => (
+                  <tr key={r.periodId}>
+                    <td className="wg-period-cell">{r.periodId?.slice(-8)}</td>
+                    <td>
+                      <span className={`wg-table-num ${colorClass(r.resultNumber)}`}>{r.resultNumber}</span>
+                    </td>
+                    <td>{getSize(r.resultNumber)}</td>
+                    <td>
+                      <div className="wg-color-dots">
+                        {getColorDots(r.resultNumber).map((c) => (
+                          <span key={c} className={`wg-dot ${c}`} />
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls (Pages 1 to 5) */}
+            <div className="wg-pagination">
+              <button
+                type="button"
+                onClick={() => setGameHistoryPage((prev) => Math.max(1, prev - 1))}
+                disabled={gameHistoryPage === 1}
+                className="wg-page-btn"
+              >
+                ‹
+              </button>
+              {[1, 2, 3, 4, 5].map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setGameHistoryPage(p)}
+                  className={`wg-page-btn ${gameHistoryPage === p ? "active" : ""}`}
+                >
+                  {p}
+                </button>
               ))}
-            </tbody>
-          </table>
+              <button
+                type="button"
+                onClick={() => setGameHistoryPage((prev) => Math.min(5, prev + 1))}
+                disabled={gameHistoryPage === 5}
+                className="wg-page-btn"
+              >
+                ›
+              </button>
+            </div>
+          </>
         )}
 
         {historyTab === "chart" && (
@@ -507,18 +608,122 @@ export default function WingoGameScreen() {
               {myBetsForDuration.length === 0 ? (
                 <tr><td colSpan={4} className="wg-empty">No bets yet for {durationMeta.short}</td></tr>
               ) : (
-                myBetsForDuration.map((bet) => (
-                  <tr key={bet._id}>
-                    <td className="wg-period-cell">{bet.periodId?.slice(-8)}</td>
-                    <td>
-                      <span className={`wg-my-bet-label wg-my-bet-${getBetTheme(bet.betType, bet.betValue)}`}>
-                        {formatBetLabel(bet.betType, bet.betValue)}
-                      </span>
-                    </td>
-                    <td>₹{bet.amount}</td>
-                    <td className={`wg-status-${bet.status}`}>{bet.status}</td>
-                  </tr>
-                ))
+                myBetsForDuration.map((bet) => {
+                  const isExpanded = expandedBetId === bet._id;
+                  const isWin = bet.status === "won";
+                  const copyOrderId = (e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(bet.orderNumber || "");
+                    alert("Order number copied successfully!");
+                  };
+
+                  return (
+                    <React.Fragment key={bet._id}>
+                      <tr
+                        onClick={() => setExpandedBetId(isExpanded ? null : bet._id)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <td className="wg-period-cell">
+                          {bet.periodId?.slice(-8)} {isExpanded ? "▲" : "▼"}
+                        </td>
+                        <td>
+                          <span className={`wg-my-bet-label wg-my-bet-${getBetTheme(bet.betType, bet.betValue)}`}>
+                            {formatBetLabel(bet.betType, bet.betValue)}
+                          </span>
+                        </td>
+                        <td>₹{bet.amount.toFixed(2)}</td>
+                        <td className={`wg-status-${bet.status}`}>
+                          <span className={`badge badge-${isWin ? "success" : bet.status === "pending" ? "warning" : "danger"}`} style={{ display: "inline-block", padding: "0.2rem 0.5rem", borderRadius: "6px", fontSize: "0.75rem" }}>
+                            {isWin ? "Succeed" : bet.status === "pending" ? "Pending" : "Failed"}
+                          </span>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="wg-details-row">
+                          <td colSpan={4}>
+                            <div className="wg-details-card">
+                              <div className="wg-details-title">Details</div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Order number</span>
+                                <span className="wg-details-val" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                  {bet.orderNumber || "—"}
+                                  <button
+                                    type="button"
+                                    onClick={copyOrderId}
+                                    style={{ background: "none", border: "none", color: "var(--gold)", cursor: "pointer", fontSize: "0.95rem" }}
+                                    title="Copy Order Number"
+                                  >
+                                    📋
+                                  </button>
+                                </span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Period</span>
+                                <span className="wg-details-val">{bet.periodId}</span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Purchase amount</span>
+                                <span className="wg-details-val">₹{bet.amount.toFixed(2)}</span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Quantity</span>
+                                <span className="wg-details-val">{bet.amount / baseAmount || 1}</span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Amount after tax</span>
+                                <span className="wg-details-val" style={{ color: "#ef4444" }}>
+                                  ₹{(bet.amountAfterTax || bet.amount * 0.98).toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Tax</span>
+                                <span className="wg-details-val">₹{(bet.tax || bet.amount * 0.02).toFixed(2)}</span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Result</span>
+                                <span className="wg-details-val">
+                                  {bet.resultNumber !== null && bet.resultNumber !== undefined ? (
+                                    <>
+                                      <span style={{ marginRight: "6px", fontWeight: "800" }}>{bet.resultNumber}</span>
+                                      <span style={{ textTransform: "capitalize", color: bet.resultColors?.includes("red") ? "#ef4444" : "#22c55e", marginRight: "6px" }}>
+                                        {bet.resultColors?.join("/")}
+                                      </span>
+                                      <span style={{ textTransform: "capitalize", color: "var(--gold)" }}>
+                                        {bet.resultSize}
+                                      </span>
+                                    </>
+                                  ) : "Pending"}
+                                </span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Select</span>
+                                <span className="wg-details-val" style={{ textTransform: "capitalize" }}>
+                                  {formatBetLabel(bet.betType, bet.betValue)}
+                                </span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Status</span>
+                                <span className="wg-details-val" style={{ color: isWin ? "#22c55e" : bet.status === "pending" ? "var(--gold)" : "#ef4444" }}>
+                                  {isWin ? "Succeed" : bet.status === "pending" ? "Pending" : "Failed"}
+                                </span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Win/lose</span>
+                                <span className={`wg-details-val ${isWin ? "wg-status-won" : "wg-status-lost"}`} style={{ color: isWin ? "#22c55e" : "#ef4444", fontWeight: "800" }}>
+                                  {isWin ? `+ ₹${bet.winAmount.toFixed(2)}` : `- ₹${bet.amount.toFixed(2)}`}
+                                </span>
+                              </div>
+                              <div className="wg-details-item">
+                                <span className="wg-details-label">Order time</span>
+                                <span className="wg-details-val">{new Date(bet.createdAt).toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -637,6 +842,271 @@ export default function WingoGameScreen() {
       )}
 
       <PreSaleRulesModal open={rulesOpen} onClose={closeRules} payouts={wingoPayouts} />
+
+      {/* Outcome announcement Win/Loss popup modal */}
+      {outcomePopup && (
+        <div className="wg-popup-overlay" onClick={() => setOutcomePopup(null)}>
+          <div className="wg-popup-card" onClick={(e) => e.stopPropagation()}>
+            <div className={`wg-popup-banner ${outcomePopup.type}`}>
+              <div className="wg-popup-rocket">🚀</div>
+              <h3 className="wg-popup-title">
+                {outcomePopup.type === "win" ? "Congratulations" : "Sorry"}
+              </h3>
+            </div>
+            <div className="wg-popup-body">
+              <div className="wg-popup-results">
+                <span style={{ fontSize: "0.8rem", color: "#9ca3af", marginRight: "2px" }}>Lottery results:</span>
+                {outcomePopup.colors?.map((col) => (
+                  <span key={col} className={`wg-popup-badge ${col}`} style={{ textTransform: "capitalize", padding: "2px 8px", borderRadius: "10px", fontSize: "0.75rem", background: col === "red" ? "#ef4444" : col === "green" ? "#22c55e" : "#a855f7" }}>
+                    {col}
+                  </span>
+                ))}
+                <span className="wg-popup-badge number" style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.75rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                  {outcomePopup.number}
+                </span>
+                <span className="wg-popup-badge size" style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.75rem", background: "rgba(212,175,55,0.15)", color: "var(--gold)", border: "1px solid rgba(212,175,55,0.3)" }}>
+                  {outcomePopup.size}
+                </span>
+              </div>
+
+              <div className="wg-popup-amount-box">
+                {outcomePopup.type === "win" ? (
+                  <>
+                    <div className="wg-popup-amount-label">Bonus</div>
+                    <div className="wg-popup-amount-val win" style={{ fontSize: "2.2rem", fontWeight: "900" }}>
+                      ₹{outcomePopup.amount.toFixed(2)}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="wg-popup-amount-val lose" style={{ fontSize: "2.2rem", fontWeight: "900" }}>
+                      Lose
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="wg-popup-period" style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "15px" }}>
+                Period: WinGo {durationMeta.short} {outcomePopup.periodId}
+              </div>
+
+              <div className="wg-popup-close-timer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "0.8rem", color: "#9ca3af" }}>
+                <span className="wg-popup-close-circle" style={{ width: "12px", height: "12px", borderRadius: "50%", border: "2px solid var(--gold)", borderTopColor: "transparent", animation: "rotate 1s linear infinite" }}></span>
+                <span>{popupCountdown} seconds auto close</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        /* Refresh Button Spinning Keyframes */
+        .wg-balance-refresh-btn.spinning svg {
+          animation: balance-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        @keyframes balance-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        /* Details cards styling */
+        .wg-details-row {
+          background: rgba(255, 255, 255, 0.01) !important;
+        }
+        .wg-details-card {
+          background: #1e1e24;
+          border-radius: 12px;
+          border: 1px solid rgba(212, 175, 55, 0.1);
+          padding: 12px;
+          font-size: 0.85rem;
+          text-align: left;
+        }
+        .wg-details-title {
+          font-weight: bold;
+          color: var(--gold);
+          margin-bottom: 8px;
+          font-size: 0.95rem;
+        }
+        .wg-details-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 6px 0;
+          border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+        .wg-details-item:last-child {
+          border-bottom: none;
+        }
+        .wg-details-label {
+          color: #9ca3af;
+        }
+        .wg-details-val {
+          color: #ffffff;
+          font-weight: 600;
+        }
+
+        /* Pagination styling */
+        .wg-pagination {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 6px;
+          margin: 12px 0;
+        }
+        .wg-page-btn {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          color: #d1d5db;
+          font-size: 0.8rem;
+          border-radius: 6px;
+          width: 28px;
+          height: 28px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+        .wg-page-btn.active {
+          background: linear-gradient(135deg, var(--gold) 0%, #a88118 100%);
+          color: #111;
+          font-weight: bold;
+          border-color: var(--gold);
+        }
+        .wg-page-btn:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+
+        /* Outcome announcement win/loss popups overlay */
+        .wg-popup-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.8);
+          backdrop-filter: blur(4px);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: popup-fadein 0.3s ease;
+        }
+        @keyframes popup-fadein {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .wg-popup-card {
+          width: 320px;
+          background: #1c1c24;
+          border-radius: 28px;
+          overflow: hidden;
+          text-align: center;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          position: relative;
+          animation: popup-scaleup 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes popup-scaleup {
+          from { transform: scale(0.85); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        .wg-popup-banner {
+          padding: 30px 20px 20px 20px;
+          position: relative;
+        }
+        .wg-popup-banner.win {
+          background: linear-gradient(180deg, #ff8a00 0%, #ff3d00 100%);
+        }
+        .wg-popup-banner.lose {
+          background: linear-gradient(180deg, #5c7293 0%, #29384e 100%);
+        }
+        .wg-popup-rocket {
+          font-size: 3.5rem;
+          margin-bottom: 10px;
+          filter: drop-shadow(0 0 10px rgba(255,255,255,0.4));
+        }
+        .wg-popup-title {
+          font-size: 1.6rem;
+          font-weight: 800;
+          color: #fff;
+          margin: 0;
+        }
+        .wg-popup-body {
+          padding: 25px 20px;
+          background: #14141a;
+        }
+        .wg-popup-results {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .wg-popup-badge {
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: #fff;
+        }
+        .wg-popup-badge.red { background: #ef4444; }
+        .wg-popup-badge.green { background: #22c55e; }
+        .wg-popup-badge.violet { background: #a855f7; }
+        .wg-popup-badge.number { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); }
+        .wg-popup-badge.size { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--border-color); }
+        
+        .wg-popup-amount-box {
+          margin-bottom: 20px;
+        }
+        .wg-popup-amount-label {
+          font-size: 0.85rem;
+          color: #9ca3af;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .wg-popup-amount-val {
+          font-size: 2.2rem;
+          font-weight: 900;
+        }
+        .wg-popup-amount-val.win {
+          color: #ef4444;
+          background: linear-gradient(to right, #ff8a00, #ff2d2d);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        .wg-popup-amount-val.lose {
+          color: #ffffff;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        
+        .wg-popup-period {
+          font-size: 0.8rem;
+          color: #6b7280;
+          margin-bottom: 20px;
+        }
+        
+        .wg-popup-close-timer {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-size: 0.85rem;
+          color: #9ca3af;
+        }
+        .wg-popup-close-circle {
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          border: 2px solid var(--gold);
+          border-top-color: transparent;
+          animation: rotate 1s linear infinite;
+        }
+        @keyframes rotate {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </main>
   );
 }

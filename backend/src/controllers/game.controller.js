@@ -163,6 +163,11 @@ const getWingoBets = async (req, res, next) => {
           betType: bet.details ? bet.details.betType : "",
           betValue: bet.details ? bet.details.betValue : "",
           duration: durationSecs,
+          tax: bet.details && bet.details.tax !== undefined ? bet.details.tax : bet.amount * 0.02,
+          amountAfterTax: bet.details && bet.details.amountAfterTax !== undefined ? bet.details.amountAfterTax : bet.amount * 0.98,
+          orderNumber: `WG${bet.periodId}${String(bet._id).slice(-8)}`.toUpperCase(),
+          resultColors: periodObj && periodObj.result ? periodObj.result.colors : [],
+          resultSize: periodObj && periodObj.result ? periodObj.result.size : "",
         };
       })
     );
