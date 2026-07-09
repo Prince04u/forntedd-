@@ -304,11 +304,11 @@
 }
 
 .referral-stat-card--friends .referral-stat-icon {
-  color: #34d399;
+  color: var(--theme-gold-bright);
 }
 
 .referral-stat-card--friends strong {
-  color: #34d399;
+  color: var(--theme-gold-bright);
 }
 
 .referral-stat-card--wallet .referral-stat-icon {

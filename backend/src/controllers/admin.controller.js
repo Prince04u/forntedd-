@@ -14,6 +14,8 @@ const bcrypt = require("bcryptjs");
 const logger = require("../config/logger");
 const UsdtAddress = require("../models/UsdtAddress");
 
+const Bet = require("../models/Bet");
+
 const getUsers = async (req, res, next) => {
   try {
     const { search, page = 1, limit = 20 } = req.query;
@@ -33,7 +35,22 @@ const getUsers = async (req, res, next) => {
 
     const count = await User.countDocuments(query);
 
-    return res.json({ success: true, count, data: list });
+    const enrichedList = await Promise.all(
+      list.map(async (userDoc) => {
+        const u = userDoc.toObject();
+        const wallet = await Wallet.findOne({ user: u._id });
+        u.balance = wallet ? wallet.balance : 0;
+        u.referralsCount = await User.countDocuments({ referredBy: u._id });
+        const betsSum = await Bet.aggregate([
+          { $match: { user: u._id } },
+          { $group: { _id: null, total: { $sum: "$amount" } } }
+        ]);
+        u.totalPlayed = betsSum[0]?.total || 0;
+        return u;
+      })
+    );
+
+    return res.json({ success: true, count, data: enrichedList });
   } catch (error) {
     return next(error);
   }

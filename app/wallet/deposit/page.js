@@ -64,10 +64,11 @@ export default function DepositPage() {
     activeChannels.find((item) => item.id === channel) ||
     activeChannels[0] ||
     ({ id: "", label: "—", min: 1, max: 1, bonus: "", range: "", type: "upi", usdtRate: 88 });
+  const isCryptoRaw = selectedChannelRaw.type === "crypto";
   const selectedChannel = {
     ...selectedChannelRaw,
-    min: Math.max(Number(selectedChannelRaw.min || 1), platformDepositRules.minAmount),
-    max: Math.min(Number(selectedChannelRaw.max || platformDepositRules.maxAmount), platformDepositRules.maxAmount),
+    min: isCryptoRaw ? Number(selectedChannelRaw.min || 10) : Math.max(Number(selectedChannelRaw.min || 1), platformDepositRules.minAmount),
+    max: isCryptoRaw ? Number(selectedChannelRaw.max || 100000) : Math.min(Number(selectedChannelRaw.max || platformDepositRules.maxAmount), platformDepositRules.maxAmount),
   };
   const selectedMethod =
     activeMethods.find((item) => item.id === method) ||
@@ -227,7 +228,11 @@ export default function DepositPage() {
     ? USDT_PRESET_AMOUNTS
     : PRESET_AMOUNTS.filter((preset) => preset >= selectedChannel.min && preset <= selectedChannel.max);
 
-  const instructionList = isCrypto ? CRYPTO_RECHARGE_INSTRUCTIONS : RECHARGE_INSTRUCTIONS;
+  const isBep20 = selectedChannel?.label?.includes("BEP20") || selectedChannel?.id?.includes("bep20");
+  const networkName = isBep20 ? "BEP20" : "TRC20";
+  const instructionList = isCrypto
+    ? CRYPTO_RECHARGE_INSTRUCTIONS.map((item) => item.replace("TRC20", networkName))
+    : RECHARGE_INSTRUCTIONS;
 
   if (!mounted || optionsLoading) {
     return (

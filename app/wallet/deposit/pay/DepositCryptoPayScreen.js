@@ -57,7 +57,8 @@ export default function DepositCryptoPayScreen({
   const hasValidReference = trimmedReference.length >= 6; // USDT hash formats are flexible
   const hasValidProof = Boolean(proofPath);
   const walletAddress = paymentDetails?.walletAddress || "";
-  const networkLabel = paymentDetails?.networkLabel || "TRON(TRC-20)";
+  const isBep20 = channelId?.toLowerCase()?.includes("bep20") || channelLabel?.toUpperCase()?.includes("BEP20");
+  const networkLabel = paymentDetails?.networkLabel || (isBep20 ? "BSC(BEP-20)" : "TRON(TRC-20)");
 
   const canSubmit =
     amountUsdt > 0 &&

@@ -181,16 +181,18 @@ function WithdrawAccountsContent() {
               ) : item.icon === "upi" ? (
                 <DepositIcon id="upi-badge" size={22} className="withdraw-method-tab-icon" />
               ) : (
-                <span className="withdraw-method-tab-emoji" aria-hidden>
-                  💳
-                </span>
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none" className="withdraw-method-tab-icon" style={{ display: "inline-block", verticalAlign: "middle" }}>
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                  <line x1="7" y1="15" x2="11" y2="15" />
+                </svg>
               )}
               <strong>{item.label.toUpperCase()}</strong>
             </button>
           ))}
         </div>
       </section>
-
+ 
       {currentList.length > 0 ? (
         <section className="withdraw-section">
           <p className="withdraw-step-label">Saved accounts</p>
@@ -199,7 +201,9 @@ function WithdrawAccountsContent() {
               <div key={item.id} className="withdraw-linked-account withdraw-account-item">
                 {method === "bank" ? (
                   <>
-                    <span className="withdraw-linked-account-icon">🏦</span>
+                    <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" strokeWidth="2" fill="none" className="withdraw-linked-account-icon-svg" style={{ color: "var(--theme-gold, #D4AF37)", marginRight: "12px", flexShrink: 0 }}>
+                      <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
+                    </svg>
                     <div className="withdraw-linked-account-copy">
                       <strong>{item.accountName}</strong>
                       <small>{maskAccountNumber(item.accountNumber)} · {item.ifsc}</small>

@@ -136,7 +136,12 @@ export default function WithdrawHistoryPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="withdraw-history-empty">
-          <div className="withdraw-history-empty-icon">📋</div>
+          <div className="withdraw-history-empty-icon" style={{ display: "flex", justifyContent: "center" }}>
+            <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" strokeWidth="1.5" fill="none" style={{ color: "var(--theme-text-dim, #666)", margin: "0 auto 0.5rem" }}>
+              <path d="M8 5.5h8v13H8V5.5Z" />
+              <path d="M10 9.5h4M10 12h4M10 14.5h3" strokeLinecap="round" />
+            </svg>
+          </div>
           <p>No withdrawal requests found</p>
           <span className="withdraw-history-empty-hint">
             {statusFilter !== "All" || dateFilter

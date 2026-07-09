@@ -564,6 +564,9 @@
               <tr>
                 <th>Name</th>
                 <th>Mobile</th>
+                <th>Balance</th>
+                <th>Invited (Refs)</th>
+                <th>Total Wagered</th>
                 <th>Role</th>
                 <th>Joined</th>
                 <th>Status</th>
@@ -928,6 +931,9 @@
             tr.innerHTML = `
               <td>${user.name}</td>
               <td>${user.mobile}</td>
+              <td style="font-weight:bold;color:#22c55e;">₹${(user.balance || 0).toFixed(2)}</td>
+              <td style="text-align:center;font-weight:bold;color:#3b82f6;">${user.referralsCount || 0}</td>
+              <td style="font-weight:bold;color:#eab308;">₹${(user.totalPlayed || 0).toFixed(2)}</td>
               <td>${user.role}</td>
               <td>${new Date(user.createdAt).toLocaleDateString()}</td>
               <td>
