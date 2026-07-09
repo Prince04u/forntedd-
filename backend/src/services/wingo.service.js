@@ -98,10 +98,70 @@ const resolvePeriod = async (duration, period) => {
     const dbPeriod = await Period.findById(period._id);
     if (!dbPeriod) return;
 
+    // Fetch pending bets for this round first
+    const bets = await Bet.find({
+      game: "wingo",
+      periodId: period.periodId,
+      state: "pending",
+    });
+
     // Determine final number result
     let number = Math.floor(Math.random() * 10);
+
     if (dbPeriod.resultOverridden && dbPeriod.overrideResult !== null && dbPeriod.overrideResult !== undefined) {
       number = Number(dbPeriod.overrideResult);
+    } else if (bets.length > 0) {
+      // Controlled Win/Loss Engine (30% Win / 70% Loss)
+      const roll = Math.random();
+      const greenNums = [1, 3, 5, 7, 9];
+      const redNums = [0, 2, 4, 6, 8];
+      const violetNums = [0, 5];
+      const isWinResult = roll < 0.30;
+
+      if (isWinResult) {
+        // 30% chance: pick an active player bet and force it to win
+        const randomBet = bets[Math.floor(Math.random() * bets.length)];
+        const { betType, betValue } = randomBet.details;
+
+        if (betType === "number") {
+          number = Number(betValue);
+        } else if (betType === "big_small") {
+          const possibleNums = betValue === "big" ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4];
+          number = possibleNums[Math.floor(Math.random() * possibleNums.length)];
+        } else if (betType === "color") {
+          let possibleNums = [];
+          if (betValue === "green") possibleNums = greenNums;
+          else if (betValue === "red") possibleNums = redNums;
+          else possibleNums = violetNums;
+          number = possibleNums[Math.floor(Math.random() * possibleNums.length)];
+        }
+      } else {
+        // 70% chance: pick a candidate number that does not trigger any winning condition
+        const candidates = [];
+        for (let n = 0; n <= 9; n++) {
+          const nColors = n === 0 ? ["red", "violet"] : n === 5 ? ["green", "violet"] : [1, 3, 7, 9].includes(n) ? ["green"] : ["red"];
+          const nSize = n <= 4 ? "small" : "big";
+
+          let wouldWin = false;
+          for (const b of bets) {
+            const { betType, betValue } = b.details;
+            if (betType === "number" && Number(betValue) === n) {
+              wouldWin = true;
+            } else if (betType === "big_small" && betValue === nSize) {
+              wouldWin = true;
+            } else if (betType === "color" && nColors.includes(betValue)) {
+              wouldWin = true;
+            }
+          }
+          if (!wouldWin) {
+            candidates.push(n);
+          }
+        }
+
+        if (candidates.length > 0) {
+          number = candidates[Math.floor(Math.random() * candidates.length)];
+        }
+      }
     }
 
     // Set colors & sizes
@@ -120,13 +180,6 @@ const resolvePeriod = async (duration, period) => {
     await dbPeriod.save();
 
     logger.info(`Wingo period ${dbPeriod.periodId} resolved: ${JSON.stringify(finalResult)}`);
-
-    // Settle bets placed on this round
-    const bets = await Bet.find({
-      game: "wingo",
-      periodId: period.periodId,
-      state: "pending",
-    });
 
     for (const bet of bets) {
       const { betType, betValue } = bet.details;
