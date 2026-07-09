@@ -1,6 +1,7 @@
 const PlatformConfig = require("../models/PlatformConfig");
 const PromoBanner = require("../models/PromoBanner");
 const Announcement = require("../models/Announcement");
+const UsdtAddress = require("../models/UsdtAddress");
 
 const getPlatformStatus = async (req, res, next) => {
   try {
@@ -19,20 +20,34 @@ const getPlatformStatus = async (req, res, next) => {
 
 const getDepositPayment = async (req, res, next) => {
   try {
+    const channelId = req.query.channel || "usdt-trc20";
+    const isBep20 = channelId.includes("bep20");
+    const network = isBep20 ? "BEP20" : "TRC20";
+    const networkLabel = isBep20 ? "BSC (BEP20)" : "Tron (TRC20)";
+
     const config = await PlatformConfig.findOne() || new PlatformConfig();
-    const channels = [];
 
-    if (config.enableTRC20) {
-      channels.push({ network: "TRC20", address: config.usdt_trc20, minDeposit: 10 });
-    }
-    if (config.enableBEP20) {
-      channels.push({ network: "BEP20", address: config.usdt_bep20, minDeposit: 10 });
-    }
-    if (config.enableERC20) {
-      channels.push({ network: "ERC20", address: config.usdt_erc20, minDeposit: 50 });
+    // Fetch active bulk addresses for this network
+    const activeAddresses = await UsdtAddress.find({ network, active: true });
+    
+    let walletAddress = isBep20 ? config.usdt_bep20 : config.usdt_trc20;
+
+    // Pick one randomly if bulk entries are present
+    if (activeAddresses.length > 0) {
+      const randomIndex = Math.floor(Math.random() * activeAddresses.length);
+      walletAddress = activeAddresses[randomIndex].address;
     }
 
-    return res.json({ success: true, data: channels });
+    return res.json({
+      success: true,
+      data: {
+        type: "crypto",
+        walletAddress: walletAddress,
+        networkLabel: networkLabel,
+        usdtRate: 91,
+        channelLabel: isBep20 ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)"
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -109,9 +124,21 @@ const getDiceConfig = async (req, res, next) => {
 const getDepositOptions = async (req, res) => {
   return res.json({
     success: true,
-    data: [
-      { id: "usdt", name: "USDT Crypto Wallet", image: "/design/promo-cards/deposit.png" },
-    ],
+    data: {
+      disabledMessage: "Not available right now. Please deposit using USDT.",
+      methods: [
+        { id: "upi_qr", label: "UPI-QR", icon: "upi", enabled: false, disabledMessage: "Not available right now" },
+        { id: "upi_x_qr", label: "UPI x QR", icon: "upi", enabled: false, disabledMessage: "Not available right now" },
+        { id: "ewallet", label: "E-Wallet", icon: "wallet", enabled: false, disabledMessage: "Not available right now" },
+        { id: "paytm_qr", label: "Paytm x QR", icon: "paytm", enabled: false, disabledMessage: "Not available right now" },
+        { id: "usdt_trc20", label: "USDT-TRC20", icon: "usdt", enabled: true, channelId: "usdt-trc20", badge: "Hot" },
+        { id: "usdt_bep20", label: "USDT-BEP20", icon: "usdt", enabled: true, channelId: "usdt-bep20", badge: "Fast" }
+      ],
+      channels: [
+        { id: "usdt-trc20", label: "TronPay-USDT (TRC20)", type: "crypto", enabled: true, min: 10, max: 100000, usdtRate: 91, range: "10 - 100K USDT", icon: "usdt" },
+        { id: "usdt-bep20", label: "Binance-USDT (BEP20)", type: "crypto", enabled: true, min: 10, max: 100000, usdtRate: 91, range: "10 - 100K USDT", icon: "usdt" }
+      ]
+    }
   });
 };
 

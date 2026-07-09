@@ -644,3 +644,152 @@
   font-size: 0.75rem;
   color: #dc2626;
 }
+
+/* ===== LUCKY NOVA DARK GOLD OVERRIDES ===== */
+.arupi-pay-page {
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+.arupi-pay-header {
+  background: var(--theme-bg-soft);
+  border-bottom: 1px solid var(--theme-border-muted);
+}
+.arupi-pay-header h1 {
+  color: var(--theme-text);
+}
+.arupi-pay-back {
+  color: var(--theme-text-secondary);
+}
+.arupi-pay-amount-bar {
+  background: var(--theme-bg-soft);
+  border-bottom: 1px solid var(--theme-border-muted);
+}
+.arupi-pay-amount-left strong {
+  color: var(--theme-gold-bright);
+}
+.arupi-pay-copy-icon {
+  background: var(--theme-bg-muted);
+  color: var(--theme-gold);
+}
+.arupi-section-title {
+  color: var(--theme-text-secondary);
+}
+.arupi-section-title::before {
+  color: var(--theme-gold);
+}
+.arupi-order-row {
+  background: var(--theme-bg-soft);
+  border: 1px solid var(--theme-green-border);
+  color: var(--theme-text-muted);
+}
+.arupi-order-row strong {
+  color: var(--theme-text-secondary);
+}
+.arupi-usdt-amount-card {
+  background: var(--theme-bg-soft);
+  border: 1px solid var(--theme-green-border);
+}
+.arupi-usdt-amount strong {
+  color: var(--theme-gold-bright);
+}
+.arupi-usdt-amount span {
+  color: var(--theme-text-muted);
+}
+.arupi-usdt-inr-note {
+  color: var(--theme-text-secondary);
+}
+.arupi-copy-btn {
+  background: var(--theme-gold);
+  color: var(--theme-bg-soft);
+}
+.arupi-copy-btn:hover {
+  filter: brightness(1.08);
+}
+.arupi-qr-box {
+  background: var(--theme-bg-soft);
+  border: 1px solid var(--theme-green-border);
+}
+.arupi-qr-steps {
+  color: var(--theme-text-muted);
+}
+.arupi-network-badge {
+  background: var(--theme-bg-muted);
+  border: 1px solid var(--theme-border-gold);
+  color: var(--theme-gold);
+}
+.arupi-address-field input {
+  background: var(--theme-bg-input);
+  color: var(--theme-text);
+  border: 1px solid var(--theme-border-muted);
+}
+.arupi-utr-field {
+  background: var(--theme-bg-input);
+  border-color: var(--theme-border-muted);
+  box-shadow: none;
+}
+.arupi-utr-field input {
+  color: var(--theme-text);
+}
+.arupi-utr-paste {
+  background: var(--theme-gold);
+  color: var(--theme-bg-soft);
+}
+.arupi-proof-upload-btn {
+  background: var(--theme-bg-input);
+  color: var(--theme-text-muted);
+  border-color: var(--theme-border-gold);
+}
+.arupi-proof-upload-btn:hover {
+  color: var(--theme-gold-bright);
+}
+.arupi-reminders {
+  background: var(--theme-bg-soft);
+  border: 1px solid var(--theme-green-border);
+}
+.arupi-reminders li {
+  color: var(--theme-text-muted);
+}
+.arupi-pay-footer {
+  background: var(--theme-bg-soft);
+  border-top: 1px solid var(--theme-border-muted);
+  box-shadow: none;
+}
+.arupi-pay-cancel {
+  background: var(--theme-btn-muted);
+  color: var(--theme-text-secondary);
+}
+.arupi-pay-submit {
+  background: var(--theme-bg-muted);
+  color: var(--theme-text-dim);
+}
+.arupi-pay-submit.ready {
+  background: var(--theme-gold);
+  color: var(--theme-bg-soft);
+}
+.arupi-success-card {
+  background: var(--theme-bg-soft);
+  border: 1px solid var(--theme-green-border);
+}
+.arupi-success-card h2 {
+  color: var(--theme-text);
+}
+.arupi-success-card p {
+  color: var(--theme-text-muted);
+}
+.arupi-success-secondary {
+  background: var(--theme-btn-muted);
+  color: var(--theme-text-secondary);
+}
+.arupi-success-primary {
+  background: var(--theme-gold);
+  color: var(--theme-bg-soft);
+}
+.arupi-success-icon {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--theme-gold);
+}
+.arupi-proof-clear-btn {
+  background: var(--theme-btn-muted);
+  color: var(--theme-text-secondary);
+  border: none;
+}

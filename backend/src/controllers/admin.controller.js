@@ -695,9 +695,39 @@ const addUsdtAddress = async (req, res, next) => {
     const { address, network, label } = req.body;
     if (!address) return res.status(400).json({ message: "Address is required." });
 
-    const newAddr = new UsdtAddress({ address, network: network || "TRC20", label: label || "" });
-    await newAddr.save();
-    return res.status(201).json({ success: true, message: "USDT Address added successfully.", data: newAddr });
+    // Support bulk add by splitting on newlines, commas, or semicolons
+    let addresses = [];
+    if (Array.isArray(address)) {
+      addresses = address;
+    } else if (typeof address === "string") {
+      addresses = address
+        .split(/[\n,;]+/)
+        .map((a) => a.trim())
+        .filter((a) => a.length > 0);
+    }
+
+    if (addresses.length === 0) {
+      return res.status(400).json({ message: "No valid addresses provided." });
+    }
+
+    const savedDocs = [];
+    for (const addrStr of addresses) {
+      const newAddr = new UsdtAddress({
+        address: addrStr,
+        network: network || "TRC20",
+        label: label || "",
+        active: true,
+        isActive: true,
+      });
+      await newAddr.save();
+      savedDocs.push(newAddr);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: `Successfully added ${savedDocs.length} USDT Address(es).`,
+      data: savedDocs,
+    });
   } catch (error) {
     return next(error);
   }
@@ -719,9 +749,14 @@ const toggleUsdtAddress = async (req, res, next) => {
     const addr = await UsdtAddress.findById(id);
     if (!addr) return res.status(404).json({ message: "USDT Address not found." });
 
-    addr.isActive = !addr.isActive;
+    addr.active = !addr.active;
+    addr.isActive = addr.active;
     await addr.save();
-    return res.json({ success: true, message: `USDT Address status changed to ${addr.isActive ? 'Active' : 'Inactive'}.`, data: addr });
+    return res.json({
+      success: true,
+      message: `USDT Address status changed to ${addr.active ? "Active" : "Inactive"}.`,
+      data: addr,
+    });
   } catch (error) {
     return next(error);
   }
