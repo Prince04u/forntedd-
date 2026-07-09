@@ -26,6 +26,10 @@ const {
   getSupportTickets,
   replySupportTicket,
   getAnalytics,
+  getUsdtAddresses,
+  addUsdtAddress,
+  deleteUsdtAddress,
+  toggleUsdtAddress,
 } = require("../controllers/admin.controller");
 const { protect, adminOnly } = require("../middlewares/auth");
 
@@ -51,6 +55,11 @@ router.patch("/withdrawals/:id", processWithdrawalApproval);
 
 router.get("/config/usdt", getUsdtSettings);
 router.patch("/config/usdt", updateUsdtSettings);
+
+router.get("/config/usdt/addresses", getUsdtAddresses);
+router.post("/config/usdt/addresses", addUsdtAddress);
+router.delete("/config/usdt/addresses/:id", deleteUsdtAddress);
+router.patch("/config/usdt/addresses/:id/toggle", toggleUsdtAddress);
 
 router.get("/config/withdraw", getWithdrawSettings);
 router.patch("/config/withdraw", updateWithdrawSettings);

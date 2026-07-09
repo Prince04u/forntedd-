@@ -12,6 +12,7 @@ const Feedback = require("../models/Feedback");
 const { sendToUser } = require("../services/socket.service");
 const bcrypt = require("bcryptjs");
 const logger = require("../config/logger");
+const UsdtAddress = require("../models/UsdtAddress");
 
 const getUsers = async (req, res, next) => {
   try {
@@ -680,6 +681,52 @@ const getAnalytics = async (req, res, next) => {
   }
 };
 
+const getUsdtAddresses = async (req, res, next) => {
+  try {
+    const list = await UsdtAddress.find().sort({ createdAt: -1 });
+    return res.json({ success: true, data: list });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const addUsdtAddress = async (req, res, next) => {
+  try {
+    const { address, network } = req.body;
+    if (!address) return res.status(400).json({ message: "Address is required." });
+
+    const newAddr = new UsdtAddress({ address, network: network || "TRC20" });
+    await newAddr.save();
+    return res.status(201).json({ success: true, message: "USDT Address added successfully.", data: newAddr });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteUsdtAddress = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await UsdtAddress.findByIdAndDelete(id);
+    return res.json({ success: true, message: "USDT Address deleted successfully." });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const toggleUsdtAddress = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const addr = await UsdtAddress.findById(id);
+    if (!addr) return res.status(404).json({ message: "USDT Address not found." });
+
+    addr.isActive = !addr.isActive;
+    await addr.save();
+    return res.json({ success: true, message: `USDT Address status changed to ${addr.isActive ? 'Active' : 'Inactive'}.`, data: addr });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getUsers,
   getUserProfile,
@@ -707,4 +754,8 @@ module.exports = {
   getSupportTickets,
   replySupportTicket,
   getAnalytics,
+  getUsdtAddresses,
+  addUsdtAddress,
+  deleteUsdtAddress,
+  toggleUsdtAddress,
 };

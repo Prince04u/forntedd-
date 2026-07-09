@@ -4,6 +4,7 @@ const Deposit = require("../models/Deposit");
 const Withdrawal = require("../models/Withdrawal");
 const WithdrawalAccount = require("../models/WithdrawalAccount");
 const PlatformConfig = require("../models/PlatformConfig");
+const UsdtAddress = require("../models/UsdtAddress");
 const logger = require("../config/logger");
 
 const getBalance = async (req, res, next) => {
@@ -48,14 +49,29 @@ const requestDeposit = async (req, res, next) => {
     const config = await PlatformConfig.findOne() || new PlatformConfig();
 
     let targetAddress = "";
-    if (channel === "TRC20" && config.enableTRC20) {
-      targetAddress = config.usdt_trc20;
-    } else if (channel === "BEP20" && config.enableBEP20) {
-      targetAddress = config.usdt_bep20;
-    } else if (channel === "ERC20" && config.enableERC20) {
-      targetAddress = config.usdt_erc20;
+    
+    // Look up rotating address list first
+    const rotatingList = await UsdtAddress.find({ network: channel, isActive: true });
+    
+    if (rotatingList && rotatingList.length > 0) {
+      // Rotate by selecting the address with the lowest useCount
+      const chosen = rotatingList.sort((a, b) => a.useCount - b.useCount)[0];
+      targetAddress = chosen.address;
+      
+      // Increment use count
+      chosen.useCount += 1;
+      await chosen.save();
     } else {
-      return res.status(400).json({ message: `Deposit channel ${channel} is currently disabled or unsupported.` });
+      // Fallback to default configs if rotating list is empty
+      if (channel === "TRC20" && config.enableTRC20) {
+        targetAddress = config.usdt_trc20;
+      } else if (channel === "BEP20" && config.enableBEP20) {
+        targetAddress = config.usdt_bep20;
+      } else if (channel === "ERC20" && config.enableERC20) {
+        targetAddress = config.usdt_erc20;
+      } else {
+        return res.status(400).json({ message: `Deposit channel ${channel} is currently disabled or unsupported.` });
+      }
     }
 
     const deposit = new Deposit({

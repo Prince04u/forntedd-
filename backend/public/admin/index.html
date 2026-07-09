@@ -3,26 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lucky Nova - Administrative Panel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Lucky Nova - VIP Controls & Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-primary: #0a0a0c;
       --bg-card: rgba(20, 20, 25, 0.7);
       --border-color: rgba(212, 175, 55, 0.2);
       --gold: #D4AF37;
+      --gold-glow: rgba(212, 175, 55, 0.4);
       --gold-hover: #fce89c;
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
       --danger: #ef4444;
       --success: #22c55e;
+      --violet: #a855f7;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Outfit', sans-serif;
     }
 
     body {
@@ -30,13 +32,20 @@
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
+      overflow: hidden;
     }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
     /* Login Form Styles */
     #login-overlay {
       position: fixed;
       inset: 0;
-      background: var(--bg-primary);
+      background: radial-gradient(circle at center, #181824 0%, #050508 100%);
       z-index: 1000;
       display: flex;
       align-items: center;
@@ -45,73 +54,76 @@
 
     .login-card {
       width: 100%;
-      max-width: 420px;
-      padding: 2.5rem;
+      max-width: 440px;
+      padding: 3rem 2.5rem;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 24px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      border-radius: 28px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.05);
       text-align: center;
     }
 
     .login-logo {
-      font-size: 1.8rem;
-      font-weight: 800;
+      font-size: 2.2rem;
+      font-weight: 900;
       color: var(--gold);
-      margin-bottom: 2rem;
-      letter-spacing: 1px;
+      margin-bottom: 2.5rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px var(--gold-glow);
     }
 
     .form-group {
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
       text-align: left;
     }
 
     .form-group label {
       display: block;
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.6rem;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
 
     .form-input {
       width: 100%;
-      padding: 0.875rem 1rem;
-      background: rgba(0, 0, 0, 0.4);
+      padding: 1rem 1.25rem;
+      background: rgba(0, 0, 0, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
+      border-radius: 14px;
       color: #fff;
-      font-size: 0.95rem;
-      transition: all 0.25s ease;
+      font-size: 1rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .form-input:focus {
       outline: none;
       border-color: var(--gold);
-      box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
     }
 
     .btn-submit {
       width: 100%;
-      padding: 0.9rem;
-      background: var(--gold);
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--gold) 0%, #aa841d 100%);
       color: #000;
       border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 700;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 800;
       cursor: pointer;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
       transition: all 0.25s ease;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
     }
 
     .btn-submit:hover {
       background: var(--gold-hover);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
     }
 
     /* Dashboard Layout */
@@ -119,76 +131,86 @@
       display: none;
       width: 100%;
       min-height: 100vh;
-      grid-template-columns: 260px 1fr;
+      grid-template-columns: 280px 1fr;
     }
 
     /* Sidebar */
     .sidebar {
-      background: rgba(15, 15, 20, 0.95);
+      background: rgba(10, 10, 14, 0.98);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      padding: 2rem 1.5rem;
+      padding: 2.5rem 1.5rem;
     }
 
     .sidebar-header {
-      font-size: 1.4rem;
-      font-weight: 800;
+      font-size: 1.6rem;
+      font-weight: 900;
       color: var(--gold);
       text-align: center;
-      margin-bottom: 3rem;
-      letter-spacing: 1px;
+      margin-bottom: 3.5rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px var(--gold-glow);
     }
 
     .nav-list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.75rem;
     }
 
     .nav-item button {
       width: 100%;
       text-align: left;
-      padding: 0.85rem 1rem;
+      padding: 0.95rem 1.25rem;
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 0.95rem;
-      font-weight: 500;
-      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 14px;
       cursor: pointer;
       transition: all 0.25s ease;
     }
 
     .nav-item button:hover, .nav-item.active button {
-      background: rgba(212, 175, 55, 0.1);
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.2);
       color: var(--gold);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.05);
     }
 
     .btn-logout {
       margin-top: auto;
-      background: rgba(239, 68, 68, 0.1) !important;
+      background: rgba(239, 68, 68, 0.08) !important;
+      border: 1px solid rgba(239, 68, 68, 0.2) !important;
       color: var(--danger) !important;
+    }
+
+    .btn-logout:hover {
+      background: var(--danger) !important;
+      color: #fff !important;
     }
 
     /* Main Panel Content */
     .main-panel {
-      padding: 2.5rem;
+      padding: 3rem;
       overflow-y: auto;
       height: 100vh;
+      background: linear-gradient(180deg, #0d0d12 0%, #050507 100%);
     }
 
     .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2.5rem;
+      margin-bottom: 3rem;
     }
 
     .panel-title {
-      font-size: 1.75rem;
-      font-weight: 800;
+      font-size: 2.2rem;
+      font-weight: 900;
       letter-spacing: -0.5px;
     }
 
@@ -197,29 +219,30 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 1.5rem;
-      margin-bottom: 2.5rem;
+      margin-bottom: 3rem;
     }
 
     .kpi-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 1.5rem;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      border-radius: 24px;
+      padding: 1.75rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
     .kpi-label {
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.5px;
     }
 
     .kpi-val {
-      font-size: 1.8rem;
-      font-weight: 700;
+      font-size: 2.2rem;
+      font-weight: 800;
       color: #fff;
     }
 
@@ -236,9 +259,10 @@
     .table-container {
       background: var(--bg-card);
       border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 18px;
+      border-radius: 20px;
       overflow: hidden;
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
     table {
@@ -248,47 +272,52 @@
     }
 
     th {
-      background: rgba(0, 0, 0, 0.3);
-      padding: 1rem 1.25rem;
-      font-size: 0.8rem;
-      font-weight: 600;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1.2rem 1.5rem;
+      font-size: 0.85rem;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
 
     td {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      font-size: 0.9rem;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.95rem;
     }
 
-    tr:hover {
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
       background: rgba(255, 255, 255, 0.02);
     }
 
     /* Badges */
     .badge {
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .badge-success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
-    .badge-warning { background: rgba(212, 175, 55, 0.15); color: var(--gold); }
-    .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .badge-success { background: rgba(34, 197, 94, 0.12); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.2); }
+    .badge-warning { background: rgba(212, 175, 55, 0.12); color: var(--gold); border: 1px solid rgba(212, 175, 55, 0.2); }
+    .badge-danger { background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
 
     /* Action Buttons */
     .btn-action {
-      padding: 0.4rem 0.8rem;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
       cursor: pointer;
       border: 1px solid transparent;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .btn-confirm { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.2); color: var(--success); }
@@ -296,31 +325,130 @@
     .btn-cancel { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
     .btn-cancel:hover { background: var(--danger); color: #fff; }
 
-    /* Forms */
+    /* Cards */
     .config-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 2rem;
-      max-width: 600px;
-      margin-bottom: 2rem;
+      border-radius: 24px;
+      padding: 2.2rem;
+      width: 100%;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
     .config-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 1.75rem;
       color: var(--gold);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      padding-bottom: 0.5rem;
+      padding-bottom: 0.75rem;
+      letter-spacing: 0.5px;
     }
 
     .config-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
     }
+
+    /* Rotating Addresses List */
+    .address-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .address-form-box {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* WinGo Dashboard Visual Control System */
+    .wingo-control-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+    }
+
+    .live-monitor-card {
+      background: linear-gradient(135deg, rgba(20,20,28,0.85) 0%, rgba(10,10,12,0.95) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 2.2rem;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.4), 0 0 20px rgba(212, 175, 55, 0.05);
+    }
+
+    .live-timer-val {
+      font-size: 4rem;
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: 0 0 20px var(--gold-glow);
+      margin: 1.5rem 0;
+      letter-spacing: 1px;
+    }
+
+    .live-period-id {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .override-status-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 1rem;
+    }
+
+    /* Outcome manipulation grid */
+    .number-manipulation-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    .number-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+    }
+
+    .num-btn {
+      height: 64px;
+      border-radius: 18px;
+      font-size: 1.7rem;
+      font-weight: 900;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    }
+
+    .num-btn:hover {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+
+    .num-btn.active {
+      border: 3px solid #fff !important;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    }
+
+    .num-red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); }
+    .num-green { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); }
+    .num-violet-red { background: linear-gradient(135deg, var(--violet) 0%, #ef4444 100%); }
+    .num-violet-green { background: linear-gradient(135deg, var(--violet) 0%, #22c55e 100%); }
   </style>
 </head>
 <body>
@@ -328,17 +456,17 @@
   <!-- Login Form Screen -->
   <div id="login-overlay">
     <div class="login-card">
-      <div class="login-logo">LUCKY NOVA ADMIN</div>
+      <div class="login-logo">LUCKY NOVA</div>
       <form id="login-form" onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label>Mobile Number</label>
+          <label>Admin Mobile</label>
           <input type="text" id="login-mobile" class="form-input" value="9999999999" required />
         </div>
         <div class="form-group">
           <label>Password</label>
           <input type="password" id="login-password" class="form-input" value="adminpassword123" required />
         </div>
-        <button type="submit" class="btn-submit">Sign In</button>
+        <button type="submit" class="btn-submit">Secure Login</button>
       </form>
     </div>
   </div>
@@ -348,13 +476,13 @@
     <div class="sidebar">
       <div class="sidebar-header">LUCKY NOVA</div>
       <ul class="nav-list">
-        <li class="nav-item active" onclick="switchPanel('analytics')"><button>📊 Overview Analytics</button></li>
-        <li class="nav-item" onclick="switchPanel('users')"><button>👥 User Profiles</button></li>
-        <li class="nav-item" onclick="switchPanel('deposits')"><button>📥 USDT Deposits</button></li>
-        <li class="nav-item" onclick="switchPanel('withdrawals')"><button>📤 Withdrawals</button></li>
-        <li class="nav-item" onclick="switchPanel('config')"><button>⚙️ Platform settings</button></li>
-        <li class="nav-item" onclick="switchPanel('results')"><button>🎲 Results Control</button></li>
-        <li class="nav-item"><button class="btn-logout" onclick="handleLogout()">🚪 Sign Out</button></li>
+        <li class="nav-item active" id="btn-nav-analytics" onclick="switchPanel('analytics')"><button>📊 Overview Stats</button></li>
+        <li class="nav-item" id="btn-nav-users" onclick="switchPanel('users')"><button>👥 User Profiles</button></li>
+        <li class="nav-item" id="btn-nav-deposits" onclick="switchPanel('deposits')"><button>📥 USDT Deposits</button></li>
+        <li class="nav-item" id="btn-nav-withdrawals" onclick="switchPanel('withdrawals')"><button>📤 Withdrawals</button></li>
+        <li class="nav-item" id="btn-nav-config" onclick="switchPanel('config')"><button>⚙️ Rotating Wallets</button></li>
+        <li class="nav-item" id="btn-nav-results" onclick="switchPanel('results')"><button>🎲 Live Game Control</button></li>
+        <li class="nav-item"><button class="btn-logout" onclick="handleLogout()">🚪 Logout Admin</button></li>
       </ul>
     </div>
 
@@ -362,7 +490,7 @@
       <!-- Header -->
       <div class="panel-header">
         <h1 class="panel-title" id="panel-title-label">Dashboard Analytics</h1>
-        <span class="badge badge-success">Live Server Connected</span>
+        <span class="badge badge-success">System Connected</span>
       </div>
 
       <!-- ANALYTICS PANEL -->
@@ -444,46 +572,78 @@
         </div>
       </div>
 
-      <!-- CONFIG PLATFORM PANEL -->
+      <!-- CONFIG PLATFORM PANEL (Rotating addresses setup) -->
       <div id="section-config" class="panel-section">
+        <!-- Add new Rotating Address Form -->
         <div class="config-card">
-          <div class="config-title">USDT Deposit Configs</div>
-          <div class="form-group">
-            <label>TRC20 Wallet Address</label>
-            <input type="text" id="cfg-trc20" class="form-input" />
+          <div class="config-title">Add Rotating USDT Address (Support 30+)</div>
+          <div class="address-form-box">
+            <div class="form-group" style="margin-bottom:0">
+              <input type="text" id="add-addr-val" class="form-input" placeholder="Enter USDT Wallet Destination Address" />
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <select id="add-addr-net" class="form-input">
+                <option value="TRC20">TRC20 (USDT)</option>
+                <option value="BEP20">BEP20 (USDT)</option>
+                <option value="ERC20">ERC20 (USDT)</option>
+              </select>
+            </div>
+            <button class="btn-submit" style="margin-top:0; padding: 0.85rem" onclick="addUsdtAddress()">Add Wallet</button>
           </div>
-          <button class="btn-submit" onclick="saveUsdtConfig()">Save Deposit Settings</button>
         </div>
 
-        <div class="config-card">
-          <div class="config-title">Withdrawal Configs</div>
-          <div class="config-row">
-            <div class="form-group">
-              <label>Min Payout Limit</label>
-              <input type="number" id="cfg-min-withdraw" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label>Processing Fee (%)</label>
-              <input type="number" id="cfg-fee-withdraw" class="form-input" />
-            </div>
+        <!-- Dynamic list of Rotating Addresses -->
+        <div class="config-card" style="padding: 1.5rem">
+          <div class="config-title" style="margin-bottom: 1.25rem">Active Rotating Addresses</div>
+          <div class="table-container" style="margin-bottom:0; box-shadow:none">
+            <table>
+              <thead>
+                <tr>
+                  <th>Address</th>
+                  <th>Network</th>
+                  <th>Use Count</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="addresses-table-body"></tbody>
+            </table>
           </div>
-          <button class="btn-submit" onclick="saveWithdrawConfig()">Save Withdrawal Limits</button>
         </div>
       </div>
 
-      <!-- OUTCOME CONTROL PANEL -->
+      <!-- OUTCOME CONTROL PANEL (Live outcomes manipulators) -->
       <div id="section-results" class="panel-section">
-        <div class="config-card">
-          <div class="config-title">WinGo Game Control</div>
-          <div class="form-group">
-            <label>Target Active Period ID</label>
-            <input type="text" id="res-wingo-period" class="form-input" placeholder="e.g. 2026070930S8842" />
+        <div class="wingo-control-container">
+          
+          <!-- Live Period Monitor Card -->
+          <div class="live-monitor-card">
+            <div class="badge badge-warning" style="margin-bottom: 1.5rem; font-size: 0.9rem">Live Wingo Ticker (30s)</div>
+            <div class="live-period-id">Active Period: <span id="live-period-val">Loading...</span></div>
+            <div class="live-timer-val" id="live-countdown-val">00:00</div>
+            <div class="override-status-label" id="override-status-val">Override Status: <span class="badge badge-success">None</span></div>
           </div>
-          <div class="form-group">
-            <label>Force Win Number (0-9)</label>
-            <input type="number" id="res-wingo-number" class="form-input" min="0" max="9" placeholder="Enter target number" />
+
+          <!-- Outcome Overrides Selection Box -->
+          <div class="live-monitor-card" style="text-align: left">
+            <div class="number-manipulation-title">Select Win Number outcome</div>
+            <div class="number-grid">
+              <button class="num-btn num-violet-red" onclick="injectNumberOutcome(0)">0</button>
+              <button class="num-btn num-green" onclick="injectNumberOutcome(1)">1</button>
+              <button class="num-btn num-red" onclick="injectNumberOutcome(2)">2</button>
+              <button class="num-btn num-green" onclick="injectNumberOutcome(3)">3</button>
+              <button class="num-btn num-red" onclick="injectNumberOutcome(4)">4</button>
+              <button class="num-btn num-violet-green" onclick="injectNumberOutcome(5)">5</button>
+              <button class="num-btn num-red" onclick="injectNumberOutcome(6)">6</button>
+              <button class="num-btn num-green" onclick="injectNumberOutcome(7)">7</button>
+              <button class="num-btn num-red" onclick="injectNumberOutcome(8)">8</button>
+              <button class="num-btn num-green" onclick="injectNumberOutcome(9)">9</button>
+            </div>
+            <div style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.4">
+              👉 Clicking any color-coded button above will instantly override the active round period outcome. Standard payout distribution will resolve with this number.
+            </div>
           </div>
-          <button class="btn-submit" onclick="overrideWingoResult()">Inject Override Result</button>
+
         </div>
       </div>
 
@@ -492,12 +652,16 @@
 
   <script>
     let token = localStorage.getItem("admin_token");
+    let activeWingoPeriod = "";
+    let activeWingoCountdown = 0;
+    let liveTimerInterval = null;
 
     window.onload = () => {
       if (token) {
         document.getElementById("login-overlay").style.display = "none";
         document.getElementById("admin-layout").style.display = "grid";
         loadDashboardData();
+        startLiveWingoPoll();
       }
     };
 
@@ -520,6 +684,7 @@
           document.getElementById("login-overlay").style.display = "none";
           document.getElementById("admin-layout").style.display = "grid";
           loadDashboardData();
+          startLiveWingoPoll();
         } else {
           alert(res.message || "Invalid Admin authorization.");
         }
@@ -538,6 +703,8 @@
       document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
 
       document.getElementById(`section-${panelName}`).classList.add("active");
+      document.getElementById(`btn-nav-${panelName}`).classList.add("active");
+
       const titleLabel = panelName.charAt(0).toUpperCase() + panelName.slice(1) + " Management";
       document.getElementById("panel-title-label").innerText = titleLabel;
 
@@ -545,7 +712,7 @@
       if (panelName === "users") loadUsersData();
       if (panelName === "deposits") loadDepositsData();
       if (panelName === "withdrawals") loadWithdrawalsData();
-      if (panelName === "config") loadConfigsData();
+      if (panelName === "config") loadAddressesData();
     }
 
     async function loadDashboardData() {
@@ -628,7 +795,7 @@
           res.data.forEach((dep) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${dep.user.name} (${dep.user.mobile})</td>
+              <td>${dep.user ? dep.user.name : "System User"} (${dep.user ? dep.user.mobile : "Unknown"})</td>
               <td>₹${dep.amount}</td>
               <td>${dep.channel}</td>
               <td>${dep.txHash || "—"}</td>
@@ -679,7 +846,7 @@
             const dest = wd.type === "crypto" ? wd.cryptoAddress : `${wd.bankName} (${wd.bankCardNumber})`;
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${wd.user.name}</td>
+              <td>${wd.user ? wd.user.name : "System User"}</td>
               <td>₹${wd.amount}</td>
               <td>₹${wd.fees}</td>
               <td>${wd.type.toUpperCase()}</td>
@@ -718,70 +885,146 @@
       }
     }
 
-    async function loadConfigsData() {
+    /* USDT Rotating Addresses functions */
+    async function loadAddressesData() {
       try {
-        const resUsdt = await fetch("/api/admin/config/usdt", { headers: { "Authorization": `Bearer ${token}` } });
-        const cfgUsdt = await resUsdt.json();
-        if (cfgUsdt.success) {
-          document.getElementById("cfg-trc20").value = cfgUsdt.data.usdt_trc20;
-        }
-
-        const resWd = await fetch("/api/admin/config/withdraw", { headers: { "Authorization": `Bearer ${token}` } });
-        const cfgWd = await resWd.json();
-        if (cfgWd.success) {
-          document.getElementById("cfg-min-withdraw").value = cfgWd.data.minWithdraw;
-          document.getElementById("cfg-fee-withdraw").value = cfgWd.data.withdrawFeePercent;
+        const response = await fetch("/api/admin/config/usdt/addresses", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (res.success) {
+          const tbody = document.getElementById("addresses-table-body");
+          tbody.innerHTML = "";
+          res.data.forEach((addr) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td style="font-family: monospace; font-size: 0.85rem">${addr.address}</td>
+              <td><span class="badge badge-warning">${addr.network}</span></td>
+              <td>${addr.useCount} times</td>
+              <td>
+                <span class="badge badge-${addr.isActive ? 'success' : 'danger'}" style="cursor: pointer" onclick="toggleAddress('${addr._id}')">
+                  ${addr.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </td>
+              <td>
+                <button class="btn-action btn-cancel" onclick="deleteAddress('${addr._id}')">Delete</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
         }
       } catch (err) {
         console.error(err);
       }
     }
 
-    async function saveUsdtConfig() {
-      const usdt_trc20 = document.getElementById("cfg-trc20").value;
-      try {
-        const response = await fetch("/api/admin/config/usdt", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({ usdt_trc20 }),
-        });
-        const res = await response.json();
-        alert(res.message || "USDT config saved.");
-      } catch (err) {
-        alert("Saving failed.");
-      }
-    }
-
-    async function saveWithdrawConfig() {
-      const minWithdraw = Number(document.getElementById("cfg-min-withdraw").value);
-      const withdrawFeePercent = Number(document.getElementById("cfg-fee-withdraw").value);
-      try {
-        const response = await fetch("/api/admin/config/withdraw", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({ minWithdraw, withdrawFeePercent }),
-        });
-        const res = await response.json();
-        alert(res.message || "Withdraw config saved.");
-      } catch (err) {
-        alert("Saving failed.");
-      }
-    }
-
-    async function overrideWingoResult() {
-      const periodId = document.getElementById("res-wingo-period").value;
-      const result = Number(document.getElementById("res-wingo-number").value);
-
-      if (!periodId || isNaN(result)) {
-        alert("Please enter a valid Period ID and number (0-9).");
+    async function addUsdtAddress() {
+      const address = document.getElementById("add-addr-val").value;
+      const network = document.getElementById("add-addr-net").value;
+      
+      if (!address) {
+        alert("Please enter a valid wallet destination address.");
         return;
       }
+
+      try {
+        const response = await fetch("/api/admin/config/usdt/addresses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ address, network }),
+        });
+        const res = await response.json();
+        if (res.success) {
+          alert("Wallet address registered successfully.");
+          document.getElementById("add-addr-val").value = "";
+          loadAddressesData();
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert("Registration failed.");
+      }
+    }
+
+    async function toggleAddress(id) {
+      try {
+        const response = await fetch(`/api/admin/config/usdt/addresses/${id}/toggle`, {
+          method: "PATCH",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        loadAddressesData();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function deleteAddress(id) {
+      if (!confirm("Are you sure you want to delete this address?")) return;
+      try {
+        const response = await fetch(`/api/admin/config/usdt/addresses/${id}`, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        loadAddressesData();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    /* Live Game Control & Ticker implementation */
+    function startLiveWingoPoll() {
+      // Poll active Wingo 30s period status every 2 seconds
+      fetchLiveWingoPeriod();
+      liveTimerInterval = setInterval(fetchLiveWingoPeriod, 2000);
+    }
+
+    async function fetchLiveWingoPeriod() {
+      if (!token) return;
+      try {
+        // Query active period (Wingo 30s is default duration 30)
+        const response = await fetch("/api/wingo/30/current", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (res.success && res.data) {
+          activeWingoPeriod = res.data.periodId;
+          activeWingoCountdown = res.data.remainingSeconds;
+
+          // Render stats
+          document.getElementById("live-period-val").innerText = activeWingoPeriod;
+          
+          // Formats countdown mm:ss
+          const minutes = Math.floor(activeWingoCountdown / 60);
+          const seconds = activeWingoCountdown % 60;
+          document.getElementById("live-countdown-val").innerText = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+          // Highlight override outcomes active status
+          const overrideVal = document.getElementById("override-status-val");
+          if (res.data.resultOverridden || res.data.overrideResult !== undefined) {
+            overrideVal.innerHTML = `Override Status: <span class="badge badge-danger">FORCED WIN: ${res.data.overrideResult}</span>`;
+            highlightActiveButton(res.data.overrideResult);
+          } else {
+            overrideVal.innerHTML = 'Override Status: <span class="badge badge-success">None (Auto Random)</span>';
+            clearActiveButtons();
+          }
+        }
+      } catch (err) {
+        console.error("Live ticker polling failed:", err);
+      }
+    }
+
+    async function injectNumberOutcome(number) {
+      if (!activeWingoPeriod) {
+        alert("Active game period loading. Please wait a moment.");
+        return;
+      }
+
+      // High-lighting target button visually
+      highlightActiveButton(number);
 
       try {
         const response = await fetch("/api/admin/games/wingo/result", {
@@ -790,13 +1033,31 @@
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
           },
-          body: JSON.stringify({ periodId, result }),
+          body: JSON.stringify({ periodId: activeWingoPeriod, result: number }),
         });
         const res = await response.json();
-        alert(res.message || "Override result successfully active!");
+        
+        if (res.success) {
+          document.getElementById("override-status-val").innerHTML = 
+            `Override Status: <span class="badge badge-danger">FORCED WIN: ${number}</span>`;
+        } else {
+          alert(res.message || "Failed to inject outcome override.");
+        }
       } catch (err) {
-        alert("Outcome override failed.");
+        alert("Connection to game injection failed.");
       }
+    }
+
+    function highlightActiveButton(number) {
+      clearActiveButtons();
+      const btns = document.querySelectorAll(".num-btn");
+      if (btns[number]) {
+        btns[number].classList.add("active");
+      }
+    }
+
+    function clearActiveButtons() {
+      document.querySelectorAll(".num-btn").forEach((btn) => btn.classList.remove("active"));
     }
   </script>
 </body>
