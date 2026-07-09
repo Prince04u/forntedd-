@@ -956,25 +956,50 @@ export default function WingoGameScreen() {
               <div className="wg-outcome-v2-header">
                 <svg viewBox="0 0 260 140" className="wg-outcome-v2-header-svg">
                   <defs>
+                    {/* Badge Gradients */}
                     <radialGradient id="goldBadge" cx="50%" cy="30%" r="50%">
-                      <stop offset="0%" stopColor="#FFFFFF" />
+                      <stop offset="0%" stopColor="#2c2518" />
+                      <stop offset="100%" stopColor="#080705" />
+                    </radialGradient>
+                    <radialGradient id="silverBadge" cx="50%" cy="30%" r="50%">
+                      <stop offset="0%" stopColor="#20232a" />
+                      <stop offset="100%" stopColor="#0a0b0d" />
+                    </radialGradient>
+                    
+                    {/* Frame Gradients */}
+                    <linearGradient id="goldFrame" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#FFEAA0" />
                       <stop offset="50%" stopColor="#D4AF37" />
                       <stop offset="100%" stopColor="#8A6D1C" />
-                    </radialGradient>
+                    </linearGradient>
+                    <linearGradient id="silverFrame" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#F1F5F9" />
+                      <stop offset="50%" stopColor="#94A3B8" />
+                      <stop offset="100%" stopColor="#475569" />
+                    </linearGradient>
+                    
+                    {/* Wings Gradients */}
                     <linearGradient id="goldWings" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#E7C66A" />
                       <stop offset="50%" stopColor="#D4AF37" />
                       <stop offset="100%" stopColor="#9E7A1E" />
                     </linearGradient>
-                    <radialGradient id="silverBadge" cx="50%" cy="30%" r="50%">
-                      <stop offset="0%" stopColor="#FFFFFF" />
-                      <stop offset="50%" stopColor="#94A3B8" />
-                      <stop offset="100%" stopColor="#475569" />
-                    </radialGradient>
                     <linearGradient id="silverWings" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#E2E8F0" />
                       <stop offset="50%" stopColor="#94A3B8" />
                       <stop offset="100%" stopColor="#64748B" />
+                    </linearGradient>
+
+                    {/* Ribbon Gradients */}
+                    <linearGradient id="goldRibbon" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#F4D77D" />
+                      <stop offset="50%" stopColor="#D4AF37" />
+                      <stop offset="100%" stopColor="#A37F1A" />
+                    </linearGradient>
+                    <linearGradient id="redRibbon" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#EF4444" />
+                      <stop offset="50%" stopColor="#B91C1C" />
+                      <stop offset="100%" stopColor="#7F1D1D" />
                     </linearGradient>
                   </defs>
 
@@ -1004,35 +1029,36 @@ export default function WingoGameScreen() {
                   )}
 
                   {/* Left Wing */}
-                  <g transform="translate(130, 80) scale(-1, 1) translate(-130, -80)">
-                    <path d="M 130 80 C 100 80, 75 70, 50 50 C 65 67, 85 80, 130 83 Z" fill={outcomePopup.type === "win" ? "url(#goldWings)" : "url(#silverWings)"} />
-                    <path d="M 125 75 C 95 67, 70 53, 42 30 C 58 49, 82 67, 125 70 Z" fill={outcomePopup.type === "win" ? "#FFE07D" : "#E2E8F0"} opacity="0.9" />
-                    <path d="M 120 70 C 90 55, 65 37, 35 10 C 50 33, 75 53, 120 57 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
+                  <g transform="translate(130, 70) scale(-1, 1) translate(-130, -70)">
+                    <path d="M 130 70 C 95 70, 70 60, 45 38 C 60 55, 82 70, 130 73 Z" fill={outcomePopup.type === "win" ? "url(#goldWings)" : "url(#silverWings)"} />
+                    <path d="M 125 65 C 92 57, 68 43, 38 18 C 54 37, 78 57, 125 60 Z" fill={outcomePopup.type === "win" ? "#FFE07D" : "#E2E8F0"} opacity="0.9" stroke={outcomePopup.type === "loss" ? "#EF4444" : "none"} strokeWidth="0.5" />
+                    <path d="M 120 60 C 87 45, 62 27, 32 0 C 47 23, 72 43, 120 47 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
                   </g>
 
                   {/* Right Wing */}
                   <g>
-                    <path d="M 130 80 C 100 80, 75 70, 50 50 C 65 67, 85 80, 130 83 Z" fill={outcomePopup.type === "win" ? "url(#goldWings)" : "url(#silverWings)"} />
-                    <path d="M 125 75 C 95 67, 70 53, 42 30 C 58 49, 82 67, 125 70 Z" fill={outcomePopup.type === "win" ? "#FFE07D" : "#E2E8F0"} opacity="0.9" />
-                    <path d="M 120 70 C 90 55, 65 37, 35 10 C 50 33, 75 53, 120 57 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
+                    <path d="M 130 70 C 95 70, 70 60, 45 38 C 60 55, 82 70, 130 73 Z" fill={outcomePopup.type === "win" ? "url(#goldWings)" : "url(#silverWings)"} />
+                    <path d="M 125 65 C 92 57, 68 43, 38 18 C 54 37, 78 57, 125 60 Z" fill={outcomePopup.type === "win" ? "#FFE07D" : "#E2E8F0"} opacity="0.9" stroke={outcomePopup.type === "loss" ? "#EF4444" : "none"} strokeWidth="0.5" />
+                    <path d="M 120 60 C 87 45, 62 27, 32 0 C 47 23, 72 43, 120 47 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
                   </g>
 
                   {/* Badge Circle outer frame */}
-                  <circle cx="130" cy="80" r="36" fill="rgba(0,0,0,0.5)" />
-                  <circle cx="130" cy="80" r="32" stroke={outcomePopup.type === "win" ? "#FFEAA0" : "#E2E8F0"} strokeWidth="2.5" fill={outcomePopup.type === "win" ? "url(#goldBadge)" : "url(#silverBadge)"} />
-                  <circle cx="130" cy="80" r="28" stroke={outcomePopup.type === "win" ? "#8A6D1C" : "#475569"} strokeWidth="1.5" fill="none" />
+                  <circle cx="130" cy="70" r="38" fill="rgba(0,0,0,0.6)" />
+                  {/* Outer border ring */}
+                  <circle cx="130" cy="70" r="34" stroke={outcomePopup.type === "win" ? "url(#goldFrame)" : "url(#silverFrame)"} strokeWidth="3" fill={outcomePopup.type === "win" ? "url(#goldBadge)" : "url(#silverBadge)"} />
+                  <circle cx="130" cy="70" r="30" stroke={outcomePopup.type === "win" ? "rgba(212, 175, 55, 0.4)" : "rgba(255, 255, 255, 0.15)"} strokeWidth="1" fill="none" />
 
-                  {/* IN Initials */}
-                  <text x="130" y="89" textAnchor="middle" font-family="Times New Roman, Georgia, serif" font-weight="900" font-size="26" fill={outcomePopup.type === "win" ? "#302002" : "#FFF"} letter-spacing="-1">
+                  {/* IN Initials - Rendered in Gold (Win) or White (Loss) */}
+                  <text x="130" y="80" textAnchor="middle" font-family="Georgia, Times New Roman, serif" font-weight="900" font-size="28" fill={outcomePopup.type === "win" ? "#D4AF37" : "#FFFFFF"} letter-spacing="-1">
                     IN
                   </text>
                   
                   {/* Small badge sparkle */}
-                  <path d="M 146 71 L 148 75 L 152 75 L 149 77 L 150 81 L 146 79 L 142 81 L 143 77 L 140 75 L 144 75 Z" fill="#FFF" />
+                  <path d="M 148 61 L 150 65 L 154 65 L 151 67 L 152 71 L 148 69 L 144 71 L 145 67 L 142 65 L 146 65 Z" fill="#FFF" />
 
                   {/* Crown (Only for Win!) */}
                   {outcomePopup.type === "win" && (
-                    <g transform="translate(130, 42) scale(1.15) translate(-12, -12)">
+                    <g transform="translate(130, 30) scale(1.2) translate(-12, -12)">
                       <path d="M 2 17 L 4 7 L 9 11 L 12 4 L 15 11 L 20 7 L 22 17 Z" fill="#FFEAA0" stroke="#8A6D1C" strokeWidth="1" />
                       <circle cx="2" cy="7" r="1" fill="#FFF" />
                       <circle cx="9" cy="11" r="0.8" fill="#FFF" />
@@ -1042,16 +1068,27 @@ export default function WingoGameScreen() {
                       <circle cx="12" cy="14" r="1.5" fill="#EF4444" />
                     </g>
                   )}
-                </svg>
 
-                {/* Curved Ribbon with Text */}
-                <div className={`wg-outcome-v2-ribbon-banner ${outcomePopup.type}`}>
-                  <div className="wg-outcome-v2-ribbon-fold-left" />
-                  <div className="wg-outcome-v2-ribbon-main">
-                    {outcomePopup.type === "win" ? "Congratulations!" : "Better Luck Next Time!"}
-                  </div>
-                  <div className="wg-outcome-v2-ribbon-fold-right" />
-                </div>
+                  {/* 3D Ribbon Folds (Drawn inside SVG for 100% precision) */}
+                  <g>
+                    {/* Ribbon Back folds shadow */}
+                    <path d="M 46 112 L 54 104 L 54 122 Z" fill={outcomePopup.type === "win" ? "#7A5E12" : "#5C0E0E"} />
+                    <path d="M 214 112 L 206 104 L 206 122 Z" fill={outcomePopup.type === "win" ? "#7A5E12" : "#5C0E0E"} />
+
+                    {/* Left tail */}
+                    <path d="M 46 112 L 18 106 L 26 122 L 54 122 L 54 104 Z" fill={outcomePopup.type === "win" ? "#A37F1A" : "#7F1D1D"} stroke={outcomePopup.type === "win" ? "#D4AF37" : "#B91C1C"} strokeWidth="0.6" />
+                    {/* Right tail */}
+                    <path d="M 214 112 L 242 106 L 234 122 L 206 122 L 206 104 Z" fill={outcomePopup.type === "win" ? "#A37F1A" : "#7F1D1D"} stroke={outcomePopup.type === "win" ? "#D4AF37" : "#B91C1C"} strokeWidth="0.6" />
+
+                    {/* Ribbon main body plate */}
+                    <path d="M 45 104 Q 130 99 215 104 L 215 125 Q 130 120 45 125 Z" fill={outcomePopup.type === "win" ? "url(#goldRibbon)" : "url(#redRibbon)"} stroke={outcomePopup.type === "win" ? "#FFEAA0" : "#FCA5A5"} strokeWidth="1" />
+                    
+                    {/* Ribbon Text */}
+                    <text x="130" y="120" textAnchor="middle" font-family="Georgia, Times New Roman, serif" font-weight="900" font-size="13" fill={outcomePopup.type === "win" ? "#302002" : "#FFFFFF"} letter-spacing="0.5">
+                      {outcomePopup.type === "win" ? "Congratulations!" : "Better Luck Next Time!"}
+                    </text>
+                  </g>
+                </svg>
               </div>
 
               {/* Sub-Title */}
