@@ -52,11 +52,13 @@ const generatePeriodId = async (duration) => {
   const dateStr = startOfDay.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
 
   // Find the last period created today for this duration
-  const lastPeriod = await Period.findOne({
+  const lastPeriodList = await Period.find({
     game: "wingo",
     duration,
-    periodId: new RegExp(`^${dateStr}`),
-  }).sort({ periodId: -1 });
+    periodId: { $regex: `^${dateStr}` },
+  }).sort({ periodId: -1 }).limit(1);
+
+  const lastPeriod = lastPeriodList.length > 0 ? lastPeriodList[0] : null;
 
   let roundIndex = 1;
   if (lastPeriod) {
