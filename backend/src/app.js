@@ -10,6 +10,7 @@ const app = express();
 // Security Middlewares
 app.use(helmet({
   crossOriginResourcePolicy: false, // allow images rendering in cross-origin clients
+  contentSecurityPolicy: false,     // allow inline scripts to execute in browser
 }));
 
 app.use(cors({
