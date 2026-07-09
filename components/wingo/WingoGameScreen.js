@@ -954,7 +954,7 @@ export default function WingoGameScreen() {
 
               {/* Glowing Wings, Badge and Crown Header */}
               <div className="wg-outcome-v2-header">
-                <svg viewBox="0 0 260 140" className="wg-outcome-v2-header-svg">
+                <svg viewBox="0 0 260 160" className="wg-outcome-v2-header-svg">
                   <defs>
                     {/* Badge Gradients */}
                     <radialGradient id="goldBadge" cx="50%" cy="30%" r="50%">
@@ -1004,61 +1004,71 @@ export default function WingoGameScreen() {
 
                     {/* Circular Logo ClipPath */}
                     <clipPath id="circleClip">
-                      <circle cx="130" cy="70" r="38" />
+                      <circle cx="130" cy="85" r="38" />
                     </clipPath>
                   </defs>
 
                   {/* Confetti & Sparkles */}
                   {outcomePopup.type === "win" ? (
                     <g opacity="0.85">
-                      <rect x="50" y="25" width="7" height="3.5" rx="1" fill="#FFEAA0" transform="rotate(15, 50, 25)" />
-                      <rect x="205" y="30" width="4.5" height="7" rx="1" fill="#F4D77D" transform="rotate(-25, 205, 30)" />
-                      <rect x="35" y="65" width="5.5" height="5.5" rx="1" fill="#C69A2B" transform="rotate(45, 35, 65)" />
-                      <rect x="220" y="70" width="6.5" height="4" rx="1" fill="#E7C66A" transform="rotate(12, 220, 70)" />
-                      <circle cx="55" cy="105" r="1.8" fill="#D4AF37" />
-                      <circle cx="200" cy="105" r="1.8" fill="#FFEAA0" />
-                      <path d="M 80 45 L 82 50 L 87 50 L 83 53 L 84 58 L 80 55 L 76 58 L 77 53 L 73 50 L 78 50 Z" fill="#FFE58F" />
-                      <path d="M 180 45 L 182 50 L 187 50 L 183 53 L 184 58 L 180 55 L 176 58 L 177 53 L 173 50 L 178 50 Z" fill="#FFE58F" />
+                      <rect x="50" y="40" width="7" height="3.5" rx="1" fill="#FFEAA0" transform="rotate(15, 50, 40)" />
+                      <rect x="205" y="45" width="4.5" height="7" rx="1" fill="#F4D77D" transform="rotate(-25, 205, 45)" />
+                      <rect x="35" y="80" width="5.5" height="5.5" rx="1" fill="#C69A2B" transform="rotate(45, 35, 80)" />
+                      <rect x="220" y="85" width="6.5" height="4" rx="1" fill="#E7C66A" transform="rotate(12, 220, 85)" />
+                      <circle cx="55" cy="120" r="1.8" fill="#D4AF37" />
+                      <circle cx="200" cy="120" r="1.8" fill="#FFEAA0" />
+                      <path d="M 80 60 L 82 65 L 87 65 L 83 68 L 84 73 L 80 70 L 76 73 L 77 68 L 73 65 L 78 65 Z" fill="#FFE58F" />
+                      <path d="M 180 60 L 182 65 L 187 65 L 183 68 L 184 73 L 180 70 L 176 73 L 177 68 L 173 65 L 178 65 Z" fill="#FFE58F" />
                     </g>
                   ) : (
                     <g opacity="0.85">
-                      <rect x="50" y="25" width="7" height="3.5" rx="1" fill="#EF4444" transform="rotate(15, 50, 25)" />
-                      <rect x="205" y="30" width="4.5" height="7" rx="1" fill="#B91C1C" transform="rotate(-25, 205, 30)" />
-                      <rect x="35" y="65" width="5.5" height="5.5" rx="1" fill="#EF4444" transform="rotate(45, 35, 65)" />
-                      <rect x="220" y="70" width="6.5" height="4" rx="1" fill="#FCA5A5" transform="rotate(12, 220, 70)" />
-                      <circle cx="55" cy="105" r="1.8" fill="#EF4444" />
-                      <circle cx="200" cy="105" r="1.8" fill="#B91C1C" />
-                      <path d="M 80 45 L 82 50 L 87 50 L 83 53 L 84 58 L 80 55 L 76 58 L 77 53 L 73 50 L 78 50 Z" fill="#FCA5A5" />
-                      <path d="M 180 45 L 182 50 L 187 50 L 183 53 L 184 58 L 180 55 L 176 58 L 177 53 L 173 50 L 178 50 Z" fill="#FCA5A5" />
+                      <rect x="50" y="40" width="7" height="3.5" rx="1" fill="#EF4444" transform="rotate(15, 50, 40)" />
+                      <rect x="205" y="45" width="4.5" height="7" rx="1" fill="#B91C1C" transform="rotate(-25, 205, 45)" />
+                      <rect x="35" y="80" width="5.5" height="5.5" rx="1" fill="#EF4444" transform="rotate(45, 35, 80)" />
+                      <rect x="220" y="85" width="6.5" height="4" rx="1" fill="#FCA5A5" transform="rotate(12, 220, 85)" />
+                      <circle cx="55" cy="120" r="1.8" fill="#EF4444" />
+                      <circle cx="200" cy="120" r="1.8" fill="#B91C1C" />
+                      <path d="M 80 60 L 82 65 L 87 65 L 83 68 L 84 73 L 80 70 L 76 73 L 77 68 L 73 65 L 78 65 Z" fill="#FCA5A5" />
+                      <path d="M 180 60 L 182 65 L 187 65 L 183 68 L 184 73 L 180 70 L 176 73 L 177 68 L 173 65 L 178 65 Z" fill="#FCA5A5" />
                     </g>
                   )}
 
                   {/* Left Wing */}
-                  <g transform="translate(130, 70) scale(-1, 1) translate(-130, -70)">
-                    <path d="M 130 70 C 95 70, 70 60, 45 38 C 60 55, 82 70, 130 73 Z" fill={outcomePopup.type === "win" ? "url(#goldWings)" : "url(#silverWings)"} />
-                    <path d="M 125 65 C 92 57, 68 43, 38 18 C 54 37, 78 57, 125 60 Z" fill={outcomePopup.type === "win" ? "#FFE07D" : "#E2E8F0"} opacity="0.9" stroke={outcomePopup.type === "loss" ? "#EF4444" : "none"} strokeWidth="0.5" />
-                    <path d="M 120 60 C 87 45, 62 27, 32 0 C 47 23, 72 43, 120 47 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
+                  <g transform="translate(130, 85) scale(-1, 1) translate(-130, -85)">
+                    <path d="M 130 85 C 95 85, 70 75, 45 53 C 60 70, 82 85, 130 88 Z" fill={outcomePopup.type === "win" ? "url(#goldWings)" : "url(#silverWings)"} />
+                    <path d="M 125 80 C 92 72, 68 58, 38 33 C 54 52, 78 72, 125 75 Z" fill={outcomePopup.type === "win" ? "#FFE07D" : "#E2E8F0"} opacity="0.9" stroke={outcomePopup.type === "loss" ? "#EF4444" : "none"} strokeWidth="0.5" />
+                    <path d="M 120 75 C 87 60, 62 42, 32 15 C 47 38, 72 58, 120 62 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
                   </g>
 
                   {/* Right Wing */}
                   <g>
-                    <path d="M 130 70 C 95 70, 70 60, 45 38 C 60 55, 82 70, 130 73 Z" fill={outcomePopup.type === "win" ? "url(#goldWings)" : "url(#silverWings)"} />
-                    <path d="M 125 65 C 92 57, 68 43, 38 18 C 54 37, 78 57, 125 60 Z" fill={outcomePopup.type === "win" ? "#FFE07D" : "#E2E8F0"} opacity="0.9" stroke={outcomePopup.type === "loss" ? "#EF4444" : "none"} strokeWidth="0.5" />
-                    <path d="M 120 60 C 87 45, 62 27, 32 0 C 47 23, 72 43, 120 47 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
+                    <path d="M 130 85 C 95 85, 70 75, 45 53 C 60 70, 82 85, 130 88 Z" fill={outcomePopup.type === "win" ? "url(#goldWings)" : "url(#silverWings)"} />
+                    <path d="M 125 80 C 92 72, 68 58, 38 33 C 54 52, 78 72, 125 75 Z" fill={outcomePopup.type === "win" ? "#FFE07D" : "#E2E8F0"} opacity="0.9" stroke={outcomePopup.type === "loss" ? "#EF4444" : "none"} strokeWidth="0.5" />
+                    <path d="M 120 75 C 87 60, 62 42, 32 15 C 47 38, 72 58, 120 62 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
                   </g>
 
                   {/* Badge Circle outer frame shadow */}
-                  <circle cx="130" cy="70" r="39" fill="rgba(0,0,0,0.5)" />
+                  <circle cx="130" cy="85" r="39" fill="rgba(0,0,0,0.5)" />
 
                   {/* Circular Emblem Logo clipped */}
-                  <image href="/images/logo-ln.png" x="91" y="31" width="78" height="78" clipPath="url(#circleClip)" />
+                  <image 
+                    href="/images/logo-ln.png" 
+                    x="91" 
+                    y="46" 
+                    width="78" 
+                    height="78" 
+                    clipPath="url(#circleClip)"
+                    style={{
+                      filter: outcomePopup.type === "win" ? "none" : "grayscale(1) brightness(1.2)"
+                    }}
+                  />
 
                   {/* Outer border ring overlay */}
-                  <circle cx="130" cy="70" r="38" stroke={outcomePopup.type === "win" ? "#FFEAA0" : "#E2E8F0"} strokeWidth="1.5" fill="none" />
+                  <circle cx="130" cy="85" r="38" stroke={outcomePopup.type === "win" ? "#FFEAA0" : "#E2E8F0"} strokeWidth="1.5" fill="none" />
 
                   {/* Crown (Only for Win!) */}
                   {outcomePopup.type === "win" && (
-                    <g transform="translate(130, 30) scale(1.2) translate(-12, -12)">
+                    <g transform="translate(130, 45) scale(1.2) translate(-12, -12)">
                       <path d="M 2 17 L 4 7 L 9 11 L 12 4 L 15 11 L 20 7 L 22 17 Z" fill="#FFEAA0" stroke="#8A6D1C" strokeWidth="1" />
                       <circle cx="2" cy="7" r="1" fill="#FFF" />
                       <circle cx="9" cy="11" r="0.8" fill="#FFF" />
@@ -1069,22 +1079,22 @@ export default function WingoGameScreen() {
                     </g>
                   )}
 
-                  {/* 3D Ribbon Folds (Drawn inside SVG for 100% precision) */}
+                  {/* 3D Ribbon Folds */}
                   <g>
                     {/* Ribbon Back folds shadow */}
-                    <path d="M 46 112 L 54 104 L 54 122 Z" fill={outcomePopup.type === "win" ? "#7A5E12" : "#5C0E0E"} />
-                    <path d="M 214 112 L 206 104 L 206 122 Z" fill={outcomePopup.type === "win" ? "#7A5E12" : "#5C0E0E"} />
+                    <path d="M 46 127 L 54 119 L 54 137 Z" fill={outcomePopup.type === "win" ? "#7A5E12" : "#5C0E0E"} />
+                    <path d="M 214 127 L 206 119 L 206 137 Z" fill={outcomePopup.type === "win" ? "#7A5E12" : "#5C0E0E"} />
 
                     {/* Left tail */}
-                    <path d="M 46 112 L 18 106 L 26 122 L 54 122 L 54 104 Z" fill={outcomePopup.type === "win" ? "#A37F1A" : "#7F1D1D"} stroke={outcomePopup.type === "win" ? "#D4AF37" : "#B91C1C"} strokeWidth="0.6" />
+                    <path d="M 46 127 L 18 121 L 26 137 L 54 137 L 54 119 Z" fill={outcomePopup.type === "win" ? "#A37F1A" : "#7F1D1D"} stroke={outcomePopup.type === "win" ? "#D4AF37" : "#B91C1C"} strokeWidth="0.6" />
                     {/* Right tail */}
-                    <path d="M 214 112 L 242 106 L 234 122 L 206 122 L 206 104 Z" fill={outcomePopup.type === "win" ? "#A37F1A" : "#7F1D1D"} stroke={outcomePopup.type === "win" ? "#D4AF37" : "#B91C1C"} strokeWidth="0.6" />
+                    <path d="M 214 127 L 242 121 L 234 137 L 206 137 L 206 119 Z" fill={outcomePopup.type === "win" ? "#A37F1A" : "#7F1D1D"} stroke={outcomePopup.type === "win" ? "#D4AF37" : "#B91C1C"} strokeWidth="0.6" />
 
                     {/* Ribbon main body plate */}
-                    <path d="M 45 104 Q 130 99 215 104 L 215 125 Q 130 120 45 125 Z" fill={outcomePopup.type === "win" ? "url(#goldRibbon)" : "url(#redRibbon)"} stroke={outcomePopup.type === "win" ? "#FFEAA0" : "#FCA5A5"} strokeWidth="1" />
+                    <path d="M 45 119 Q 130 114 215 119 L 215 140 Q 130 135 45 140 Z" fill={outcomePopup.type === "win" ? "url(#goldRibbon)" : "url(#redRibbon)"} stroke={outcomePopup.type === "win" ? "#FFEAA0" : "#FCA5A5"} strokeWidth="1" />
                     
                     {/* Ribbon Text */}
-                    <text x="130" y="120" textAnchor="middle" font-family="Georgia, Times New Roman, serif" font-weight="900" font-size="13" fill={outcomePopup.type === "win" ? "#302002" : "#FFFFFF"} letter-spacing="0.5">
+                    <text x="130" y="135" textAnchor="middle" font-family="Georgia, Times New Roman, serif" font-weight="900" font-size="13.5" fill={outcomePopup.type === "win" ? "#302002" : "#FFFFFF"} letter-spacing="0.5">
                       {outcomePopup.type === "win" ? "Congratulations!" : "Better Luck Next Time!"}
                     </text>
                   </g>
@@ -1219,16 +1229,20 @@ export default function WingoGameScreen() {
 
               {/* Close Countdown */}
               <div className="wg-outcome-v2-countdown-wrap">
-                <svg className="wg-countdown-circle-svg" viewBox="0 0 20 20">
-                  <circle className="bg" cx="10" cy="10" r="8" />
+                <svg className="wg-countdown-circle-svg" viewBox="0 0 20 20" style={{ width: "16px", height: "16px", transform: "rotate(-90deg)" }}>
+                  <circle cx="10" cy="10" r="8" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="2" />
                   <circle 
-                    className="progress" 
                     cx="10" 
                     cy="10" 
                     r="8" 
+                    fill="none" 
+                    stroke={outcomePopup.type === "win" ? "#d4af37" : "#ef4444"} 
+                    strokeWidth="2"
+                    strokeDasharray="50.26"
+                    strokeDashoffset={(50.26 * (3 - popupCountdown)) / 3}
                     style={{
-                      strokeDasharray: "50.26",
-                      strokeDashoffset: (50.26 * (3 - popupCountdown)) / 3
+                      transition: "stroke-dashoffset 1s linear",
+                      strokeLinecap: "round"
                     }}
                   />
                 </svg>
@@ -1239,7 +1253,7 @@ export default function WingoGameScreen() {
 
               {/* Bottom Brand Logo */}
               <div className="wg-outcome-v2-footer-logo-row">
-                <img src="/images/logo-ln.png" className="wg-footer-logo-img" alt="LN" />
+                <img src="/images/logo-ln.png" style={{ width: "24px", height: "24px", objectFit: "contain", marginRight: "6px" }} alt="LN" />
                 <span className="wg-footer-logo-text">LUCKY NOVA</span>
               </div>
 
