@@ -146,6 +146,23 @@ export default function WingoGameScreen() {
     };
   }, [duration, loadData, router]);
 
+  // Local timer ticker to prevent timer freezing or lag between socket events
+  useEffect(() => {
+    const localTick = setInterval(() => {
+      setPeriod((prev) => {
+        if (prev && prev.remainingSeconds > 0) {
+          return {
+            ...prev,
+            remainingSeconds: prev.remainingSeconds - 1,
+          };
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(localTick);
+  }, []);
+
   useEffect(() => {
     if (showCountdownOverlay && betSheet) {
       setBetSheet(null);
