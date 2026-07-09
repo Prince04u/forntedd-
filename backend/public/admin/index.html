@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lucky Nova - Administrative Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0c;
+      --bg-card: rgba(20, 20, 25, 0.7);
+      --border-color: rgba(212, 175, 55, 0.2);
+      --gold: #D4AF37;
+      --gold-hover: #fce89c;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Login Form Styles */
+    #login-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-primary);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      padding: 2.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+
+    .login-logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 2rem;
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.9rem;
+      background: var(--gold);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.25s ease;
+    }
+
+    .btn-submit:hover {
+      background: var(--gold-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Dashboard Layout */
+    #admin-layout {
+      display: none;
+      width: 100%;
+      min-height: 100vh;
+      grid-template-columns: 260px 1fr;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: rgba(15, 15, 20, 0.95);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1.5rem;
+    }
+
+    .sidebar-header {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 3rem;
+      letter-spacing: 1px;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .nav-item button {
+      width: 100%;
+      text-align: left;
+      padding: 0.85rem 1rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .nav-item button:hover, .nav-item.active button {
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--gold);
+    }
+
+    .btn-logout {
+      margin-top: auto;
+      background: rgba(239, 68, 68, 0.1) !important;
+      color: var(--danger) !important;
+    }
+
+    /* Main Panel Content */
+    .main-panel {
+      padding: 2.5rem;
+      overflow-y: auto;
+      height: 100vh;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .panel-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    /* Analytics Dashboard Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .kpi-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .kpi-val {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Panel Sections Containers */
+    .panel-section {
+      display: none;
+    }
+
+    .panel-section.active {
+      display: block;
+    }
+
+    /* Tables Style */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem 1.25rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.9rem;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Badges */
+    .badge {
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+    .badge-warning { background: rgba(212, 175, 55, 0.15); color: var(--gold); }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+    /* Action Buttons */
+    .btn-action {
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .btn-confirm { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.2); color: var(--success); }
+    .btn-confirm:hover { background: var(--success); color: #000; }
+    .btn-cancel { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    .btn-cancel:hover { background: var(--danger); color: #fff; }
+
+    /* Forms */
+    .config-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 600px;
+      margin-bottom: 2rem;
+    }
+
+    .config-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--gold);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.5rem;
+    }
+
+    .config-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Form Screen -->
+  <div id="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">LUCKY NOVA ADMIN</div>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="text" id="login-mobile" class="form-input" value="9999999999" required />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" class="form-input" value="adminpassword123" required />
+        </div>
+        <button type="submit" class="btn-submit">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard Panel -->
+  <div id="admin-layout">
+    <div class="sidebar">
+      <div class="sidebar-header">LUCKY NOVA</div>
+      <ul class="nav-list">
+        <li class="nav-item active" onclick="switchPanel('analytics')"><button>📊 Overview Analytics</button></li>
+        <li class="nav-item" onclick="switchPanel('users')"><button>👥 User Profiles</button></li>
+        <li class="nav-item" onclick="switchPanel('deposits')"><button>📥 USDT Deposits</button></li>
+        <li class="nav-item" onclick="switchPanel('withdrawals')"><button>📤 Withdrawals</button></li>
+        <li class="nav-item" onclick="switchPanel('config')"><button>⚙️ Platform settings</button></li>
+        <li class="nav-item" onclick="switchPanel('results')"><button>🎲 Results Control</button></li>
+        <li class="nav-item"><button class="btn-logout" onclick="handleLogout()">🚪 Sign Out</button></li>
+      </ul>
+    </div>
+
+    <div class="main-panel">
+      <!-- Header -->
+      <div class="panel-header">
+        <h1 class="panel-title" id="panel-title-label">Dashboard Analytics</h1>
+        <span class="badge badge-success">Live Server Connected</span>
+      </div>
+
+      <!-- ANALYTICS PANEL -->
+      <div id="section-analytics" class="panel-section active">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Gross Gaming Revenue</div>
+            <div class="kpi-val" id="kpi-ggr">₹0.00</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Registered Accounts</div>
+            <div class="kpi-val" id="kpi-users">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Pending Deposits</div>
+            <div class="kpi-val" id="kpi-deposits">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Pending Payouts</div>
+            <div class="kpi-val" id="kpi-withdrawals">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS PANEL -->
+      <div id="section-users" class="panel-section">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Balance Adj</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DEPOSITS PANEL -->
+      <div id="section-deposits" class="panel-section">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Amount</th>
+                <th>Network</th>
+                <th>TXID</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="deposits-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- WITHDRAWALS PANEL -->
+      <div id="section-withdrawals" class="panel-section">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Amount</th>
+                <th>Fees</th>
+                <th>Method</th>
+                <th>Destination</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="withdrawals-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CONFIG PLATFORM PANEL -->
+      <div id="section-config" class="panel-section">
+        <div class="config-card">
+          <div class="config-title">USDT Deposit Configs</div>
+          <div class="form-group">
+            <label>TRC20 Wallet Address</label>
+            <input type="text" id="cfg-trc20" class="form-input" />
+          </div>
+          <button class="btn-submit" onclick="saveUsdtConfig()">Save Deposit Settings</button>
+        </div>
+
+        <div class="config-card">
+          <div class="config-title">Withdrawal Configs</div>
+          <div class="config-row">
+            <div class="form-group">
+              <label>Min Payout Limit</label>
+              <input type="number" id="cfg-min-withdraw" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>Processing Fee (%)</label>
+              <input type="number" id="cfg-fee-withdraw" class="form-input" />
+            </div>
+          </div>
+          <button class="btn-submit" onclick="saveWithdrawConfig()">Save Withdrawal Limits</button>
+        </div>
+      </div>
+
+      <!-- OUTCOME CONTROL PANEL -->
+      <div id="section-results" class="panel-section">
+        <div class="config-card">
+          <div class="config-title">WinGo Game Control</div>
+          <div class="form-group">
+            <label>Target Active Period ID</label>
+            <input type="text" id="res-wingo-period" class="form-input" placeholder="e.g. 2026070930S8842" />
+          </div>
+          <div class="form-group">
+            <label>Force Win Number (0-9)</label>
+            <input type="number" id="res-wingo-number" class="form-input" min="0" max="9" placeholder="Enter target number" />
+          </div>
+          <button class="btn-submit" onclick="overrideWingoResult()">Inject Override Result</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem("admin_token");
+
+    window.onload = () => {
+      if (token) {
+        document.getElementById("login-overlay").style.display = "none";
+        document.getElementById("admin-layout").style.display = "grid";
+        loadDashboardData();
+      }
+    };
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const mobile = document.getElementById("login-mobile").value;
+      const password = document.getElementById("login-password").value;
+
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile, password }),
+        });
+        const res = await response.json();
+
+        if (res.success && res.data.role === "admin") {
+          token = res.data.token;
+          localStorage.setItem("admin_token", token);
+          document.getElementById("login-overlay").style.display = "none";
+          document.getElementById("admin-layout").style.display = "grid";
+          loadDashboardData();
+        } else {
+          alert(res.message || "Invalid Admin authorization.");
+        }
+      } catch (err) {
+        alert("Server connection failed.");
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem("admin_token");
+      location.reload();
+    }
+
+    function switchPanel(panelName) {
+      document.querySelectorAll(".panel-section").forEach((s) => s.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+
+      document.getElementById(`section-${panelName}`).classList.add("active");
+      const titleLabel = panelName.charAt(0).toUpperCase() + panelName.slice(1) + " Management";
+      document.getElementById("panel-title-label").innerText = titleLabel;
+
+      if (panelName === "analytics") loadDashboardData();
+      if (panelName === "users") loadUsersData();
+      if (panelName === "deposits") loadDepositsData();
+      if (panelName === "withdrawals") loadWithdrawalsData();
+      if (panelName === "config") loadConfigsData();
+    }
+
+    async function loadDashboardData() {
+      try {
+        const response = await fetch("/api/admin/analytics", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (res.success) {
+          const stats = res.data.KPI;
+          document.getElementById("kpi-ggr").innerText = `₹${stats.ggr.toFixed(2)}`;
+          document.getElementById("kpi-users").innerText = stats.totalUsers;
+          document.getElementById("kpi-deposits").innerText = stats.pendingDeposits;
+          document.getElementById("kpi-withdrawals").innerText = stats.pendingWithdrawals;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadUsersData() {
+      try {
+        const response = await fetch("/api/admin/users", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (res.success) {
+          const tbody = document.getElementById("users-table-body");
+          tbody.innerHTML = "";
+          res.data.forEach((user) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${user.name}</td>
+              <td>${user.mobile}</td>
+              <td>${user.role}</td>
+              <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+              <td>
+                <button class="btn-action btn-confirm" onclick="adjustBalance('${user._id}', 'credit')">+ Credit</button>
+                <button class="btn-action btn-cancel" onclick="adjustBalance('${user._id}', 'debit')">- Debit</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function adjustBalance(userId, direction) {
+      const amount = prompt(`Enter amount to ${direction}:`);
+      if (!amount || isNaN(amount)) return;
+
+      try {
+        const response = await fetch(`/api/admin/users/${userId}/wallet`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ amount: Number(amount), direction, description: "Manual Adjustment" }),
+        });
+        const res = await response.json();
+        alert(res.message || "Balance adjusted.");
+        loadUsersData();
+      } catch (err) {
+        alert("Balance adjustment failed.");
+      }
+    }
+
+    async function loadDepositsData() {
+      try {
+        const response = await fetch("/api/admin/deposits", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (res.success) {
+          const tbody = document.getElementById("deposits-table-body");
+          tbody.innerHTML = "";
+          res.data.forEach((dep) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${dep.user.name} (${dep.user.mobile})</td>
+              <td>₹${dep.amount}</td>
+              <td>${dep.channel}</td>
+              <td>${dep.txHash || "—"}</td>
+              <td><span class="badge badge-${dep.status === "approved" ? "success" : dep.status === "pending" ? "warning" : "danger"}">${dep.status}</span></td>
+              <td>
+                ${dep.status === "pending" ? `
+                  <button class="btn-action btn-confirm" onclick="verifyDeposit('${dep._id}', 'approved')">Approve</button>
+                  <button class="btn-action btn-cancel" onclick="verifyDeposit('${dep._id}', 'rejected')">Reject</button>
+                ` : "—"}
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function verifyDeposit(depositId, status) {
+      try {
+        const response = await fetch(`/api/admin/deposits/${depositId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        });
+        const res = await response.json();
+        alert(res.message || "Deposit processed.");
+        loadDepositsData();
+      } catch (err) {
+        alert("Processing failed.");
+      }
+    }
+
+    async function loadWithdrawalsData() {
+      try {
+        const response = await fetch("/api/admin/withdrawals", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (res.success) {
+          const tbody = document.getElementById("withdrawals-table-body");
+          tbody.innerHTML = "";
+          res.data.forEach((wd) => {
+            const dest = wd.type === "crypto" ? wd.cryptoAddress : `${wd.bankName} (${wd.bankCardNumber})`;
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${wd.user.name}</td>
+              <td>₹${wd.amount}</td>
+              <td>₹${wd.fees}</td>
+              <td>${wd.type.toUpperCase()}</td>
+              <td>${dest}</td>
+              <td><span class="badge badge-${wd.status === "completed" ? "success" : wd.status === "pending" ? "warning" : "danger"}">${wd.status}</span></td>
+              <td>
+                ${wd.status === "pending" ? `
+                  <button class="btn-action btn-confirm" onclick="verifyWithdrawal('${wd._id}', 'completed')">Confirm</button>
+                  <button class="btn-action btn-cancel" onclick="verifyWithdrawal('${wd._id}', 'rejected')">Reject</button>
+                ` : "—"}
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function verifyWithdrawal(withdrawalId, status) {
+      try {
+        const response = await fetch(`/api/admin/withdrawals/${withdrawalId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        });
+        const res = await response.json();
+        alert(res.message || "Withdrawal processed.");
+        loadWithdrawalsData();
+      } catch (err) {
+        alert("Processing failed.");
+      }
+    }
+
+    async function loadConfigsData() {
+      try {
+        const resUsdt = await fetch("/api/admin/config/usdt", { headers: { "Authorization": `Bearer ${token}` } });
+        const cfgUsdt = await resUsdt.json();
+        if (cfgUsdt.success) {
+          document.getElementById("cfg-trc20").value = cfgUsdt.data.usdt_trc20;
+        }
+
+        const resWd = await fetch("/api/admin/config/withdraw", { headers: { "Authorization": `Bearer ${token}` } });
+        const cfgWd = await resWd.json();
+        if (cfgWd.success) {
+          document.getElementById("cfg-min-withdraw").value = cfgWd.data.minWithdraw;
+          document.getElementById("cfg-fee-withdraw").value = cfgWd.data.withdrawFeePercent;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function saveUsdtConfig() {
+      const usdt_trc20 = document.getElementById("cfg-trc20").value;
+      try {
+        const response = await fetch("/api/admin/config/usdt", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ usdt_trc20 }),
+        });
+        const res = await response.json();
+        alert(res.message || "USDT config saved.");
+      } catch (err) {
+        alert("Saving failed.");
+      }
+    }
+
+    async function saveWithdrawConfig() {
+      const minWithdraw = Number(document.getElementById("cfg-min-withdraw").value);
+      const withdrawFeePercent = Number(document.getElementById("cfg-fee-withdraw").value);
+      try {
+        const response = await fetch("/api/admin/config/withdraw", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ minWithdraw, withdrawFeePercent }),
+        });
+        const res = await response.json();
+        alert(res.message || "Withdraw config saved.");
+      } catch (err) {
+        alert("Saving failed.");
+      }
+    }
+
+    async function overrideWingoResult() {
+      const periodId = document.getElementById("res-wingo-period").value;
+      const result = Number(document.getElementById("res-wingo-number").value);
+
+      if (!periodId || isNaN(result)) {
+        alert("Please enter a valid Period ID and number (0-9).");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/admin/games/wingo/result", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ periodId, result }),
+        });
+        const res = await response.json();
+        alert(res.message || "Override result successfully active!");
+      } catch (err) {
+        alert("Outcome override failed.");
+      }
+    }
+  </script>
+</body>
+</html>

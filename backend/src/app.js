@@ -23,6 +23,14 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static uploaded files (KYCs and payment proof screenshots)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
+// Serve static admin dashboard panel
+const fs = require("fs");
+const adminPath = path.join(__dirname, "../public/admin");
+if (!fs.existsSync(adminPath)) {
+  fs.mkdirSync(adminPath, { recursive: true });
+}
+app.use("/admin", express.static(adminPath));
+
 // Bind API root endpoint
 app.use("/api", apiRouter);
 
