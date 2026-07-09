@@ -50,6 +50,7 @@ const getRecentResults = async (req, res, next) => {
     const formatted = list.map((p) => ({
       periodId: p.periodId,
       number: p.result.number,
+      resultNumber: p.result.number,
       colors: p.result.colors,
       size: p.result.size,
     }));
@@ -63,10 +64,16 @@ const getRecentResults = async (req, res, next) => {
 const placeWingoBet = async (req, res, next) => {
   try {
     const { duration } = req.params;
-    const { amount, betType, betValue } = req.body; // betType: "color"|"number"|"big_small"
+    const { betType, betValue, amount } = req.body;
 
-    if (!amount || !betType || betValue === undefined) {
-      return res.status(400).json({ message: "Bet amount, type, and selection value are required." });
+    if (!betType || betValue === undefined || !amount) {
+      return res.status(400).json({ message: "Missing bet placement details." });
+    }
+
+    const periods = wingoService.getActivePeriods();
+    const activePeriod = periods[duration];
+    if (!activePeriod) {
+      return res.status(400).json({ message: "Wingo game duration currently closed." });
     }
 
     const config = await PlatformConfig.findOne() || new PlatformConfig();
@@ -76,12 +83,6 @@ const placeWingoBet = async (req, res, next) => {
       return res.status(400).json({
         message: `Bet must be between ₹${wingoLimits.minBet} and ₹${wingoLimits.maxBet}.`,
       });
-    }
-
-    const periods = wingoService.getActivePeriods();
-    const activePeriod = periods[duration];
-    if (!activePeriod) {
-      return res.status(400).json({ message: "Wingo game duration currently closed." });
     }
 
     const wallet = await Wallet.findOne({ user: req.user._id });
@@ -140,7 +141,28 @@ const getWingoBets = async (req, res, next) => {
     const list = await Bet.find({ user: req.user._id, game: "wingo" })
       .sort({ createdAt: -1 })
       .limit(30);
-    return res.json({ success: true, data: list });
+
+    const formatted = await Promise.all(
+      list.map(async (bet) => {
+        const periodObj = await Period.findOne({ game: "wingo", periodId: bet.periodId });
+        return {
+          _id: bet._id,
+          periodId: bet.periodId,
+          amount: bet.amount,
+          winAmount: bet.winAmount,
+          payoutRatio: bet.payoutRatio,
+          state: bet.state,
+          status: bet.state, // Map status to state for frontend compatibility
+          details: bet.details,
+          createdAt: bet.createdAt,
+          resultNumber: periodObj && periodObj.result ? periodObj.result.number : null,
+          betType: bet.details ? bet.details.betType : "",
+          betValue: bet.details ? bet.details.betValue : "",
+        };
+      })
+    );
+
+    return res.json({ success: true, data: { bets: formatted } });
   } catch (error) {
     return next(error);
   }

@@ -47,10 +47,24 @@ const getOrCreateActivePeriod = async (duration) => {
 };
 
 const generatePeriodId = (duration) => {
-  const prefix = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const seconds = duration === "30s" ? "30" : duration === "1m" ? "60" : duration === "3m" ? "180" : "300";
-  const rand = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
-  return `${prefix}${seconds}${rand}`;
+  const now = new Date();
+  
+  // Calculate start of today local time
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const secondsSinceMidnight = Math.floor((now.getTime() - startOfDay.getTime()) / 1000);
+  
+  const sec = DURATION_SEC[duration] || 30;
+  const roundIndex = Math.floor(secondsSinceMidnight / sec) + 1;
+  
+  const dateStr = startOfDay.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+  
+  // Map duration string to a 2-digit code prefix to identify games
+  const durationCode = duration === "30s" ? "30" : duration === "1m" ? "01" : duration === "3m" ? "03" : "05";
+  
+  // Pad the sequential round index of the day (e.g. 0001, 0002)
+  const roundStr = String(roundIndex).padStart(4, "0");
+  
+  return `${dateStr}${durationCode}${roundStr}`;
 };
 
 const tickWingo = async () => {
@@ -101,11 +115,11 @@ const resolvePeriod = async (duration, period) => {
 
     const finalResult = { number, colors, size };
 
-    period.status = "completed";
-    period.result = finalResult;
-    await period.save();
+    dbPeriod.status = "completed";
+    dbPeriod.result = finalResult;
+    await dbPeriod.save();
 
-    logger.info(`Wingo period ${period.periodId} resolved: ${JSON.stringify(finalResult)}`);
+    logger.info(`Wingo period ${dbPeriod.periodId} resolved: ${JSON.stringify(finalResult)}`);
 
     // Settle bets placed on this round
     const bets = await Bet.find({
