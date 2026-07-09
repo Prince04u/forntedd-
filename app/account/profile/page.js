@@ -7,14 +7,14 @@ import { getToken, getUser, setUser } from "@/lib/auth";
 import { getStoredAvatar, setStoredAvatar } from "@/lib/userPreferences";
 import { getProfile, updateProfile } from "@/lib/userApi";
 
-const AVATAR_OPTIONS = ["👤", "😎", "🎮", "💎", "🔥", "🎯", "🦁", "🐯"];
+const AVATAR_OPTIONS = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
 export default function ProfilePage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [name, setName] = useState("");
   const [mobileMasked, setMobileMasked] = useState("");
-  const [avatar, setAvatar] = useState("👤");
+  const [avatar, setAvatar] = useState("1");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -44,24 +44,27 @@ export default function ProfilePage() {
       router.replace("/login");
       return;
     }
-    setAvatar(getStoredAvatar());
+    setAvatar(getStoredAvatar() || "1");
     loadProfile();
   }, [router, loadProfile]);
 
-  const handleSave = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (name.trim().length < 2) {
+      setError("Name must be at least 2 characters");
+      return;
+    }
     setLoading(true);
     setError("");
     setSuccess("");
-
     try {
-      const res = await updateProfile({ name: name.trim() });
+      await updateProfile({ name });
       setStoredAvatar(avatar);
       const storedUser = getUser();
       if (storedUser) {
-        setUser({ ...storedUser, ...res.data });
+        setUser({ ...storedUser, name });
       }
-      setSuccess("Profile updated");
+      setSuccess("Profile updated successfully");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update profile");
     } finally {
@@ -69,19 +72,13 @@ export default function ProfilePage() {
     }
   };
 
-  if (!mounted) {
-    return (
-      <main className="account-page">
-        <div className="account-loading">Loading...</div>
-      </main>
-    );
-  }
+  if (!mounted) return null;
 
   return (
-    <main className="account-page account-sub-page">
-      <AccountSubHeader title="Edit profile" />
+    <main className="account-page">
+      <AccountSubHeader title="Profile" backHref="/account" />
 
-      <form className="account-form" onSubmit={handleSave}>
+      <form className="account-form" onSubmit={handleSubmit}>
         {error && <div className="account-form-error">{error}</div>}
         {success && <div className="account-form-success">{success}</div>}
 
@@ -94,8 +91,12 @@ export default function ProfilePage() {
                 type="button"
                 className={`account-avatar-option ${avatar === item ? "active" : ""}`}
                 onClick={() => setAvatar(item)}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "44px" }}
               >
-                {item}
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" style={{ color: avatar === item ? "var(--theme-gold, #D4AF37)" : "rgba(255,255,255,0.4)" }}>
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </button>
             ))}
           </div>

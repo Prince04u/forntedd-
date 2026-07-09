@@ -107,7 +107,7 @@ export default function DepositHistoryPage() {
   }
 
   return (
-    <main style={{ background: "#080808", minHeight: "100vh", color: "#ffffff", padding: "1.5rem 1rem", fontFamily: "sans-serif" }}>
+    <main style={{ background: "#080808", minHeight: "100vh", color: "#ffffff", padding: "1.5rem 1rem", fontFamily: "sans-serif", maxWidth: "480px", margin: "0 auto", position: "relative" }}>
       
       {/* HEADER */}
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>

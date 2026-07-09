@@ -673,10 +673,11 @@
           <table>
             <thead>
               <tr>
+                <th>Order Number</th>
                 <th>Player</th>
                 <th>Amount</th>
                 <th>Assigned Target Wallet</th>
-                <th>TXID</th>
+                <th>Reference / UTR / TxID</th>
                 <th>Receipt</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -989,11 +990,27 @@
           tbody.innerHTML = "";
           res.data.forEach((dep) => {
             const tr = document.createElement("tr");
+            let orderNo = "—";
+            if (dep.createdAt && dep._id) {
+              const date = new Date(dep.createdAt);
+              const pad = (v) => String(v).padStart(2, "0");
+              const stamp = [
+                date.getFullYear(),
+                pad(date.getMonth() + 1),
+                pad(date.getDate()),
+                pad(date.getHours()),
+                pad(date.getMinutes()),
+                pad(date.getSeconds())
+              ].join("");
+              const suffix = String(dep._id).slice(-10).toLowerCase();
+              orderNo = `RC${stamp}${suffix}`;
+            }
             tr.innerHTML = `
+              <td style="font-family: monospace; font-weight: bold; font-size: 0.85rem">${orderNo}</td>
               <td>${dep.user ? dep.user.name : "System User"} (${dep.user ? dep.user.mobile : "Unknown"})</td>
               <td>₹${dep.amount}</td>
               <td style="font-family: monospace; font-size:0.85rem">${dep.address || "—"}</td>
-              <td>${dep.txHash || "—"}</td>
+              <td style="font-weight: bold; color: #fbbf24;">${dep.txHash || "—"}</td>
               <td>
                 ${dep.proofImage ? `
                   <a href="${dep.proofImage}" target="_blank">

@@ -701,7 +701,14 @@ const getAnalytics = async (req, res, next) => {
 const getUsdtAddresses = async (req, res, next) => {
   try {
     const list = await UsdtAddress.find().sort({ createdAt: -1 });
-    return res.json({ success: true, data: list });
+    const enrichedList = await Promise.all(
+      list.map(async (addrDoc) => {
+        const doc = addrDoc.toObject();
+        doc.useCount = await Deposit.countDocuments({ address: doc.address });
+        return doc;
+      })
+    );
+    return res.json({ success: true, data: enrichedList });
   } catch (error) {
     return next(error);
   }
