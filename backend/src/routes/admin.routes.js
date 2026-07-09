@@ -31,6 +31,13 @@ const {
   addUsdtAddress,
   deleteUsdtAddress,
   toggleUsdtAddress,
+  toggleUserBan,
+  getPromoBanners,
+  updatePromoBanner,
+  getWingoBetsStats,
+  createGiftCode,
+  getGiftCodes,
+  toggleGiftCode,
 } = require("../controllers/admin.controller");
 const { protect, adminOnly } = require("../middlewares/auth");
 
@@ -41,9 +48,12 @@ router.use(protect);
 router.use(adminOnly);
 
 router.get("/games/active-bets", getActiveBetsSummary);
+router.get("/games/wingo/stats", getWingoBetsStats);
+
 router.get("/users", getUsers);
 router.get("/users/:id", getUserProfile);
 router.patch("/users/:id", updateUserProfile);
+router.patch("/users/:id/toggle-ban", toggleUserBan);
 router.patch("/users/:id/kyc", updateUserKyc);
 router.post("/users/:id/wallet", adjustUserBalance);
 
@@ -73,7 +83,9 @@ router.patch("/games/:gameId/result", overrideGameResult);
 router.get("/referral", getReferralConfig);
 router.patch("/referral", updateReferralConfig);
 
+router.get("/promos", getPromoBanners);
 router.post("/promos", managePromoBanners);
+router.patch("/promos/:id", updatePromoBanner);
 router.delete("/promos/:id", deletePromoBanner);
 
 router.post("/announcements", createAnnouncement);
@@ -83,5 +95,9 @@ router.get("/support/tickets", getSupportTickets);
 router.patch("/support/tickets/:id", replySupportTicket);
 
 router.get("/analytics", getAnalytics);
+
+router.get("/gifts", getGiftCodes);
+router.post("/gifts", createGiftCode);
+router.patch("/gifts/:id/toggle", toggleGiftCode);
 
 module.exports = router;

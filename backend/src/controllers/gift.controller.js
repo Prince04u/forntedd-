@@ -1,3 +1,4 @@
+const GiftCode = require("../models/GiftCode");
 const Wallet = require("../models/Wallet");
 const Transaction = require("../models/Transaction");
 const PlatformConfig = require("../models/PlatformConfig");
@@ -81,4 +82,92 @@ const claimDailyGift = async (req, res, next) => {
   }
 };
 
-module.exports = { getGiftStatus, claimDailyGift };
+const redeemGiftCode = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      return res.status(400).json({ message: "Gift code is required." });
+    }
+
+    const uppercaseCode = String(code).toUpperCase().trim();
+    const giftCode = await GiftCode.findOne({ code: uppercaseCode });
+
+    if (!giftCode || !giftCode.isActive) {
+      return res.status(400).json({ message: "Invalid or inactive gift code." });
+    }
+
+    if (giftCode.claimedCount >= giftCode.maxClaims) {
+      return res.status(400).json({ message: "This gift code has reached its maximum claims limit." });
+    }
+
+    if (giftCode.claimedUsers.includes(req.user._id)) {
+      return res.status(400).json({ message: "You have already redeemed this gift code." });
+    }
+
+    const wallet = await Wallet.findOne({ user: req.user._id });
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet configuration not found." });
+    }
+
+    const prevBalance = wallet.balance;
+    wallet.balance += giftCode.rewardAmount;
+    await wallet.save();
+
+    // Update claimed lists
+    giftCode.claimedUsers.push(req.user._id);
+    giftCode.claimedCount += 1;
+    await giftCode.save();
+
+    // Log transaction
+    const txn = new Transaction({
+      user: req.user._id,
+      type: "gift_redemption",
+      amount: giftCode.rewardAmount,
+      direction: "credit",
+      prevBalance,
+      postBalance: wallet.balance,
+      description: `Gift Code Redeemed: ${giftCode.code}`,
+      refId: giftCode._id,
+    });
+    await txn.save();
+
+    logger.info(`User ${req.user.mobile} redeemed Gift Code ${giftCode.code} for ₹${giftCode.rewardAmount}`);
+
+    return res.json({
+      success: true,
+      message: `Successfully redeemed ₹${giftCode.rewardAmount.toFixed(2)}!`,
+      data: {
+        rewardAmount: giftCode.rewardAmount,
+        newBalance: wallet.balance,
+        code: giftCode.code,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getRedemptionHistory = async (req, res, next) => {
+  try {
+    const list = await Transaction.find({
+      user: req.user._id,
+      type: "gift_redemption",
+    })
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    return res.json({
+      success: true,
+      data: list,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports = {
+  getGiftStatus,
+  claimDailyGift,
+  redeemGiftCode,
+  getRedemptionHistory,
+};

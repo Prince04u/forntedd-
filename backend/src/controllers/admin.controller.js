@@ -764,6 +764,164 @@ const getActiveBetsSummary = async (req, res, next) => {
   }
 };
 
+const toggleUserBan = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    user.status = user.status === "suspended" ? "active" : "suspended";
+    await user.save();
+
+    logger.warn(`Admin toggled user ${user.mobile} status to: ${user.status}`);
+    return res.json({ success: true, message: `User status set to ${user.status}.`, status: user.status });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getPromoBanners = async (req, res, next) => {
+  try {
+    const list = await PromoBanner.find().sort({ order: 1, createdAt: -1 });
+    return res.json({ success: true, data: list });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const updatePromoBanner = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { image, title, link, order, active } = req.body;
+    const banner = await PromoBanner.findById(id);
+    if (!banner) return res.status(404).json({ message: "Promo banner not found." });
+
+    if (image !== undefined) banner.image = image;
+    if (title !== undefined) banner.title = title;
+    if (link !== undefined) banner.link = link;
+    if (order !== undefined) banner.order = Number(order);
+    if (active !== undefined) banner.active = Boolean(active);
+
+    await banner.save();
+    return res.json({ success: true, message: "Promo banner updated successfully.", data: banner });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getWingoBetsStats = async (req, res, next) => {
+  try {
+    const Bet = require("../models/Bet");
+    
+    // Historical aggregates
+    const historicalAgg = await Bet.aggregate([
+      { $match: { game: "wingo" } },
+      {
+        $group: {
+          _id: null,
+          totalBetsCount: { $sum: 1 },
+          totalAmountBetted: { $sum: "$amount" },
+          uniquePlayers: { $addToSet: "$user" }
+        }
+      }
+    ]);
+
+    const historical = {
+      totalBetsCount: historicalAgg[0]?.totalBetsCount || 0,
+      totalAmountBetted: historicalAgg[0]?.totalAmountBetted || 0,
+      uniquePlayersCount: historicalAgg[0]?.uniquePlayers?.length || 0,
+    };
+
+    // Active rounds summary
+    const { getActivePeriods } = require("../services/wingo.service");
+    const activeWingoPeriods = getActivePeriods();
+
+    const active = {};
+    for (const duration in activeWingoPeriods) {
+      const period = activeWingoPeriods[duration];
+      if (!period) continue;
+
+      const activeBets = await Bet.find({
+        game: "wingo",
+        periodId: period.periodId,
+        state: "pending",
+      });
+
+      const roundAmount = activeBets.reduce((sum, b) => sum + b.amount, 0);
+      const roundPlayers = new Set(activeBets.map(b => String(b.user))).size;
+
+      active[duration] = {
+        periodId: period.periodId,
+        totalBetsCount: activeBets.length,
+        totalAmountBetted: roundAmount,
+        uniquePlayersCount: roundPlayers,
+      };
+    }
+
+    return res.json({ success: true, data: { historical, active } });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const createGiftCode = async (req, res, next) => {
+  try {
+    const GiftCode = require("../models/GiftCode");
+    const { code, rewardAmount, maxClaims } = req.body;
+
+    if (!rewardAmount || !maxClaims) {
+      return res.status(400).json({ message: "Reward amount and max claims are required." });
+    }
+
+    let finalCode = code ? String(code).toUpperCase().trim() : "";
+    if (!finalCode) {
+      const randomNum = Math.floor(10000 + Math.random() * 90000);
+      finalCode = `LUCKYNOVA${randomNum}`;
+    }
+
+    const duplicate = await GiftCode.findOne({ code: finalCode });
+    if (duplicate) {
+      return res.status(400).json({ message: `Gift code ${finalCode} already exists.` });
+    }
+
+    const newCode = new GiftCode({
+      code: finalCode,
+      rewardAmount: Number(rewardAmount),
+      maxClaims: Number(maxClaims),
+    });
+
+    await newCode.save();
+    return res.status(201).json({ success: true, message: `Gift code ${finalCode} created successfully!`, data: newCode });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getGiftCodes = async (req, res, next) => {
+  try {
+    const GiftCode = require("../models/GiftCode");
+    const list = await GiftCode.find().sort({ createdAt: -1 });
+    return res.json({ success: true, data: list });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const toggleGiftCode = async (req, res, next) => {
+  try {
+    const GiftCode = require("../models/GiftCode");
+    const { id } = req.params;
+    const gift = await GiftCode.findById(id);
+    if (!gift) return res.status(404).json({ message: "Gift code not found." });
+
+    gift.isActive = !gift.isActive;
+    await gift.save();
+
+    return res.json({ success: true, message: `Gift code status toggled to ${gift.isActive ? "Active" : "Inactive"}.`, data: gift });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getActiveBetsSummary,
   getUsers,
@@ -796,4 +954,11 @@ module.exports = {
   addUsdtAddress,
   deleteUsdtAddress,
   toggleUsdtAddress,
+  toggleUserBan,
+  getPromoBanners,
+  updatePromoBanner,
+  getWingoBetsStats,
+  createGiftCode,
+  getGiftCodes,
+  toggleGiftCode,
 };
