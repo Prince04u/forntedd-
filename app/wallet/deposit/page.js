@@ -34,7 +34,7 @@ const DEFAULT_DISABLED_MESSAGE =
 
 const formatPreset = (value, currencyUnit = "INR") => {
   if (currencyUnit === "USDT") {
-    return value >= 1000 ? `${value / 1000}K USDT` : `${value} USDT`;
+    return value >= 1000 ? `${value / 1000}K` : `${value}`;
   }
   return value >= 1000 ? `₹${value / 1000}K` : `₹${value}`;
 };
