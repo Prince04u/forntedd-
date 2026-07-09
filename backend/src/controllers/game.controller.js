@@ -145,6 +145,10 @@ const getWingoBets = async (req, res, next) => {
     const formatted = await Promise.all(
       list.map(async (bet) => {
         const periodObj = await Period.findOne({ game: "wingo", periodId: bet.periodId });
+        const durationStr = bet.details ? bet.details.duration : "30s";
+        const durationMap = { "30s": 30, "1m": 60, "3m": 180, "5m": 300 };
+        const durationSecs = durationMap[durationStr] || 30;
+
         return {
           _id: bet._id,
           periodId: bet.periodId,
@@ -158,6 +162,7 @@ const getWingoBets = async (req, res, next) => {
           resultNumber: periodObj && periodObj.result ? periodObj.result.number : null,
           betType: bet.details ? bet.details.betType : "",
           betValue: bet.details ? bet.details.betValue : "",
+          duration: durationSecs,
         };
       })
     );
