@@ -1001,6 +1001,11 @@ export default function WingoGameScreen() {
                       <stop offset="50%" stopColor="#B91C1C" />
                       <stop offset="100%" stopColor="#7F1D1D" />
                     </linearGradient>
+
+                    {/* Circular Logo ClipPath */}
+                    <clipPath id="circleClip">
+                      <circle cx="130" cy="70" r="38" />
+                    </clipPath>
                   </defs>
 
                   {/* Confetti & Sparkles */}
@@ -1042,19 +1047,14 @@ export default function WingoGameScreen() {
                     <path d="M 120 60 C 87 45, 62 27, 32 0 C 47 23, 72 43, 120 47 Z" fill={outcomePopup.type === "win" ? "#FFF2AF" : "#F1F5F9"} />
                   </g>
 
-                  {/* Badge Circle outer frame */}
-                  <circle cx="130" cy="70" r="38" fill="rgba(0,0,0,0.6)" />
-                  {/* Outer border ring */}
-                  <circle cx="130" cy="70" r="34" stroke={outcomePopup.type === "win" ? "url(#goldFrame)" : "url(#silverFrame)"} strokeWidth="3" fill={outcomePopup.type === "win" ? "url(#goldBadge)" : "url(#silverBadge)"} />
-                  <circle cx="130" cy="70" r="30" stroke={outcomePopup.type === "win" ? "rgba(212, 175, 55, 0.4)" : "rgba(255, 255, 255, 0.15)"} strokeWidth="1" fill="none" />
+                  {/* Badge Circle outer frame shadow */}
+                  <circle cx="130" cy="70" r="39" fill="rgba(0,0,0,0.5)" />
 
-                  {/* IN Initials - Rendered in Gold (Win) or White (Loss) */}
-                  <text x="130" y="80" textAnchor="middle" font-family="Georgia, Times New Roman, serif" font-weight="900" font-size="28" fill={outcomePopup.type === "win" ? "#D4AF37" : "#FFFFFF"} letter-spacing="-1">
-                    IN
-                  </text>
-                  
-                  {/* Small badge sparkle */}
-                  <path d="M 148 61 L 150 65 L 154 65 L 151 67 L 152 71 L 148 69 L 144 71 L 145 67 L 142 65 L 146 65 Z" fill="#FFF" />
+                  {/* Circular Emblem Logo clipped */}
+                  <image href="/images/logo-ln.png" x="91" y="31" width="78" height="78" clipPath="url(#circleClip)" />
+
+                  {/* Outer border ring overlay */}
+                  <circle cx="130" cy="70" r="38" stroke={outcomePopup.type === "win" ? "#FFEAA0" : "#E2E8F0"} strokeWidth="1.5" fill="none" />
 
                   {/* Crown (Only for Win!) */}
                   {outcomePopup.type === "win" && (
@@ -1222,7 +1222,7 @@ export default function WingoGameScreen() {
 
               {/* Bottom Brand Logo */}
               <div className="wg-outcome-v2-logo-row">
-                <div className="wg-outcome-v2-brand-circle">IN</div>
+                <div className="wg-outcome-v2-brand-circle">LN</div>
                 <span className="wg-outcome-v2-brand-name">LUCKY NOVA</span>
               </div>
 
