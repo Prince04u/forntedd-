@@ -31,7 +31,7 @@ const getOrCreateActivePeriod = async (duration) => {
   });
 
   if (!period) {
-    const periodId = generatePeriodId(duration);
+    const periodId = await generatePeriodId(duration);
     period = new Period({
       game: "wingo",
       duration,
@@ -46,24 +46,36 @@ const getOrCreateActivePeriod = async (duration) => {
   return period;
 };
 
-const generatePeriodId = (duration) => {
+const generatePeriodId = async (duration) => {
   const now = new Date();
-  
-  // Calculate start of today local time
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const secondsSinceMidnight = Math.floor((now.getTime() - startOfDay.getTime()) / 1000);
-  
-  const sec = DURATION_SEC[duration] || 30;
-  const roundIndex = Math.floor(secondsSinceMidnight / sec) + 1;
-  
   const dateStr = startOfDay.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
-  
-  // Map duration string to a 2-digit code prefix to identify games
+
+  // Find the last period created today for this duration
+  const lastPeriod = await Period.findOne({
+    game: "wingo",
+    duration,
+    periodId: new RegExp(`^${dateStr}`),
+  }).sort({ periodId: -1 });
+
+  let roundIndex = 1;
+  if (lastPeriod) {
+    // Increment the last round index by 1
+    const lastRoundStr = lastPeriod.periodId.slice(-4);
+    const lastRoundVal = parseInt(lastRoundStr, 10);
+    if (!isNaN(lastRoundVal)) {
+      roundIndex = lastRoundVal + 1;
+    }
+  } else {
+    // If no rounds exist yet today, fall back to calculation
+    const sec = DURATION_SEC[duration] || 30;
+    const secondsSinceMidnight = Math.floor((now.getTime() - startOfDay.getTime()) / 1000);
+    roundIndex = Math.floor(secondsSinceMidnight / sec) + 1;
+  }
+
   const durationCode = duration === "30s" ? "30" : duration === "1m" ? "01" : duration === "3m" ? "03" : "05";
-  
-  // Pad the sequential round index of the day (e.g. 0001, 0002)
   const roundStr = String(roundIndex).padStart(4, "0");
-  
+
   return `${dateStr}${durationCode}${roundStr}`;
 };
 

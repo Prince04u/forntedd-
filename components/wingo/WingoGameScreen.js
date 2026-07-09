@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { getToken } from "@/lib/auth";
+import { getToken, getUser } from "@/lib/auth";
 import { getSocket } from "@/lib/socket";
 import {
   getCurrentPeriod,
@@ -190,15 +190,18 @@ export default function WingoGameScreen() {
       }
     };
 
+    const userObj = getUser();
     getSocket().then((socket) => {
       if (!socket || cancelled) return;
 
       activeSocket = socket;
-      socket.emit("join:duration", { duration: durationSec });
-      socket.emit("join:user");
+      socket.emit("join:wingo", duration);
+      if (userObj && userObj._id) {
+        socket.emit("auth:register", userObj._id);
+      }
       socket.on("wingo:tick", onTick);
       socket.on("wingo:result", onResult);
-      socket.on("wallet:updated", (data) => setBalance(data.balance));
+      socket.on("wallet:balance", (data) => setBalance(data.balance));
     });
 
     return () => {
@@ -206,7 +209,7 @@ export default function WingoGameScreen() {
       if (activeSocket) {
         activeSocket.off("wingo:tick", onTick);
         activeSocket.off("wingo:result", onResult);
-        activeSocket.off("wallet:updated");
+        activeSocket.off("wallet:balance");
       }
     };
   }, [duration, loadData, router]);
@@ -585,12 +588,80 @@ export default function WingoGameScreen() {
         )}
 
         {historyTab === "chart" && (
-          <div className="wg-chart">
-            {results.slice(0, 20).map((r) => (
-              <span key={r.periodId} className={`wg-chart-ball ${colorClass(r.resultNumber)}`}>
-                {r.resultNumber}
-              </span>
-            ))}
+          <div style={{ overflowX: "auto" }}>
+            <table className="wg-chart-table">
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", paddingLeft: "10px" }}>Period</th>
+                  <th colSpan={10} style={{ padding: "10px 0" }}>Number</th>
+                  <th></th>
+                </tr>
+                <tr style={{ background: "rgba(255,255,255,0.02)" }}>
+                  <th style={{ textAlign: "left", paddingLeft: "10px" }}></th>
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                    <th key={n} style={{ fontSize: "0.8rem", width: "26px", color: "var(--gold)" }}>{n}</th>
+                  ))}
+                  <th style={{ width: "35px" }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.slice(0, 15).map((r) => {
+                  const winNum = r.resultNumber;
+                  const size = getSize(winNum);
+
+                  return (
+                    <tr key={r.periodId}>
+                      <td style={{ textAlign: "left", paddingLeft: "10px", color: "#9ca3af", fontFamily: "monospace", fontSize: "0.8rem" }}>
+                        {r.periodId}
+                      </td>
+                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
+                        const isActive = n === winNum;
+                        return (
+                          <td key={n} style={{ padding: "4px 0" }}>
+                            <span
+                              className={`wg-chart-cell-num ${isActive ? `active ${colorClass(winNum)}` : ""}`}
+                              style={{
+                                width: "22px",
+                                height: "22px",
+                                borderRadius: "50%",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.75rem",
+                                fontWeight: "700",
+                                color: isActive ? "#ffffff" : "#4b5563",
+                                background: isActive ? undefined : "rgba(255,255,255,0.03)"
+                              }}
+                            >
+                              {n}
+                            </span>
+                          </td>
+                        );
+                      })}
+                      <td style={{ padding: "4px 0" }}>
+                        <span
+                          className={`wg-chart-size-badge ${size.toLowerCase()}`}
+                          style={{
+                            display: "inline-flex",
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "0.7rem",
+                            fontWeight: "800",
+                            color: "#fff",
+                            background: size === "Big" ? "#f59e0b" : "#3b82f6"
+                          }}
+                        >
+                          {size === "Big" ? "B" : "S"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -650,10 +721,32 @@ export default function WingoGameScreen() {
                                   <button
                                     type="button"
                                     onClick={copyOrderId}
-                                    style={{ background: "none", border: "none", color: "var(--gold)", cursor: "pointer", fontSize: "0.95rem" }}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      color: "var(--gold)",
+                                      cursor: "pointer",
+                                      padding: "0 4px",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      outline: "none"
+                                    }}
                                     title="Copy Order Number"
                                   >
-                                    📋
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      width="14"
+                                      height="14"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                      fill="none"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    >
+                                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
                                   </button>
                                 </span>
                               </div>
@@ -1105,6 +1198,68 @@ export default function WingoGameScreen() {
         }
         @keyframes rotate {
           to { transform: rotate(360deg); }
+        }
+
+        /* Trend Chart Table styling */
+        .wg-chart-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.8rem;
+          color: #9ca3af;
+          margin-top: 10px;
+        }
+        .wg-chart-table th, .wg-chart-table td {
+          text-align: center;
+          padding: 6px 2px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .wg-chart-cell-num {
+          transition: all 0.2s ease;
+        }
+        .wg-chart-cell-num.active {
+          color: #ffffff !important;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .wg-chart-cell-num.active.green {
+          background: radial-gradient(circle at 35% 25%, #86efac 0%, #22c55e 50%, #15803d 100%) !important;
+        }
+        .wg-chart-cell-num.active.red {
+          background: radial-gradient(circle at 35% 25%, #fca5a5 0%, #ef4444 50%, #b91c1c 100%) !important;
+        }
+        .wg-chart-cell-num.active.v0 {
+          background: linear-gradient(135deg, #7c3aed 0%, #7c3aed 50%, #ef4444 50%, #ef4444 100%) !important;
+        }
+        .wg-chart-cell-num.active.v5 {
+          background: linear-gradient(135deg, #7c3aed 0%, #7c3aed 50%, #22c55e 50%, #22c55e 100%) !important;
+        }
+
+        /* Number grid overrides for active highlight color disappearance */
+        .wg-num-btn:focus,
+        .wg-num-btn:active,
+        .wg-num-btn:hover {
+          outline: none !important;
+          color: #ffffff !important;
+          -webkit-tap-highlight-color: transparent !important;
+        }
+        
+        .wg-num-btn.green:focus,
+        .wg-num-btn.green:active {
+          background: radial-gradient(circle at 35% 25%, #86efac 0%, #22c55e 50%, #15803d 100%) !important;
+        }
+        
+        .wg-num-btn.red:focus,
+        .wg-num-btn.red:active {
+          background: radial-gradient(circle at 35% 25%, #fca5a5 0%, #ef4444 50%, #b91c1c 100%) !important;
+        }
+        
+        .wg-num-btn.v0:focus,
+        .wg-num-btn.v0:active {
+          background: linear-gradient(135deg, #7c3aed 0%, #7c3aed 50%, #ef4444 50%, #ef4444 100%) !important;
+        }
+        
+        .wg-num-btn.v5:focus,
+        .wg-num-btn.v5:active {
+          background: linear-gradient(135deg, #7c3aed 0%, #7c3aed 50%, #22c55e 50%, #22c55e 100%) !important;
         }
       `}</style>
     </main>
