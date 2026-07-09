@@ -88,6 +88,15 @@ export default function WingoGameScreen() {
     }
   }, [duration]);
 
+  const handleRefreshBalance = async () => {
+    try {
+      const balanceRes = await getBalance();
+      setBalance(balanceRes.data.balance);
+    } catch (err) {
+      console.error("Failed to refresh balance", err);
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
     if (!getToken()) {
@@ -284,7 +293,27 @@ export default function WingoGameScreen() {
       <section className="wg-wallet-card">
         <div className="wg-wallet-row">
           <div className="wg-wallet-info">
-            <span className="wg-wallet-label">Wallet balance</span>
+            <span className="wg-wallet-label" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              Wallet balance
+              <button
+                type="button"
+                onClick={handleRefreshBalance}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#D4AF37",
+                  cursor: "pointer",
+                  fontSize: "1.1rem",
+                  padding: "2px",
+                  lineHeight: 1,
+                  display: "inline-flex",
+                  alignItems: "center"
+                }}
+                title="Refresh Balance"
+              >
+                🔄
+              </button>
+            </span>
             <div className="wg-wallet-amount">
               {mounted ? `₹${balance.toFixed(2)}` : "₹0.00"}
             </div>
