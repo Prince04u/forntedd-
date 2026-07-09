@@ -64,13 +64,13 @@ const seedDefaultConfig = async () => {
 const seedDefaultAdmin = async () => {
   try {
     const adminPhone = "9999999999";
-    const checkAdmin = await User.findOne({ mobile: adminPhone });
+    let admin = await User.findOne({ mobile: adminPhone });
 
-    if (!checkAdmin) {
-      const admin = new User({
+    if (!admin) {
+      admin = new User({
         name: "Platform Manager",
         mobile: adminPhone,
-        password: "adminpassword123", // Will be automatically encrypted by mongoose schema hook
+        password: "adminpassword123", // Will be encrypted by pre-save schema hook
         role: "admin",
         inviteCode: "ADMIN99",
       });
@@ -80,6 +80,12 @@ const seedDefaultAdmin = async () => {
       await wallet.save();
 
       logger.info(`Default Admin Account seeded. Mobile: ${adminPhone}, Password: adminpassword123`);
+    } else {
+      // Force verify role and password
+      admin.role = "admin";
+      admin.password = "adminpassword123";
+      await admin.save();
+      logger.info(`Default Admin Account verified/updated in database.`);
     }
   } catch (error) {
     logger.error(`Error seeding default admin account: ${error.message}`);
