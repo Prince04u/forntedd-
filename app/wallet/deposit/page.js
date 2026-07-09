@@ -77,14 +77,15 @@ export default function DepositPage() {
     ? allChannels.find((item) => item.id === selectedMethod.channelId)
     : null;
   const activeChannelType = methodLinkedChannel?.type || selectedChannel?.type || "upi";
-  const displayChannels =
-    allChannels.length > 0
+  const displayChannels = selectedMethod?.channelId
+    ? allChannels.filter((item) => item.id === selectedMethod.channelId)
+    : allChannels.length > 0
       ? allChannels.filter((item) => (item.type || "upi") === activeChannelType)
       : allChannels;
   const parsedAmount = Number(amount);
   const parsedInrAmount = Number(inrAmount);
   const isCrypto = isCryptoChannel(selectedChannel);
-  const usdtRate = selectedChannel.usdtRate || 88;
+  const usdtRate = selectedChannel.usdtRate || 98;
   const inrEquivalent = isCrypto ? convertUsdtToInr(parsedAmount, usdtRate) : parsedAmount;
   const canContinue =
     hasChannels &&
@@ -219,7 +220,7 @@ export default function DepositPage() {
     if (isCrypto) {
       params.set("inr", String(inrEquivalent));
     }
-    router.push(`/wallet/deposit/pay?${params.toString()}`);
+    window.open(`/wallet/deposit/pay?${params.toString()}`, "_blank");
   };
 
   const visiblePresets = isCrypto

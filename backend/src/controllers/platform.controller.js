@@ -31,11 +31,13 @@ const getDepositPayment = async (req, res, next) => {
     const activeAddresses = await UsdtAddress.find({ network, active: true });
     
     let walletAddress = isBep20 ? config.usdt_bep20 : config.usdt_trc20;
+    let qrCodeUrl = "";
 
     // Pick one randomly if bulk entries are present
     if (activeAddresses.length > 0) {
       const randomIndex = Math.floor(Math.random() * activeAddresses.length);
       walletAddress = activeAddresses[randomIndex].address;
+      qrCodeUrl = activeAddresses[randomIndex].qrCodeUrl || "";
     }
 
     return res.json({
@@ -43,8 +45,9 @@ const getDepositPayment = async (req, res, next) => {
       data: {
         type: "crypto",
         walletAddress: walletAddress,
+        qrCodeUrl: qrCodeUrl,
         networkLabel: networkLabel,
-        usdtRate: 91,
+        usdtRate: 98,
         channelLabel: isBep20 ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)"
       }
     });
@@ -135,8 +138,8 @@ const getDepositOptions = async (req, res) => {
         { id: "usdt_bep20", label: "USDT-BEP20", icon: "usdt", enabled: true, channelId: "usdt-bep20", badge: "Fast" }
       ],
       channels: [
-        { id: "usdt-trc20", label: "TronPay-USDT (TRC20)", type: "crypto", enabled: true, min: 10, max: 100000, usdtRate: 91, range: "10 - 100K USDT", icon: "usdt" },
-        { id: "usdt-bep20", label: "Binance-USDT (BEP20)", type: "crypto", enabled: true, min: 10, max: 100000, usdtRate: 91, range: "10 - 100K USDT", icon: "usdt" }
+        { id: "usdt-trc20", label: "TronPay-USDT (TRC20)", type: "crypto", enabled: true, min: 10, max: 100000, usdtRate: 98, range: "10 - 100K USDT", icon: "usdt" },
+        { id: "usdt-bep20", label: "Binance-USDT (BEP20)", type: "crypto", enabled: true, min: 10, max: 100000, usdtRate: 98, range: "10 - 100K USDT", icon: "usdt" }
       ]
     }
   });

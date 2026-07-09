@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { uploadDepositProof } from "@/lib/depositProofApi";
 
-const MAX_SIZE_BYTES = 600 * 1024;
+const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB limit for mobile screenshots
 
 export default function DepositProofUploadField({
   proofPath,

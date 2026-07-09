@@ -716,6 +716,9 @@
               <textarea id="add-addr-val" class="form-input" placeholder="USDT Wallet Address(es) - Paste one per line for bulk add" style="min-height: 40px; resize: vertical; padding: 0.5rem;"></textarea>
             </div>
             <div class="form-group" style="margin-bottom:0">
+              <input type="text" id="add-addr-qr" class="form-input" placeholder="QR Code Image URL (optional)" />
+            </div>
+            <div class="form-group" style="margin-bottom:0">
               <select id="add-addr-net" class="form-input">
                 <option value="TRC20">TRC20 (USDT)</option>
                 <option value="BEP20">BEP20 (USDT)</option>
@@ -1108,6 +1111,7 @@
       const label = document.getElementById("add-addr-label").value;
       const address = document.getElementById("add-addr-val").value;
       const network = document.getElementById("add-addr-net").value;
+      const qrCodeUrl = document.getElementById("add-addr-qr").value;
       
       if (!address) {
         alert("Please enter a valid wallet destination address.");
@@ -1121,13 +1125,14 @@
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
           },
-          body: JSON.stringify({ address, network, label }),
+          body: JSON.stringify({ address, network, label, qrCodeUrl }),
         });
         const res = await response.json();
         if (res.success) {
           alert("Wallet address registered successfully.");
           document.getElementById("add-addr-val").value = "";
           document.getElementById("add-addr-label").value = "";
+          document.getElementById("add-addr-qr").value = "";
           loadAddressesData();
         } else {
           alert(res.message);

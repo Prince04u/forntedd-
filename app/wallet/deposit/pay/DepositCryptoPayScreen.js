@@ -123,11 +123,11 @@ export default function DepositCryptoPayScreen({
           </p>
           <p className="arupi-success-meta">Order: {success.orderNo}</p>
           <div className="arupi-success-actions">
-            <Link href="/wallet/deposit/history" className="arupi-success-primary">
-              View deposit history
+            <Link href="/" className="arupi-success-primary">
+              Back to home
             </Link>
-            <Link href="/wallet" className="arupi-success-secondary">
-              Back to wallet
+            <Link href="/wallet/deposit/history" className="arupi-success-secondary">
+              View deposit history
             </Link>
           </div>
         </section>
@@ -172,11 +172,14 @@ export default function DepositCryptoPayScreen({
       <section className="arupi-pay-block">
         <div className="arupi-qr-box arupi-crypto-qr-box">
           <span className="arupi-network-badge">{networkLabel}</span>
-          <div className="arupi-qr-frame">
-            {walletAddress ? (
+          <div className="arupi-qr-frame" style={{ background: "#ffffff", padding: "10px", borderRadius: "12px", display: "flex", justifyContent: "center" }}>
+            {paymentDetails?.qrCodeUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={paymentDetails.qrCodeUrl} alt="Deposit QR Code" style={{ maxWidth: "100%", maxHeight: "220px", objectFit: "contain" }} />
+            ) : walletAddress ? (
               <QRCodeCanvas value={walletAddress} size={220} level="M" includeMargin />
             ) : (
-              <p>Loading address...</p>
+              <p style={{ color: "#000" }}>Loading address...</p>
             )}
           </div>
           <div className="arupi-address-field">

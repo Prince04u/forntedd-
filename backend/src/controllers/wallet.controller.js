@@ -41,9 +41,20 @@ const getTransactions = async (req, res, next) => {
 
 const requestDeposit = async (req, res, next) => {
   try {
-    const { amount, channel } = req.body;
+    let { amount, channel, method } = req.body;
+
+    if (!channel && method) {
+      const parts = method.split("-");
+      channel = parts.slice(1).join("-"); // e.g. "usdt-trc20"
+    }
+
+    if (channel) {
+      if (channel.toLowerCase().includes("trc20")) channel = "TRC20";
+      else if (channel.toLowerCase().includes("bep20")) channel = "BEP20";
+    }
+
     if (!amount || !channel) {
-      return res.status(400).json({ message: "Amount and channel are required." });
+      return res.status(400).json({ message: "Amount and channel network are required." });
     }
 
     const config = await PlatformConfig.findOne() || new PlatformConfig();

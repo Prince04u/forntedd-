@@ -692,7 +692,7 @@ const getUsdtAddresses = async (req, res, next) => {
 
 const addUsdtAddress = async (req, res, next) => {
   try {
-    const { address, network, label } = req.body;
+    const { address, network, label, qrCodeUrl } = req.body;
     if (!address) return res.status(400).json({ message: "Address is required." });
 
     // Support bulk add by splitting on newlines, commas, or semicolons
@@ -716,6 +716,7 @@ const addUsdtAddress = async (req, res, next) => {
         address: addrStr,
         network: network || "TRC20",
         label: label || "",
+        qrCodeUrl: qrCodeUrl || "",
         active: true,
         isActive: true,
       });
