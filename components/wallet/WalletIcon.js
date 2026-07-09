@@ -2,31 +2,10 @@
 
 const ICONS = {
   hero: (
-    <svg viewBox="0 0 72 72" fill="none" aria-hidden>
-      <defs>
-        <linearGradient id="wallet-body" x1="18" y1="18" x2="54" y2="58" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#a78bfa" />
-          <stop offset="1" stopColor="#7c3aed" />
-        </linearGradient>
-        <linearGradient id="wallet-coin" x1="42" y1="16" x2="58" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#fde68a" />
-          <stop offset="1" stopColor="#f59e0b" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="50" cy="24" rx="10" ry="8" fill="url(#wallet-coin)" />
-      <ellipse cx="44" cy="20" rx="7" ry="5.5" fill="#fbbf24" opacity="0.85" />
-      <path
-        d="M16 28c0-3.3 2.7-6 6-6h24c3.3 0 6 2.7 6 6v22c0 3.3-2.7 6-6 6H22c-3.3 0-6-2.7-6-6V28Z"
-        fill="url(#wallet-body)"
-      />
-      <path
-        d="M22 22h20v4H22c-2.2 0-4 1.8-4 4v2c0-2.2 1.8-4 4-4h28c2.2 0 4 1.8 4 4v14c0 2.2-1.8 4-4 4H22c-2.2 0-4-1.8-4-4V26c0-2.2 1.8-4 4-4Z"
-        fill="#6d28d9"
-      />
-      <circle cx="46" cy="38" r="4" fill="#c4b5fd" />
-      <text x="46" y="40.5" textAnchor="middle" fill="#4c1d95" fontSize="6" fontWeight="700">
-        ₹
-      </text>
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden stroke="var(--theme-gold, #D4AF37)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 12V8H4v12h16v-4" />
+      <rect x="16" y="12" width="6" height="4" rx="1" />
+      <circle cx="19" cy="14" r="1" fill="var(--theme-gold, #D4AF37)" />
     </svg>
   ),
   deposit: (
@@ -56,27 +35,14 @@ const ICONS = {
     </svg>
   ),
   transactions: (
-    <svg viewBox="0 0 32 32" fill="none" aria-hidden>
-      <path
-        d="M11 10h10M11 16h6M11 22h8"
-        stroke="#fff"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M20 8l3 3-3 3M12 24l-3-3 3-3"
-        stroke="#fff"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3 21 7 17 11M3 7h18M7 21 3 17 7 13M21 17H3" />
     </svg>
   ),
   "total-deposit": (
-    <svg viewBox="0 0 32 32" fill="none" aria-hidden>
-      <ellipse cx="16" cy="22" rx="9" ry="3" fill="#92400e" opacity="0.45" />
-      <ellipse cx="16" cy="19" rx="7" ry="2.5" fill="#fbbf24" />
-      <ellipse cx="16" cy="16" rx="5.5" ry="2" fill="#fde68a" />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="12" cy="6" rx="8" ry="3" />
+      <path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" />
     </svg>
   ),
 };
