@@ -224,7 +224,7 @@ export default function DepositPage() {
   };
 
   const visiblePresets = isCrypto
-    ? USDT_PRESET_AMOUNTS.filter((preset) => preset >= selectedChannel.min && preset <= selectedChannel.max)
+    ? USDT_PRESET_AMOUNTS
     : PRESET_AMOUNTS.filter((preset) => preset >= selectedChannel.min && preset <= selectedChannel.max);
 
   const instructionList = isCrypto ? CRYPTO_RECHARGE_INSTRUCTIONS : RECHARGE_INSTRUCTIONS;
