@@ -156,20 +156,30 @@ export default function WingoGameScreen() {
 
   // Local timer ticker to prevent timer freezing or lag between socket events
   useEffect(() => {
+    let zeroCounter = 0;
     const localTick = setInterval(() => {
       setPeriod((prev) => {
-        if (prev && prev.remainingSeconds > 0) {
-          return {
-            ...prev,
-            remainingSeconds: prev.remainingSeconds - 1,
-          };
+        if (prev) {
+          if (prev.remainingSeconds > 0) {
+            zeroCounter = 0;
+            return {
+              ...prev,
+              remainingSeconds: prev.remainingSeconds - 1,
+            };
+          } else {
+            zeroCounter += 1;
+            // If the clock remains at 0 for 2 seconds (e.g. if socket lags), force query new period
+            if (zeroCounter === 2 || zeroCounter === 5) {
+              loadData();
+            }
+          }
         }
         return prev;
       });
     }, 1000);
 
     return () => clearInterval(localTick);
-  }, []);
+  }, [loadData]);
 
   useEffect(() => {
     if (showCountdownOverlay && betSheet) {

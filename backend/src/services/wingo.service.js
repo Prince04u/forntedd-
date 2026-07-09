@@ -82,10 +82,12 @@ const tickWingo = async () => {
 
     if (timers[duration] <= 0) {
       timers[duration] = DURATION_SEC[duration];
-      // Resolve completed period asynchronously
-      resolvePeriod(duration, activePeriods[duration]);
-      // Create next period
-      activePeriods[duration] = await getOrCreateActivePeriod(duration);
+      const completedPeriod = activePeriods[duration];
+      // Resolve completed period and then create the next one sequentially to prevent database race conditions
+      (async () => {
+        await resolvePeriod(duration, completedPeriod);
+        activePeriods[duration] = await getOrCreateActivePeriod(duration);
+      })();
     }
   }
 };
