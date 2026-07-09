@@ -586,8 +586,9 @@
             <h3 style="margin-top:0; margin-bottom:1.25rem; font-weight:800; color:var(--gold);">Add New Banner</h3>
             <form id="add-banner-form" onsubmit="handleAddBanner(event)">
               <div class="form-group">
-                <label>Banner Image URL / Path</label>
-                <input type="text" id="banner-image" class="form-input" placeholder="e.g. /images/new-hero.png" required>
+                <label>Banner Image (Upload File / Or paste URL)</label>
+                <input type="file" id="banner-image-file" class="form-input" accept="image/*" style="padding: 0.35rem; margin-bottom: 0.5rem;">
+                <input type="text" id="banner-image" class="form-input" placeholder="Or paste image URL instead">
               </div>
               <div class="form-group">
                 <label>Title (Optional)</label>
@@ -777,6 +778,23 @@
             <div class="live-period-id">Active Period: <span id="live-period-val">Loading...</span></div>
             <div class="live-timer-val" id="live-countdown-val">00:00</div>
             <div class="override-status-label" id="override-status-val">Override Status: <span class="badge badge-success">None</span></div>
+            <div style="margin-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem;">
+              <div style="font-size:0.9rem; color:#aaa; margin-bottom: 0.65rem; text-align: center;">Active Round Stakes:</div>
+              <div style="display:flex; justify-content:space-around; text-align:center;">
+                <div>
+                  <div style="font-size:0.8rem; color:#888;">Bets Count</div>
+                  <div style="font-size:1.1rem; font-weight:bold; color:#fbbf24;" id="live-active-bets">0</div>
+                </div>
+                <div>
+                  <div style="font-size:0.8rem; color:#888;">Total Amount</div>
+                  <div style="font-size:1.1rem; font-weight:bold; color:#22c55e;" id="live-active-amount">₹0.00</div>
+                </div>
+                <div>
+                  <div style="font-size:0.8rem; color:#888;">Players</div>
+                  <div style="font-size:1.1rem; font-weight:bold; color:#3b82f6;" id="live-active-players">0</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Outcome Overrides Selection Box -->
@@ -948,6 +966,7 @@
                 <button class="btn-action ${user.status === "suspended" ? "btn-confirm" : "btn-cancel"}" onclick="toggleBan('${user._id}')">
                   ${user.status === "suspended" ? "Unban" : "Ban"}
                 </button>
+                <button class="btn-action" style="background:#8b5cf6;" onclick="showPlayerDetails('${user._id}')">🔍 Details</button>
               </td>
             `;
             tbody.appendChild(tr);
@@ -955,6 +974,124 @@
         }
       } catch (err) {
         console.error(err);
+      }
+    }
+
+    async function showPlayerDetails(userId) {
+      try {
+        const response = await fetch(`/api/admin/users/${userId}/details`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (!res.success) {
+          alert("Failed to load details: " + res.message);
+          return;
+        }
+
+        const { profile, wallet, downlines, deposits, withdrawals } = res.data;
+
+        // Create overlay container
+        const modal = document.createElement("div");
+        modal.id = "details-modal-overlay";
+        modal.style.position = "fixed";
+        modal.style.inset = "0";
+        modal.style.background = "rgba(0, 0, 0, 0.75)";
+        modal.style.backdropFilter = "blur(4px)";
+        modal.style.display = "flex";
+        modal.style.alignItems = "center";
+        modal.style.justifyContent = "center";
+        modal.style.zIndex = "99999";
+        modal.style.padding = "20px";
+
+        // Build inner card HTML
+        modal.innerHTML = `
+          <div style="background: #18181c; border: 1px solid rgba(212,175,55,0.25); border-radius: 16px; width: 100%; max-width: 900px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 1.75rem; color: #fff; font-family: sans-serif; position: relative;">
+            
+            <!-- Close Button -->
+            <button style="position: absolute; right: 20px; top: 20px; background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; transition: color 0.2s;" onclick="document.getElementById('details-modal-overlay').remove()">✕</button>
+
+            <h2 style="font-size: 1.3rem; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem; margin: 0 0 1.25rem; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+              <span>👤 Player Profile: ${profile.name}</span>
+            </h2>
+
+            <!-- Grid Layout -->
+            <div style="display: grid; grid-template-columns: 1.2fr 2fr; gap: 20px;">
+              
+              <!-- Left Column: Quick Stats & Downline -->
+              <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- Quick Info -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 10px;">
+                  <h3 style="font-size: 0.95rem; margin: 0 0 0.75rem; color: #fbbf24;">Account Info</h3>
+                  <div style="display:flex; flex-direction:column; gap:6px; font-size:0.85rem; color:#ccc;">
+                    <div><strong>UID:</strong> ${profile.uid}</div>
+                    <div><strong>Mobile:</strong> ${profile.mobile}</div>
+                    <div><strong>Balance:</strong> <span style="color:#22c55e; font-weight:bold;">₹${(wallet ? wallet.balance : 0).toFixed(2)}</span></div>
+                    <div><strong>Invite Code:</strong> ${profile.inviteCode}</div>
+                    <div><strong>Joined:</strong> ${new Date(profile.createdAt).toLocaleDateString()}</div>
+                  </div>
+                </div>
+
+                <!-- Invited Downlines -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 10px; display:flex; flex-direction:column; max-height: 300px;">
+                  <h3 style="font-size: 0.95rem; margin: 0 0 0.75rem; color: #fbbf24;">Invited Downlines (${downlines.length})</h3>
+                  <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:6px; max-height:220px;">
+                    ${downlines.length === 0 ? '<p style="color:#777; font-size:0.8rem; margin:0;">No invited members yet.</p>' : 
+                      downlines.map(d => `
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding: 6px 8px; background:rgba(255,255,255,0.04); border-radius:4px;">
+                          <span style="font-weight:bold; color:#fff;">${d.name}</span>
+                          <span style="color:#aaa;">${d.mobile}</span>
+                        </div>
+                      `).join("")
+                    }
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right Column: Deposit & Withdrawal Histories -->
+              <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- Deposit History -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 10px; max-height: 230px; display:flex; flex-direction:column;">
+                  <h3 style="font-size: 0.95rem; margin: 0 0 0.75rem; color: #fbbf24;">Deposits History</h3>
+                  <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:6px;">
+                    ${deposits.length === 0 ? '<p style="color:#777; font-size:0.8rem; margin:0;">No deposit requests.</p>' : 
+                      deposits.map(d => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; padding: 6px 8px; background:rgba(255,255,255,0.04); border-radius:4px;">
+                          <span>₹${d.amount} (${d.channel})</span>
+                          <span style="color:${d.status === 'approved' ? '#22c55e' : d.status === 'rejected' ? '#ef4444' : '#ffb020'}; font-weight:bold;">${d.status.toUpperCase()}</span>
+                        </div>
+                      `).join("")
+                    }
+                  </div>
+                </div>
+
+                <!-- Withdrawal History -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 10px; max-height: 230px; display:flex; flex-direction:column;">
+                  <h3 style="font-size: 0.95rem; margin: 0 0 0.75rem; color: #fbbf24;">Withdrawals History</h3>
+                  <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:6px;">
+                    ${withdrawals.length === 0 ? '<p style="color:#777; font-size:0.8rem; margin:0;">No withdrawal requests.</p>' : 
+                      withdrawals.map(w => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; padding: 6px 8px; background:rgba(255,255,255,0.04); border-radius:4px;">
+                          <span>₹${w.amount} (${w.type})</span>
+                          <span style="color:${w.status === 'completed' ? '#22c55e' : w.status === 'rejected' ? '#ef4444' : '#ffb020'}; font-weight:bold;">${w.status.toUpperCase()}</span>
+                        </div>
+                      `).join("")
+                    }
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        `;
+        document.body.appendChild(modal);
+      } catch (err) {
+        console.error(err);
+        alert("Error loading details");
       }
     }
 
@@ -1230,6 +1367,12 @@
           // Render stats
           document.getElementById("live-period-val").innerText = activeWingoPeriod;
           
+          if (res.data.activeStakes) {
+            document.getElementById("live-active-bets").innerText = res.data.activeStakes.totalBetsCount || 0;
+            document.getElementById("live-active-amount").innerText = `₹${(res.data.activeStakes.totalAmountBetted || 0).toFixed(2)}`;
+            document.getElementById("live-active-players").innerText = res.data.activeStakes.uniquePlayersCount || 0;
+          }
+          
           // Formats countdown mm:ss
           const minutes = Math.floor(activeWingoCountdown / 60);
           const seconds = activeWingoCountdown % 60;
@@ -1344,19 +1487,34 @@
 
     async function handleAddBanner(e) {
       e.preventDefault();
+      const imageFile = document.getElementById("banner-image-file").files[0];
       const image = document.getElementById("banner-image").value;
       const title = document.getElementById("banner-title").value;
       const link = document.getElementById("banner-link").value;
       const order = document.getElementById("banner-order").value;
 
+      if (!imageFile && !image) {
+        alert("Please upload an image file or enter a banner image URL.");
+        return;
+      }
+
+      const formData = new FormData();
+      if (imageFile) {
+        formData.append("imageFile", imageFile);
+      } else {
+        formData.append("image", image);
+      }
+      formData.append("title", title);
+      formData.append("link", link);
+      formData.append("order", Number(order));
+
       try {
         const response = await fetch("/api/admin/promos", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
           },
-          body: JSON.stringify({ image, title, link, order: Number(order) })
+          body: formData
         });
         const res = await response.json();
         alert(res.success ? "Banner saved successfully!" : (res.message || "Failed to save banner"));

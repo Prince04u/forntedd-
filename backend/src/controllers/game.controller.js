@@ -22,11 +22,28 @@ const getCurrentPeriod = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid game duration requested." });
     }
 
+    const currentPeriodId = periods[duration].periodId;
+
+    // Fetch active bets for this specific period
+    const activeBets = await Bet.find({
+      game: "wingo",
+      periodId: currentPeriodId,
+      state: "pending",
+    });
+
+    const roundAmount = activeBets.reduce((sum, b) => sum + b.amount, 0);
+    const roundPlayers = new Set(activeBets.map(b => String(b.user))).size;
+
     return res.json({
       success: true,
       data: {
-        periodId: periods[duration].periodId,
+        periodId: currentPeriodId,
         remainingSeconds: timers[duration],
+        activeStakes: {
+          totalBetsCount: activeBets.length,
+          totalAmountBetted: roundAmount,
+          uniquePlayersCount: roundPlayers,
+        }
       },
     });
   } catch (error) {

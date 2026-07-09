@@ -6,6 +6,7 @@ const {
   getActiveBetsSummary,
   getUsers,
   getUserProfile,
+  getUserFullDetails,
   updateUserProfile,
   updateUserKyc,
   adjustUserBalance,
@@ -58,6 +59,20 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+const bannerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(process.env.UPLOADS_DIR || "./uploads", "banners");
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `banner-${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+const uploadBanner = multer({ storage: bannerStorage });
+
 const router = express.Router();
 
 // Apply admin locks to all subroutes
@@ -69,6 +84,7 @@ router.get("/games/wingo/stats", getWingoBetsStats);
 
 router.get("/users", getUsers);
 router.get("/users/:id", getUserProfile);
+router.get("/users/:id/details", getUserFullDetails);
 router.patch("/users/:id", updateUserProfile);
 router.patch("/users/:id/toggle-ban", toggleUserBan);
 router.patch("/users/:id/kyc", updateUserKyc);
@@ -101,7 +117,7 @@ router.get("/referral", getReferralConfig);
 router.patch("/referral", updateReferralConfig);
 
 router.get("/promos", getPromoBanners);
-router.post("/promos", managePromoBanners);
+router.post("/promos", uploadBanner.single("imageFile"), managePromoBanners);
 router.patch("/promos/:id", updatePromoBanner);
 router.delete("/promos/:id", deletePromoBanner);
 

@@ -107,7 +107,7 @@ export default function DepositHistoryPage() {
   }
 
   return (
-    <main style={{ background: "#080808", minHeight: "100vh", color: "#ffffff", padding: "1.5rem 1rem", fontFamily: "sans-serif", maxWidth: "480px", margin: "0 auto", position: "relative" }}>
+    <main style={{ background: "#111111", minHeight: "100vh", color: "#ffffff", padding: "1.5rem 1rem", fontFamily: "sans-serif", maxWidth: "480px", margin: "0 auto", position: "relative" }}>
       
       {/* HEADER */}
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
@@ -123,9 +123,9 @@ export default function DepositHistoryPage() {
       {/* METHOD FILTER HORIZONTAL TABS */}
       <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "0.75rem", marginBottom: "1rem" }}>
         <button onClick={() => setMethodFilter("all")} style={{
-          background: methodFilter === "all" ? "#D4AF37" : "#121212",
+          background: methodFilter === "all" ? "#D4AF37" : "#1a1a1e",
           color: methodFilter === "all" ? "#000" : "#ffffff",
-          border: methodFilter === "all" ? "none" : "1px solid #222",
+          border: methodFilter === "all" ? "none" : "1px solid rgba(255,255,255,0.08)",
           borderRadius: "8px",
           padding: "0.5rem 1rem",
           fontSize: "0.85rem",
@@ -136,9 +136,9 @@ export default function DepositHistoryPage() {
           All
         </button>
         <button onClick={() => setMethodFilter("trc20")} style={{
-          background: methodFilter === "trc20" ? "#D4AF37" : "#121212",
+          background: methodFilter === "trc20" ? "#D4AF37" : "#1a1a1e",
           color: methodFilter === "trc20" ? "#000" : "#ffffff",
-          border: methodFilter === "trc20" ? "none" : "1px solid #222",
+          border: methodFilter === "trc20" ? "none" : "1px solid rgba(255,255,255,0.08)",
           borderRadius: "8px",
           padding: "0.5rem 1rem",
           fontSize: "0.85rem",
@@ -149,9 +149,9 @@ export default function DepositHistoryPage() {
           USDT-TRC20
         </button>
         <button onClick={() => setMethodFilter("bep20")} style={{
-          background: methodFilter === "bep20" ? "#D4AF37" : "#121212",
+          background: methodFilter === "bep20" ? "#D4AF37" : "#1a1a1e",
           color: methodFilter === "bep20" ? "#000" : "#ffffff",
-          border: methodFilter === "bep20" ? "none" : "1px solid #222",
+          border: methodFilter === "bep20" ? "none" : "1px solid rgba(255,255,255,0.08)",
           borderRadius: "8px",
           padding: "0.5rem 1rem",
           fontSize: "0.85rem",
@@ -168,7 +168,7 @@ export default function DepositHistoryPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          style={{ flex: 1, background: "#121212", border: "1px solid #222", borderRadius: "8px", color: "#fff", padding: "0.75rem", outline: "none", fontSize: "0.85rem" }}
+          style={{ flex: 1, background: "#1a1a1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#fff", padding: "0.75rem", outline: "none", fontSize: "0.85rem" }}
           aria-label="Filter by status"
         >
           <option value="All">All Status</option>
@@ -180,7 +180,7 @@ export default function DepositHistoryPage() {
           type="date"
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
-          style={{ flex: 1, background: "#121212", border: "1px solid #222", borderRadius: "8px", color: "#fff", padding: "0.75rem", outline: "none", fontSize: "0.85rem" }}
+          style={{ flex: 1, background: "#1a1a1e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#fff", padding: "0.75rem", outline: "none", fontSize: "0.85rem" }}
           aria-label="Filter by date"
         />
       </div>
@@ -202,7 +202,7 @@ export default function DepositHistoryPage() {
             const isPending = d.status === "pending";
 
             return (
-              <div key={d._id} style={{ background: "#121212", border: "1px solid #222", borderRadius: "14px", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div key={d._id} style={{ background: "#1a1a1e", border: "1px solid rgba(212, 175, 55, 0.15)", borderRadius: "14px", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "10px", boxShadow: "0 4px 15px rgba(0,0,0,0.15)" }}>
                 
                 {/* TOP HEADER */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

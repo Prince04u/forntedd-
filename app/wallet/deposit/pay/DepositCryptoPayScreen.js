@@ -6,7 +6,18 @@ import { QRCodeCanvas } from "qrcode.react";
 import DepositProofUploadField from "@/components/wallet/DepositProofUploadField";
 import { buildDepositOrderNo, formatUsdtAmount } from "@/lib/depositCrypto";
 import { requestDeposit } from "@/lib/walletApi";
+import { getApiBaseUrl } from "@/lib/serviceOrigin";
 import "./deposit-pay.css";
+
+const getFullImageUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  const apiBase = getApiBaseUrl();
+  const origin = apiBase.replace(/\/api\/?$/, "");
+  return `${origin}${path}`;
+};
 
 const CRYPTO_ORDER_TIMEOUT_SEC = 60 * 60; // 60 minutes countdown
 
@@ -179,7 +190,7 @@ export default function DepositCryptoPayScreen({
         <div className="arupi-qr-frame" style={{ background: "#ffffff", padding: "10px", border: "1px solid #eaeaea", borderRadius: "16px", display: "flex", justifyContent: "center", marginTop: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.02)" }}>
           {paymentDetails?.qrCodeUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={paymentDetails.qrCodeUrl} alt="Deposit QR Code" style={{ width: "180px", height: "180px", objectFit: "contain" }} />
+            <img src={getFullImageUrl(paymentDetails?.qrCodeUrl)} alt="Deposit QR Code" style={{ width: "180px", height: "180px", objectFit: "contain" }} />
           ) : walletAddress ? (
             <QRCodeCanvas value={walletAddress} size={180} level="M" includeMargin />
           ) : (

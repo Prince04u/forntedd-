@@ -80,6 +80,34 @@ const getUserProfile = async (req, res, next) => {
   }
 };
 
+const getUserFullDetails = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const wallet = await Wallet.findOne({ user: id });
+    const downlines = await User.find({ referredBy: id }).select("name mobile createdAt");
+    const deposits = await Deposit.find({ user: id }).sort({ createdAt: -1 });
+    const withdrawals = await Withdrawal.find({ user: id }).sort({ createdAt: -1 });
+
+    return res.json({
+      success: true,
+      data: {
+        profile: user,
+        wallet,
+        downlines,
+        deposits,
+        withdrawals,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const updateUserProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -585,8 +613,14 @@ const updateReferralConfig = async (req, res, next) => {
 
 const managePromoBanners = async (req, res, next) => {
   try {
-    const { image, title, link, order } = req.body;
-    if (!image) return res.status(400).json({ message: "Image path is required." });
+    let { image, title, link, order } = req.body;
+    const file = req.file;
+    if (file) {
+      image = `/uploads/banners/${file.filename}`;
+    }
+    if (!image) {
+      return res.status(400).json({ message: "Image path or uploaded file is required." });
+    }
 
     const banner = new PromoBanner({ image, title, link, order: order || 0 });
     await banner.save();
@@ -992,6 +1026,7 @@ module.exports = {
   getActiveBetsSummary,
   getUsers,
   getUserProfile,
+  getUserFullDetails,
   updateUserProfile,
   updateUserKyc,
   adjustUserBalance,
