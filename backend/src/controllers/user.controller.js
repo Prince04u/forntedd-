@@ -12,11 +12,12 @@ const getProfile = async (req, res, next) => {
       success: true,
       data: {
         id: user._id,
+        uid: user.uid,
         name: user.name,
         mobile: user.mobile,
         inviteCode: user.inviteCode,
         role: user.role,
-        kycStatus: "approved", // auto verify/mock
+        kycStatus: "approved",
         wallet: {
           balance: wallet ? wallet.balance : 0,
           commissionBalance: wallet ? wallet.commissionBalance : 0,

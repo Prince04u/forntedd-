@@ -67,6 +67,7 @@ const register = async (req, res, next) => {
         role: user.role,
         profile: {
           id: user._id,
+          uid: user.uid,
           name: user.name,
           mobile: user.mobile,
           inviteCode: user.inviteCode,
@@ -112,6 +113,7 @@ const login = async (req, res, next) => {
         role: user.role,
         profile: {
           id: user._id,
+          uid: user.uid,
           name: user.name,
           mobile: user.mobile,
           inviteCode: user.inviteCode,

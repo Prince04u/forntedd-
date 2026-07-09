@@ -126,7 +126,11 @@ export default function TransactionHistoryPage() {
         <div className="wallet-screen-loading">Loading transactions...</div>
       ) : filtered.length === 0 ? (
         <div className="deposit-empty">
-          <div className="deposit-empty-icon">📊</div>
+          <div className="deposit-empty-icon" style={{ display: "flex", justifyContent: "center", marginBottom: "12px", opacity: 0.4 }}>
+            <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" strokeWidth="1.5" fill="none">
+              <path d="M18 20V10M12 20V4M6 20v-6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
           <p>No transactions found</p>
           <Link href="/wallet/deposit" className="deposit-empty-link">Make a deposit</Link>
         </div>

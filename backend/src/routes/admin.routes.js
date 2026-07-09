@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+  getActiveBetsSummary,
   getUsers,
   getUserProfile,
   updateUserProfile,
@@ -39,6 +40,7 @@ const router = express.Router();
 router.use(protect);
 router.use(adminOnly);
 
+router.get("/games/active-bets", getActiveBetsSummary);
 router.get("/users", getUsers);
 router.get("/users/:id", getUserProfile);
 router.patch("/users/:id", updateUserProfile);

@@ -39,7 +39,6 @@ const KYC_LABELS = {
 const BASE_SETTINGS_ITEMS = [
   { iconId: "edit-profile", label: "Edit profile", href: "/account/profile" },
   { iconId: "security", label: "Security", href: "/account/security" },
-  { iconId: "kyc", label: "KYC verification", href: "/account/kyc" },
   { iconId: "notifications", label: "Notifications", href: "/account/notifications", showUnread: true },
   { iconId: "invite-friends", label: "Invite friends", href: "/referral" },
   { iconId: "gifts", label: "Gifts", href: "/account/gifts" },
@@ -264,8 +263,9 @@ export default function AccountScreen() {
   };
 
   const copyUid = () => {
-    if (user?.id) {
-      navigator.clipboard.writeText(String(user.id));
+    const numericUid = user?.uid || user?.id || "";
+    if (numericUid) {
+      navigator.clipboard.writeText(String(numericUid));
       setToast("UID copied");
     }
   };
@@ -279,7 +279,7 @@ export default function AccountScreen() {
   }
 
   const displayName = user?.name || "Member";
-  const uid = user?.id ? String(user.id).slice(-7) : "0000000";
+  const uid = user?.uid ? String(user.uid) : user?.id ? String(user.id).slice(-7) : "0000000";
   const lastLogin = user?.lastLoginAt
     ? new Date(user.lastLoginAt).toLocaleString("en-IN", {
         day: "numeric",

@@ -25,6 +25,9 @@ const startServer = async () => {
   // Seed initial Admin Account for panel controls
   await seedDefaultAdmin();
 
+  // Run user UIDs sequence migration
+  await migrateUserUIDs();
+
   // Create HTTP Server
   const server = http.createServer(app);
 
@@ -89,6 +92,28 @@ const seedDefaultAdmin = async () => {
     }
   } catch (error) {
     logger.error(`Error seeding default admin account: ${error.message}`);
+  }
+};
+
+const migrateUserUIDs = async () => {
+  try {
+    const usersWithoutUid = await User.find({ uid: { $exists: false } });
+    if (usersWithoutUid.length > 0) {
+      let nextUid = 509201;
+      const highestUser = await User.findOne({ uid: { $exists: true } }).sort({ uid: -1 });
+      if (highestUser && highestUser.uid) {
+        nextUid = highestUser.uid + 1;
+      }
+
+      for (const user of usersWithoutUid) {
+        user.uid = nextUid;
+        nextUid += 1;
+        await user.save();
+      }
+      logger.info(`Successfully migrated ${usersWithoutUid.length} players with numeric UIDs starting from ${509201}.`);
+    }
+  } catch (err) {
+    logger.error(`UID migration failed: ${err.message}`);
   }
 };
 

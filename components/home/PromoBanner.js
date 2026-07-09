@@ -18,6 +18,9 @@ const DEFAULT_SLIDES = DESIGN_ASSETS.carouselBanners.map(
 );
 
 const resolveSlideImage = (slide, index) => {
+  if (slide?.image) {
+    return slide.image;
+  }
   if (slide?.id) {
     const asset = getCarouselBanner(slide.id);
     if (asset?.image) return asset.image;

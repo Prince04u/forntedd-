@@ -476,9 +476,10 @@ export default function WithdrawPage() {
               ) : item.icon === "upi" ? (
                 <DepositIcon id="upi-badge" size={22} className="withdraw-method-tab-icon" />
               ) : (
-                <span className="withdraw-method-tab-emoji" aria-hidden>
-                  💳
-                </span>
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none" className="withdraw-method-tab-icon" style={{ opacity: 0.8 }}>
+                  <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
+                  <line x1="2" y1="10" x2="22" y2="10" />
+                </svg>
               )}
               <strong>{item.label}</strong>
             </button>
@@ -509,7 +510,9 @@ export default function WithdrawPage() {
               >
                 {method === "bank" ? (
                   <>
-                    <span className="withdraw-linked-account-icon">🏦</span>
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none" className="withdraw-linked-account-icon-img" style={{ color: "var(--gold)", opacity: 0.9 }}>
+                      <path d="M3 21h18M3 10h18M5 10v11M19 10v11M12 10v11M4 6l8-4 8 4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                     <div className="withdraw-linked-account-copy">
                       <strong>{item.accountName}</strong>
                       <small>{maskAccountNumber(item.accountNumber)}</small>

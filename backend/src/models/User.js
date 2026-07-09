@@ -40,12 +40,31 @@ const UserSchema = new mongoose.Schema(
       enum: ["active", "suspended"],
       default: "active",
     },
+    uid: {
+      type: Number,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
   },
   { timestamps: true }
 );
 
-// Encrypt password before saving
+// Encrypt password and auto-assign UID before saving
 UserSchema.pre("save", async function (next) {
+  if (this.isNew && !this.uid) {
+    try {
+      const lastUser = await this.constructor.findOne({}, { uid: 1 }).sort({ uid: -1 });
+      if (lastUser && lastUser.uid) {
+        this.uid = lastUser.uid + 1;
+      } else {
+        this.uid = 509201;
+      }
+    } catch (err) {
+      return next(err);
+    }
+  }
+
   if (!this.isModified("password")) {
     return next();
   }

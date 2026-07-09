@@ -727,7 +727,45 @@ const toggleUsdtAddress = async (req, res, next) => {
   }
 };
 
+const getActiveBetsSummary = async (req, res, next) => {
+  try {
+    const Bet = require("../models/Bet");
+    const { getActivePeriods } = require("../services/wingo.service");
+    const activeWingoPeriods = getActivePeriods();
+
+    const summary = {};
+    for (const duration in activeWingoPeriods) {
+      const period = activeWingoPeriods[duration];
+      if (!period) continue;
+
+      const bets = await Bet.find({
+        game: "wingo",
+        periodId: period.periodId,
+        state: "pending",
+      });
+
+      const totalAmount = bets.reduce((sum, b) => sum + b.amount, 0);
+      summary[duration] = {
+        periodId: period.periodId,
+        totalBetsCount: bets.length,
+        totalAmountBetted: totalAmount,
+        bets: bets.map((b) => ({
+          userId: b.user,
+          amount: b.amount,
+          betType: b.details ? b.details.betType : "",
+          betValue: b.details ? b.details.betValue : "",
+        })),
+      };
+    }
+
+    return res.json({ success: true, data: summary });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
+  getActiveBetsSummary,
   getUsers,
   getUserProfile,
   updateUserProfile,
