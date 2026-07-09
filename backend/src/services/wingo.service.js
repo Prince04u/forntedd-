@@ -31,7 +31,7 @@ const getOrCreateActivePeriod = async (duration) => {
   });
 
   if (!period) {
-    const periodId = await generatePeriodId(duration);
+    const periodId = generatePeriodId(duration);
     period = new Period({
       game: "wingo",
       duration,
@@ -46,40 +46,24 @@ const getOrCreateActivePeriod = async (duration) => {
   return period;
 };
 
-const generatePeriodId = async (duration) => {
+const generatePeriodId = (duration) => {
   const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dateStr = startOfDay.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+  
+  // Calculate start of today in UTC to prevent timezone offsets and day drifts
+  const startOfTodayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const secondsSinceMidnight = Math.floor((now.getTime() - startOfTodayUTC.getTime()) / 1000);
 
-  // Find the last period created today for this duration
-  const lastPeriodList = await Period.find({
-    game: "wingo",
-    duration,
-    periodId: { $regex: `^${dateStr}` },
-  }).sort({ periodId: -1 }).limit(1);
+  const sec = DURATION_SEC[duration] || 30;
+  const roundIndex = Math.floor(secondsSinceMidnight / sec) + 1;
 
-  const lastPeriod = lastPeriodList.length > 0 ? lastPeriodList[0] : null;
-
-  let roundIndex = 1;
-  if (lastPeriod) {
-    // Increment the last round index by 1
-    const lastRoundStr = lastPeriod.periodId.slice(-4);
-    const lastRoundVal = parseInt(lastRoundStr, 10);
-    if (!isNaN(lastRoundVal)) {
-      roundIndex = lastRoundVal + 1;
-    }
-  } else {
-    // If no rounds exist yet today, fall back to calculation
-    const sec = DURATION_SEC[duration] || 30;
-    const secondsSinceMidnight = Math.floor((now.getTime() - startOfDay.getTime()) / 1000);
-    roundIndex = Math.floor(secondsSinceMidnight / sec) + 1;
-  }
-
+  const dateStr = startOfTodayUTC.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
   const durationCode = duration === "30s" ? "30" : duration === "1m" ? "01" : duration === "3m" ? "03" : "05";
   const roundStr = String(roundIndex).padStart(4, "0");
 
   return `${dateStr}${durationCode}${roundStr}`;
+
 };
+
 
 const tickWingo = async () => {
   const io = getIO();
