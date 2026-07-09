@@ -71,7 +71,7 @@ a {
 
 .form-group input:focus {
   outline: none;
-  border-color: #38bdf8;
+  border-color: #E7C66A;
 }
 
 .btn {
@@ -79,7 +79,7 @@ a {
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 8px;
-  background: #2563eb;
+  background: #D4AF37;
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
@@ -88,7 +88,7 @@ a {
 }
 
 .btn:hover {
-  background: #1d4ed8;
+  background: #AA8122;
 }
 
 .btn:disabled {
@@ -138,7 +138,7 @@ a {
   display: inline-block;
   padding: 0.75rem 1.25rem;
   border-radius: 8px;
-  background: #2563eb;
+  background: #D4AF37;
   color: #fff;
   text-decoration: none;
   font-weight: 600;
@@ -184,7 +184,7 @@ a {
 }
 
 .game-card:hover {
-  border-color: #2563eb;
+  border-color: #D4AF37;
   text-decoration: none;
 }
 
@@ -192,7 +192,7 @@ a {
   display: inline-block;
   padding: 0.75rem 1.25rem;
   border-radius: 8px;
-  background: #2563eb;
+  background: #D4AF37;
   color: #fff;
   font-weight: 600;
   opacity: 0.5;
@@ -234,7 +234,7 @@ a {
 }
 
 .wingo-balance-chip {
-  background: #2563eb;
+  background: #D4AF37;
   padding: 0.625rem 1rem;
   border-radius: 999px;
   font-weight: 700;
@@ -261,7 +261,7 @@ a {
 .countdown {
   font-size: 2rem;
   font-weight: 700;
-  color: #38bdf8;
+  color: #E7C66A;
 }
 
 .status-pill {
@@ -330,8 +330,8 @@ a {
 }
 
 .amount-btn.active {
-  border-color: #2563eb;
-  background: #1d4ed8;
+  border-color: #D4AF37;
+  background: #AA8122;
 }
 
 .color-bets, .size-bets {
@@ -473,11 +473,12 @@ a {
 }
 
 .balance-card {
-  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  background: linear-gradient(135deg, #181818, #111111);
+  border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 16px;
   padding: 1.75rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
 }
 
 .balance-label {
@@ -581,7 +582,7 @@ a {
 
 .transaction-status.completed {
   background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
+  color: #E7C66A;
 }
 
 .transaction-status.pending {
