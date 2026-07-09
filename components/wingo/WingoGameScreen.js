@@ -62,7 +62,7 @@ export default function WingoGameScreen() {
   const showCountdownOverlay = remainingSeconds > 0 && remainingSeconds <= 5;
   const bettingLocked = showCountdownOverlay || loading || maintenanceMode || blocksAction("bet");
   const countdownDigits = timer.ss.split("");
-  const totalAmount = baseAmount * quantity;
+  const totalAmount = baseAmount * (Number(quantity) || 0);
   const betTheme = betSheet ? getBetTheme(betSheet.betType, betSheet.betValue) : "green";
   const durationSeconds = DURATION_SEC[duration];
   const myBetsForDuration = useMemo(
@@ -188,7 +188,13 @@ export default function WingoGameScreen() {
   }, [showCountdownOverlay, betSheet]);
 
   const setBetQuantity = (value) => {
-    const next = Math.max(1, Number(value) || 1);
+    if (value === "") {
+      setQuantity("");
+      return;
+    }
+    const val = parseInt(value, 10);
+    if (isNaN(val)) return;
+    const next = Math.max(0, val);
     setQuantity(next);
     if (MULTIPLIERS.includes(next)) {
       setQuickMultiplier(next);
@@ -211,6 +217,10 @@ export default function WingoGameScreen() {
 
   const confirmBet = async () => {
     if (!betSheet || !agreed) return;
+    if ((Number(quantity) || 0) <= 0) {
+      setError("Please enter a valid quantity of 1 or more.");
+      return;
+    }
     if (totalAmount < betLimits.minBetAmount || totalAmount > betLimits.maxBetAmount) {
       setError(
         `Bet amount must be between ₹${betLimits.minBetAmount} and ₹${betLimits.maxBetAmount.toLocaleString("en-IN")}`
