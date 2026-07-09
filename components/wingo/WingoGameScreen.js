@@ -939,55 +939,83 @@ export default function WingoGameScreen() {
       {/* Outcome announcement Win/Loss popup modal */}
       {outcomePopup && (
         <div className="wg-popup-overlay" onClick={() => setOutcomePopup(null)}>
-          <div className="wg-popup-card" onClick={(e) => e.stopPropagation()}>
-            <div className={`wg-popup-banner ${outcomePopup.type}`}>
-              <div className="wg-popup-rocket">🚀</div>
-              <h3 className="wg-popup-title">
+          <div className="wg-outcome-card" onClick={(e) => e.stopPropagation()}>
+            
+            {/* Header section with Emblem, Wings & Ribbon */}
+            <div className={`wg-outcome-header ${outcomePopup.type}`}>
+              {/* SVG Wings */}
+              <div className="wg-outcome-wings">
+                <svg viewBox="0 0 200 80" className="wg-wings-svg" style={{ width: "240px", height: "96px" }}>
+                  {outcomePopup.type === "win" ? (
+                    <>
+                      {/* Gold Win Wings */}
+                      <path d="M 100 45 C 50 45, 20 20, 5 10 C 25 35, 45 60, 100 65 Z" fill="#aa841d" opacity="0.8" />
+                      <path d="M 100 45 C 60 40, 35 15, 18 5 C 32 22, 50 48, 100 55 Z" fill="#FFE07D" />
+                      <path d="M 100 45 C 150 45, 180 20, 195 10 C 175 35, 155 60, 100 65 Z" fill="#aa841d" opacity="0.8" />
+                      <path d="M 100 45 C 140 40, 165 15, 182 5 C 168 22, 150 48, 100 55 Z" fill="#FFE07D" />
+                    </>
+                  ) : (
+                    <>
+                      {/* Silver Loss Wings */}
+                      <path d="M 100 45 C 50 45, 20 20, 5 10 C 25 35, 45 60, 100 65 Z" fill="#4b5563" opacity="0.8" />
+                      <path d="M 100 45 C 60 40, 35 15, 18 5 C 32 22, 50 48, 100 55 Z" fill="#cbd5e1" />
+                      <path d="M 100 45 C 150 45, 180 20, 195 10 C 175 35, 155 60, 100 65 Z" fill="#4b5563" opacity="0.8" />
+                      <path d="M 100 45 C 140 40, 165 15, 182 5 C 168 22, 150 48, 100 55 Z" fill="#cbd5e1" />
+                    </>
+                  )}
+                </svg>
+              </div>
+
+              {/* Emblem Badge */}
+              <div className={`wg-outcome-emblem ${outcomePopup.type}`}>
+                <span className="wg-outcome-rocket">🚀</span>
+              </div>
+
+              {/* Ribbon Banner */}
+              <div className={`wg-outcome-ribbon ${outcomePopup.type}`}>
                 {outcomePopup.type === "win" ? "Congratulations" : "Sorry"}
-              </h3>
+              </div>
             </div>
-            <div className="wg-popup-body">
-              <div className="wg-popup-results">
-                <span style={{ fontSize: "0.8rem", color: "#9ca3af", marginRight: "2px" }}>Lottery results:</span>
-                {outcomePopup.colors?.map((col) => (
-                  <span key={col} className={`wg-popup-badge ${col}`} style={{ textTransform: "capitalize", padding: "2px 8px", borderRadius: "10px", fontSize: "0.75rem", background: col === "red" ? "#ef4444" : col === "green" ? "#22c55e" : "#a855f7" }}>
-                    {col}
-                  </span>
-                ))}
-                <span className="wg-popup-badge number" style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.75rem", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                  {outcomePopup.number}
-                </span>
-                <span className="wg-popup-badge size" style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "0.75rem", background: "rgba(212,175,55,0.15)", color: "var(--gold)", border: "1px solid rgba(212,175,55,0.3)" }}>
-                  {outcomePopup.size}
-                </span>
+
+            {/* Body Section */}
+            <div className="wg-outcome-body">
+              
+              {/* Lottery results details */}
+              <div className="wg-outcome-details">
+                <span className="wg-outcome-details-label">Lottery results</span>
+                <div className="wg-outcome-details-badges">
+                  {outcomePopup.colors?.map((col) => (
+                    <span key={col} className={`wg-outcome-badge ${col}`} style={{ textTransform: "capitalize" }}>
+                      {col}
+                    </span>
+                  ))}
+                  <span className="wg-outcome-badge number">{outcomePopup.number}</span>
+                  <span className="wg-outcome-badge size">{outcomePopup.size}</span>
+                </div>
               </div>
 
-              <div className="wg-popup-amount-box">
-                {outcomePopup.type === "win" ? (
-                  <>
-                    <div className="wg-popup-amount-label">Bonus</div>
-                    <div className="wg-popup-amount-val win" style={{ fontSize: "2.2rem", fontWeight: "900" }}>
-                      ₹{outcomePopup.amount.toFixed(2)}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="wg-popup-amount-val lose" style={{ fontSize: "2.2rem", fontWeight: "900" }}>
-                      Lose
-                    </div>
-                  </>
-                )}
+              {/* Envelope Paper Sheet */}
+              <div className="wg-outcome-envelope">
+                <div className="wg-outcome-paper">
+                  <div className="wg-outcome-paper-title">
+                    {outcomePopup.type === "win" ? "Bonus" : "Lose"}
+                  </div>
+                  <div className={`wg-outcome-paper-val ${outcomePopup.type}`}>
+                    {outcomePopup.type === "win" ? `₹${outcomePopup.amount.toFixed(2)}` : "Lose"}
+                  </div>
+                  <div className="wg-outcome-paper-period">
+                    Period: WinGo {durationMeta.short} {outcomePopup.periodId}
+                  </div>
+                </div>
               </div>
 
-              <div className="wg-popup-period" style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "15px" }}>
-                Period: WinGo {durationMeta.short} {outcomePopup.periodId}
-              </div>
-
-              <div className="wg-popup-close-timer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "0.8rem", color: "#9ca3af" }}>
-                <span className="wg-popup-close-circle" style={{ width: "12px", height: "12px", borderRadius: "50%", border: "2px solid var(--gold)", borderTopColor: "transparent", animation: "rotate 1s linear infinite" }}></span>
+              {/* Footer Close timer */}
+              <div className="wg-outcome-footer-timer">
+                <span className="wg-outcome-timer-circle"></span>
                 <span>{popupCountdown} seconds auto close</span>
               </div>
             </div>
+            
           </div>
         </div>
       )}
@@ -1086,109 +1114,190 @@ export default function WingoGameScreen() {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        .wg-popup-card {
+        .wg-outcome-card {
           width: 320px;
-          background: #1c1c24;
+          background: linear-gradient(180deg, #2b2b36 0%, #171720 100%);
           border-radius: 28px;
-          overflow: hidden;
-          text-align: center;
           border: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
           position: relative;
-          animation: popup-scaleup 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          text-align: center;
+          animation: popup-scaleup 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+          overflow: visible;
         }
         @keyframes popup-scaleup {
-          from { transform: scale(0.85); opacity: 0; }
+          from { transform: scale(0.8); opacity: 0; }
           to { transform: scale(1); opacity: 1; }
         }
-        .wg-popup-banner {
-          padding: 30px 20px 20px 20px;
+
+        .wg-outcome-header {
+          height: 120px;
           position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-end;
+          padding-bottom: 12px;
+          border-radius: 28px 28px 0 0;
         }
-        .wg-popup-banner.win {
-          background: linear-gradient(180deg, #ff8a00 0%, #ff3d00 100%);
+        .wg-outcome-header.win {
+          background: linear-gradient(180deg, #ff5e36 0%, #d32f2f 100%);
         }
-        .wg-popup-banner.lose {
-          background: linear-gradient(180deg, #5c7293 0%, #29384e 100%);
+        .wg-outcome-header.lose {
+          background: linear-gradient(180deg, #64748b 0%, #334155 100%);
         }
-        .wg-popup-rocket {
-          font-size: 3.5rem;
-          margin-bottom: 10px;
-          filter: drop-shadow(0 0 10px rgba(255,255,255,0.4));
+
+        .wg-outcome-wings {
+          position: absolute;
+          top: -46px;
+          display: flex;
+          justify-content: center;
+          width: 100%;
+          pointer-events: none;
         }
-        .wg-popup-title {
-          font-size: 1.6rem;
-          font-weight: 800;
-          color: #fff;
-          margin: 0;
+        .wg-wings-svg {
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
         }
-        .wg-popup-body {
-          padding: 25px 20px;
-          background: #14141a;
+
+        .wg-outcome-emblem {
+          position: absolute;
+          top: -30px;
+          width: 68px;
+          height: 68px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 3px solid #ffffff;
+          box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+          z-index: 10;
         }
-        .wg-popup-results {
+        .wg-outcome-emblem.win {
+          background: linear-gradient(135deg, #ffd861 0%, #f5af19 100%);
+        }
+        .wg-outcome-emblem.lose {
+          background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+        }
+        .wg-outcome-rocket {
+          font-size: 2.2rem;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+        }
+
+        .wg-outcome-ribbon {
+          width: 85%;
+          padding: 8px 12px;
+          border-radius: 12px;
+          font-size: 1.25rem;
+          font-weight: 900;
+          color: #ffffff;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+          z-index: 5;
+        }
+        .wg-outcome-ribbon.win {
+          background: linear-gradient(90deg, #ff8c00 0%, #e65c00 100%);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        .wg-outcome-ribbon.lose {
+          background: linear-gradient(90deg, #475569 0%, #1e293b 100%);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .wg-outcome-body {
+          padding: 24px 20px;
+        }
+
+        .wg-outcome-details {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
           margin-bottom: 20px;
         }
-        .wg-popup-badge {
-          padding: 4px 12px;
-          border-radius: 20px;
+        .wg-outcome-details-label {
           font-size: 0.8rem;
+          color: #94a3b8;
+          font-weight: 500;
+        }
+        .wg-outcome-details-badges {
+          display: flex;
+          gap: 6px;
+        }
+        .wg-outcome-badge {
+          padding: 3px 10px;
+          border-radius: 12px;
+          font-size: 0.75rem;
           font-weight: 700;
-          text-transform: uppercase;
-          color: #fff;
+          color: #ffffff;
         }
-        .wg-popup-badge.red { background: #ef4444; }
-        .wg-popup-badge.green { background: #22c55e; }
-        .wg-popup-badge.violet { background: #a855f7; }
-        .wg-popup-badge.number { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); }
-        .wg-popup-badge.size { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--border-color); }
-        
-        .wg-popup-amount-box {
+        .wg-outcome-badge.red { background: #ef4444; }
+        .wg-outcome-badge.green { background: #22c55e; }
+        .wg-outcome-badge.violet { background: #a855f7; }
+        .wg-outcome-badge.number { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); }
+        .wg-outcome-badge.size { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); }
+
+        .wg-outcome-envelope {
           margin-bottom: 20px;
+          perspective: 1000px;
         }
-        .wg-popup-amount-label {
-          font-size: 0.85rem;
-          color: #9ca3af;
+        .wg-outcome-paper {
+          background: #ffffff;
+          border-radius: 16px;
+          padding: 16px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+          border: 1px solid #e2e8f0;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+        }
+        .wg-outcome-paper::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: repeating-linear-gradient(45deg, #ef4444, #ef4444 10px, #3b82f6 10px, #3b82f6 20px);
+        }
+        .wg-outcome-paper-title {
+          font-size: 0.9rem;
+          color: #64748b;
+          font-weight: bold;
+          margin-top: 4px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
-        .wg-popup-amount-val {
-          font-size: 2.2rem;
+        .wg-outcome-paper-val {
+          font-size: 2.1rem;
           font-weight: 900;
+          margin: 8px 0;
         }
-        .wg-popup-amount-val.win {
-          color: #ef4444;
-          background: linear-gradient(to right, #ff8a00, #ff2d2d);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        .wg-outcome-paper-val.win {
+          color: #d32f2f;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
-        .wg-popup-amount-val.lose {
-          color: #ffffff;
+        .wg-outcome-paper-val.lose {
+          color: #475569;
           text-transform: uppercase;
-          letter-spacing: 2px;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+          letter-spacing: 1px;
         }
-        
-        .wg-popup-period {
-          font-size: 0.8rem;
-          color: #6b7280;
-          margin-bottom: 20px;
+        .wg-outcome-paper-period {
+          font-size: 0.75rem;
+          color: #94a3b8;
         }
-        
-        .wg-popup-close-timer {
+
+        .wg-outcome-footer-timer {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
           font-size: 0.85rem;
-          color: #9ca3af;
+          color: #94a3b8;
         }
-        .wg-popup-close-circle {
+        .wg-outcome-timer-circle {
           width: 14px;
           height: 14px;
           border-radius: 50%;
