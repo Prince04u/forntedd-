@@ -167,8 +167,8 @@ a {
   gap: 0.25rem;
   padding: 1.25rem;
   border-radius: 12px;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #121212;
+  border: 1px solid rgba(212, 175, 55, 0.2);
   color: #fff;
   text-decoration: none;
   text-align: left;
@@ -214,7 +214,7 @@ a {
 .wingo-page {
   min-height: 100vh;
   padding: 1rem 1rem 3rem;
-  background: #0f172a;
+  background: #080808;
 }
 
 .wingo-container {
@@ -244,8 +244,8 @@ a {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #121212;
+  border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 12px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
@@ -278,8 +278,8 @@ a {
 .status-pill.result_declared { background: #1e3a8a; color: #93c5fd; }
 
 .recent-results, .bet-section, .my-bets-section {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #121212;
+  border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 12px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
@@ -324,8 +324,8 @@ a {
 .amount-btn, .custom-amount {
   padding: 0.625rem;
   border-radius: 8px;
-  border: 1px solid #475569;
-  background: #0f172a;
+  border: 1px solid #333;
+  background: #1c1c1c;
   color: #fff;
 }
 
@@ -412,8 +412,8 @@ a {
   min-height: 100vh;
   padding: 2rem 1.5rem 3rem;
   background:
-    radial-gradient(circle at top, rgba(37, 99, 235, 0.15), transparent 40%),
-    #0f172a;
+    radial-gradient(circle at top, rgba(212, 175, 55, 0.05), transparent 40%),
+    #080808;
 }
 
 .wallet-container {
@@ -455,8 +455,8 @@ a {
 .wallet-refresh {
   padding: 0.625rem 1rem;
   border-radius: 8px;
-  border: 1px solid #334155;
-  background: #1e293b;
+  border: 1px solid #333;
+  background: #121212;
   color: #e2e8f0;
   font-size: 0.875rem;
   font-weight: 600;
@@ -494,8 +494,8 @@ a {
 }
 
 .transactions-section {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #121212;
+  border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 16px;
   overflow: hidden;
 }

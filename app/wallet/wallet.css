@@ -575,7 +575,7 @@
   padding: 0.625rem;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #1a1d3b;
+  background: #121212;
   color: var(--theme-text-muted);
   font-size: 0.875rem;
   font-weight: 600;
@@ -638,7 +638,7 @@
   min-height: 100vh;
   max-width: 480px;
   margin: 0 auto;
-  background: #1a1d3b;
+  background: #080808;
   color: #fff;
   padding-bottom: 88px;
 }
@@ -1876,7 +1876,7 @@
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #1a1d3b;
+  background: #121212;
   margin-bottom: 1rem;
 }
 
