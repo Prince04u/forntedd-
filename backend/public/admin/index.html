@@ -481,6 +481,8 @@
         <li class="nav-item" id="btn-nav-deposits" onclick="switchPanel('deposits')"><button>📥 USDT Deposits</button></li>
         <li class="nav-item" id="btn-nav-withdrawals" onclick="switchPanel('withdrawals')"><button>📤 Withdrawals</button></li>
         <li class="nav-item" id="btn-nav-config" onclick="switchPanel('config')"><button>⚙️ Rotating Wallets</button></li>
+        <li class="nav-item" id="btn-nav-banners" onclick="switchPanel('banners')"><button>🖼️ Hero Banners</button></li>
+        <li class="nav-item" id="btn-nav-gifts" onclick="switchPanel('gifts')"><button>🎁 Gift Codes</button></li>
         <li class="nav-item" id="btn-nav-results" onclick="switchPanel('results')"><button>🎲 Live Game Control</button></li>
         <li class="nav-item"><button class="btn-logout" onclick="handleLogout()">🚪 Logout Admin</button></li>
       </ul>
@@ -513,6 +515,45 @@
             <div class="kpi-val" id="kpi-withdrawals">0</div>
           </div>
         </div>
+
+        <!-- WINGO BETTING STATS -->
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-weight: 800; color: var(--gold); text-align: left; text-transform: uppercase; letter-spacing: 1px;">
+          Wingo Aggregate Betting Stats
+        </h3>
+        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 2rem;">
+          <div class="kpi-card">
+            <div class="kpi-label">Historical Wingo Bets</div>
+            <div class="kpi-val" id="wingo-total-bets">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Historical Wingo Stakes</div>
+            <div class="kpi-val" id="wingo-total-amount">₹0.00</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Wingo Unique Players</div>
+            <div class="kpi-val" id="wingo-unique-players">0</div>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 1rem; font-weight: 800; color: var(--text-muted); text-align: left; text-transform: uppercase; letter-spacing: 1px;">
+          Active Wingo Period Stakes
+        </h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Wingo Duration</th>
+                <th>Active Period ID</th>
+                <th>Total Bets Count</th>
+                <th>Total Stakes Wagered</th>
+                <th>Unique Players Active</th>
+              </tr>
+            </thead>
+            <tbody id="wingo-active-stats-body">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading active period statistics...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- USERS PANEL -->
@@ -525,11 +566,101 @@
                 <th>Mobile</th>
                 <th>Role</th>
                 <th>Joined</th>
-                <th>Balance Adj</th>
+                <th>Status</th>
+                <th>Balance Adj / Ban Actions</th>
               </tr>
             </thead>
             <tbody id="users-table-body"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- HERO BANNERS PANEL -->
+      <div id="section-banners" class="panel-section">
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 2rem;">
+          <!-- Add Banner Form -->
+          <div class="kpi-card" style="text-align: left; background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 18px;">
+            <h3 style="margin-top:0; margin-bottom:1.25rem; font-weight:800; color:var(--gold);">Add New Banner</h3>
+            <form id="add-banner-form" onsubmit="handleAddBanner(event)">
+              <div class="form-group">
+                <label>Banner Image URL / Path</label>
+                <input type="text" id="banner-image" class="form-input" placeholder="e.g. /images/new-hero.png" required>
+              </div>
+              <div class="form-group">
+                <label>Title (Optional)</label>
+                <input type="text" id="banner-title" class="form-input" placeholder="e.g. 100% Welcome Offer">
+              </div>
+              <div class="form-group">
+                <label>Redirect Link / Route (Optional)</label>
+                <input type="text" id="banner-link" class="form-input" placeholder="e.g. /wallet/deposit">
+              </div>
+              <div class="form-group">
+                <label>Sort Order Number</label>
+                <input type="number" id="banner-order" class="form-input" value="0" required>
+              </div>
+              <button type="submit" class="btn-submit" style="margin-top:0.5rem; padding: 0.8rem;">Upload & Save Banner</button>
+            </form>
+          </div>
+
+          <!-- Banners List Grid -->
+          <div class="table-container">
+            <h3 style="margin-top:0; margin-bottom:1.25rem; font-weight:800; color:var(--text-muted);">Active Homepage Banners</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Title</th>
+                  <th>Redirect Route</th>
+                  <th>Sort</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="banners-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- GIFT CODES PANEL -->
+      <div id="section-gifts" class="panel-section">
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 2rem;">
+          <!-- Create Gift Code Form -->
+          <div class="kpi-card" style="text-align: left; background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 18px;">
+            <h3 style="margin-top:0; margin-bottom:1.25rem; font-weight:800; color:var(--gold);">Generate Gift Code</h3>
+            <form id="create-gift-form" onsubmit="handleCreateGift(event)">
+              <div class="form-group">
+                <label>Gift Code Name (Optional)</label>
+                <input type="text" id="gift-code" class="form-input" placeholder="e.g. LUCKYNOVA00921 (auto-generates if empty)">
+              </div>
+              <div class="form-group">
+                <label>Reward Money Amount (₹)</label>
+                <input type="number" step="0.01" id="gift-amount" class="form-input" placeholder="e.g. 50.00" required>
+              </div>
+              <div class="form-group">
+                <label>Max Allowed Claim Users</label>
+                <input type="number" id="gift-max-claims" class="form-input" placeholder="e.g. 100" required>
+              </div>
+              <button type="submit" class="btn-submit" style="margin-top:0.5rem; padding: 0.8rem;">Generate Code</button>
+            </form>
+          </div>
+
+          <!-- Gift Codes List Grid -->
+          <div class="table-container">
+            <h3 style="margin-top:0; margin-bottom:1.25rem; font-weight:800; color:var(--text-muted);">Active Promotional Gift Codes</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Amount</th>
+                  <th>Claims Info</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="gifts-table-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -730,6 +861,8 @@
       if (panelName === "deposits") loadDepositsData();
       if (panelName === "withdrawals") loadWithdrawalsData();
       if (panelName === "config") loadAddressesData();
+      if (panelName === "banners") loadBannersData();
+      if (panelName === "gifts") loadGiftsData();
     }
 
     async function loadDashboardData() {
@@ -744,6 +877,33 @@
           document.getElementById("kpi-users").innerText = stats.totalUsers;
           document.getElementById("kpi-deposits").innerText = stats.pendingDeposits;
           document.getElementById("kpi-withdrawals").innerText = stats.pendingWithdrawals;
+        }
+
+        // Fetch Wingo stats
+        const wingoResponse = await fetch("/api/admin/games/wingo/stats", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const wingoRes = await wingoResponse.json();
+        if (wingoRes.success) {
+          const wData = wingoRes.data;
+          document.getElementById("wingo-total-bets").innerText = wData.historical.totalBetsCount;
+          document.getElementById("wingo-total-amount").innerText = `₹${wData.historical.totalAmountBetted.toFixed(2)}`;
+          document.getElementById("wingo-unique-players").innerText = wData.historical.uniquePlayersCount;
+
+          const tbody = document.getElementById("wingo-active-stats-body");
+          tbody.innerHTML = "";
+          for (const duration in wData.active) {
+            const row = wData.active[duration];
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><strong>Wingo ${duration.replace("wingo", "")}</strong></td>
+              <td style="font-family: monospace;">${row.periodId}</td>
+              <td>${row.totalBetsCount}</td>
+              <td style="color: var(--gold); font-weight: bold;">₹${row.totalAmountBetted.toFixed(2)}</td>
+              <td>${row.uniquePlayersCount}</td>
+            `;
+            tbody.appendChild(tr);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -767,8 +927,16 @@
               <td>${user.role}</td>
               <td>${new Date(user.createdAt).toLocaleDateString()}</td>
               <td>
+                <span class="badge ${user.status === "suspended" ? "badge-danger" : "badge-success"}">
+                  ${user.status === "suspended" ? "Suspended" : "Active"}
+                </span>
+              </td>
+              <td>
                 <button class="btn-action btn-confirm" onclick="adjustBalance('${user._id}', 'credit')">+ Credit</button>
                 <button class="btn-action btn-cancel" onclick="adjustBalance('${user._id}', 'debit')">- Debit</button>
+                <button class="btn-action ${user.status === "suspended" ? "btn-confirm" : "btn-cancel"}" onclick="toggleBan('${user._id}')">
+                  ${user.status === "suspended" ? "Unban" : "Ban"}
+                </button>
               </td>
             `;
             tbody.appendChild(tr);
@@ -1080,6 +1248,194 @@
 
     function clearActiveButtons() {
       document.querySelectorAll(".num-btn").forEach((btn) => btn.classList.remove("active"));
+    }
+
+    async function toggleBan(userId) {
+      if (!confirm("Are you sure you want to change this user's suspension status?")) return;
+      try {
+        const response = await fetch(`/api/admin/users/${userId}/toggle-ban`, {
+          method: "PATCH",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        alert(res.message || "Suspension toggled successfully.");
+        loadUsersData();
+      } catch (err) {
+        alert("Failed to toggle suspension.");
+      }
+    }
+
+    async function loadBannersData() {
+      try {
+        const response = await fetch("/api/admin/promos", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (res.success) {
+          const tbody = document.getElementById("banners-table-body");
+          tbody.innerHTML = "";
+          res.data.forEach((banner) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><img src="${banner.image}" style="max-height: 40px; border-radius: 4px;" /></td>
+              <td>${banner.title || "—"}</td>
+              <td>${banner.link || "—"}</td>
+              <td>${banner.order}</td>
+              <td>
+                <span class="badge ${banner.active ? "badge-success" : "badge-danger"}">
+                  ${banner.active ? "Active" : "Inactive"}
+                </span>
+              </td>
+              <td>
+                <button class="btn-action ${banner.active ? "btn-cancel" : "btn-confirm"}" onclick="toggleBannerActive('${banner._id}')">Toggle</button>
+                <button class="btn-action btn-cancel" onclick="deleteBanner('${banner._id}')">Delete</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function handleAddBanner(e) {
+      e.preventDefault();
+      const image = document.getElementById("banner-image").value;
+      const title = document.getElementById("banner-title").value;
+      const link = document.getElementById("banner-link").value;
+      const order = document.getElementById("banner-order").value;
+
+      try {
+        const response = await fetch("/api/admin/promos", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ image, title, link, order: Number(order) })
+        });
+        const res = await response.json();
+        alert(res.success ? "Banner saved successfully!" : (res.message || "Failed to save banner"));
+        if (res.success) {
+          document.getElementById("add-banner-form").reset();
+          loadBannersData();
+        }
+      } catch (err) {
+        alert("Failed to connect to banner upload API.");
+      }
+    }
+
+    async function toggleBannerActive(id) {
+      try {
+        const bannerResponse = await fetch("/api/admin/promos", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const banners = await bannerResponse.json();
+        const b = banners.data.find(x => x._id === id);
+        if (!b) return;
+
+        const response = await fetch(`/api/admin/promos/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ active: !b.active })
+        });
+        const res = await response.json();
+        loadBannersData();
+      } catch (err) {
+        alert("Failed to toggle banner state.");
+      }
+    }
+
+    async function deleteBanner(id) {
+      if (!confirm("Are you sure you want to delete this homepage slider banner?")) return;
+      try {
+        const response = await fetch(`/api/admin/promos/${id}`, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        alert(res.message || "Banner deleted.");
+        loadBannersData();
+      } catch (err) {
+        alert("Failed to delete banner.");
+      }
+    }
+
+    async function loadGiftsData() {
+      try {
+        const response = await fetch("/api/admin/gifts", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        if (res.success) {
+          const tbody = document.getElementById("gifts-table-body");
+          tbody.innerHTML = "";
+          res.data.forEach((gift) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td style="font-family: monospace; font-weight: bold; color: var(--gold); font-size: 1.05rem;">${gift.code}</td>
+              <td style="font-weight: bold;">₹${gift.rewardAmount.toFixed(2)}</td>
+              <td>
+                <span style="font-weight: 700; color: #fff;">${gift.claimedCount}</span> / ${gift.maxClaims} claims
+              </td>
+              <td>
+                <span class="badge ${gift.isActive ? "badge-success" : "badge-danger"}">
+                  ${gift.isActive ? "Active" : "Inactive"}
+                </span>
+              </td>
+              <td>
+                <button class="btn-action ${gift.isActive ? "btn-cancel" : "btn-confirm"}" onclick="toggleGiftStatus('${gift._id}')">Toggle</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function handleCreateGift(e) {
+      e.preventDefault();
+      const code = document.getElementById("gift-code").value;
+      const rewardAmount = document.getElementById("gift-amount").value;
+      const maxClaims = document.getElementById("gift-max-claims").value;
+
+      try {
+        const response = await fetch("/api/admin/gifts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ code, rewardAmount: Number(rewardAmount), maxClaims: Number(maxClaims) })
+        });
+        const res = await response.json();
+        alert(res.success ? `Gift code generated successfully!` : (res.message || "Failed to generate gift code"));
+        if (res.success) {
+          document.getElementById("create-gift-form").reset();
+          loadGiftsData();
+        }
+      } catch (err) {
+        alert("Failed to connect to gift generator API.");
+      }
+    }
+
+    async function toggleGiftStatus(id) {
+      try {
+        const response = await fetch(`/api/admin/gifts/${id}/toggle`, {
+          method: "PATCH",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const res = await response.json();
+        loadGiftsData();
+      } catch (err) {
+        alert("Failed to toggle gift status.");
+      }
     }
   </script>
 </body>
