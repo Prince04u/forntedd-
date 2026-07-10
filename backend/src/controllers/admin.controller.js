@@ -300,6 +300,13 @@ const processDepositApproval = async (req, res, next) => {
           commissionBalance: wallet.commissionBalance,
         });
 
+        // Also push wallet:updated for the premium recharge popup
+        sendToUser(deposit.user, "wallet:updated", {
+          balance: wallet.balance,
+          rechargeAdded: true,
+          amount: deposit.amount,
+        });
+
         // Pay commission to referral parents if any
         await settleReferralCommissions(deposit.user, deposit.amount);
       }

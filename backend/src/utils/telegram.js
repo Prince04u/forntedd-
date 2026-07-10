@@ -22,14 +22,23 @@ const formatTelegramDate = (dateObj) => {
   };
 };
 
+const escapeHtml = (text) => {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+};
+
 const sendTelegramNotification = async (deposit, user, statusType) => {
   try {
-    const { time, date } = formatTelegramDate(new Date(deposit.createdAt));
-    const amount = deposit.amount;
-    const usdAmount = deposit.payAmount || (deposit.amount / 98).toFixed(2);
-    const uid = user.uid || user._id.toString();
-    const orderId = deposit._id.toString();
-    const txid = deposit.txHash || "Not submitted yet";
+    const { time: rawTime, date: rawDate } = formatTelegramDate(new Date(deposit.createdAt));
+    const amount = escapeHtml(deposit.amount);
+    const usdAmount = escapeHtml(deposit.payAmount || (deposit.amount / 98).toFixed(2));
+    const uid = escapeHtml(user.uid || user._id.toString());
+    const orderId = escapeHtml(deposit._id.toString());
+    const txid = escapeHtml(deposit.txHash || "Not submitted yet");
+    const time = escapeHtml(rawTime);
+    const date = escapeHtml(rawDate);
 
     let statusTextCustom = "";
     let titleTextCustom = "";
