@@ -52,8 +52,8 @@ export default function LimboGameScreen() {
   const animRef = useRef(null);
   const startTimeRef = useRef(null);
   const playingRef = useRef(false);
-  const activeBetRef = useRef(null);
-  const earlyEventRef = useRef(null); // Stores events that arrive before HTTP response
+  const targetMultiplierRef = useRef(2.0);
+  const resultRef = useRef({ result: 1.0, status: "lost", payout: 0 });
 
   useEffect(() => {
     if (platformLoaded && isMaintenance) {
@@ -72,37 +72,7 @@ export default function LimboGameScreen() {
     };
     init();
 
-    let socketInstance = null;
-    const setupSocket = async () => {
-      socketInstance = await getSocket();
-      if (socketInstance) {
-        socketInstance.on("wallet:balance", (data) => {
-          if (data.balance !== undefined) setBalance(data.balance);
-        });
-
-        socketInstance.on("limbo:crash", (data) => {
-          earlyEventRef.current = { type: "crash", ...data };
-          if (activeBetRef.current == data.betId) {
-            handleCrash(data.crashPoint);
-          }
-        });
-
-        socketInstance.on("limbo:win", (data) => {
-          earlyEventRef.current = { type: "win", ...data };
-          if (activeBetRef.current == data.betId) {
-            handleWin(data.multiplier, data.payout);
-          }
-        });
-      }
-    };
-    setupSocket();
-
     return () => {
-      if (socketInstance) {
-        socketInstance.off("wallet:balance");
-        socketInstance.off("limbo:crash");
-        socketInstance.off("limbo:win");
-      }
       if (animRef.current) cancelAnimationFrame(animRef.current);
     };
   }, [platformLoaded, isMaintenance, router]);
@@ -139,7 +109,7 @@ export default function LimboGameScreen() {
       return;
     }
     if (isNaN(target) || target < 1.01) {
-      setError("Minimum auto-cashout is 1.01x");
+      setError("Minimum target is 1.01x");
       return;
     }
     if (balance < amount) {
@@ -155,9 +125,7 @@ export default function LimboGameScreen() {
     setCrashPoint(null);
     setBalance(prev => prev - amount); // Optimistic
 
-    const requestStartTime = Date.now();
     const res = await playLimbo({ amount, targetMultiplier: target });
-    const responseTime = Date.now();
 
     if (!res?.success) {
       setError(res?.message || "Bet failed");
@@ -168,86 +136,56 @@ export default function LimboGameScreen() {
       return;
     }
 
-    setActiveBetId(res.data.id);
-    activeBetRef.current = res.data.id;
+    // Store the exact result
+    resultRef.current = {
+      result: res.data.result,
+      status: res.data.status,
+      payout: res.data.winAmount
+    };
+    targetMultiplierRef.current = target;
     
-    // Check if an early socket event beat this HTTP response!
-    if (earlyEventRef.current && earlyEventRef.current.betId == res.data.id) {
-      if (earlyEventRef.current.type === "crash") {
-        handleCrash(earlyEventRef.current.crashPoint);
-        return;
-      } else if (earlyEventRef.current.type === "win") {
-        handleWin(earlyEventRef.current.multiplier, earlyEventRef.current.payout);
-        return;
-      }
-    }
-
-    // Start local animation loop synced to server via latency estimate
-    const latency = Math.max(0, (responseTime - requestStartTime) / 2);
-    startTimeRef.current = Date.now() - latency;
-
+    // Start local animation loop to tick up to the result over 1.5 seconds
+    startTimeRef.current = Date.now();
+    const durationMs = 1500;
+    
     const animateMultiplier = () => {
       if (!playingRef.current) return;
+      
       const elapsed = Date.now() - startTimeRef.current;
-      // Formula matches backend: Math.exp(elapsedMs / 4000)
-      const current = Math.exp(elapsed / 4000);
+      const progress = Math.min(elapsed / durationMs, 1.0);
+      
+      // Easing out curve
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      
+      // Tick up to result
+      const current = 1.0 + (resultRef.current.result - 1.0) * easeOut;
       setCurrentMultiplier(current);
-      animRef.current = requestAnimationFrame(animateMultiplier);
+
+      if (progress < 1.0) {
+        animRef.current = requestAnimationFrame(animateMultiplier);
+      } else {
+        // Animation finished
+        finishGame();
+      }
     };
     animRef.current = requestAnimationFrame(animateMultiplier);
   };
 
-  const handleManualCashout = async () => {
-    if (!isPlaying || !activeBetId) return;
-    
-    // Optimistically stop animation
+  const finishGame = () => {
     setIsPlaying(false);
     playingRef.current = false;
-    if (animRef.current) cancelAnimationFrame(animRef.current);
-
-    const res = await cashOutLimbo(activeBetId);
-    if (res?.success) {
-      handleWin(res.data.multiplier, res.data.payout);
+    
+    const { result, status, payout } = resultRef.current;
+    setCurrentMultiplier(result);
+    setCrashPoint(result);
+    
+    if (status === "won") {
+      setDisplayState("won");
     } else {
-      // If it failed, check the specific reason
-      if (res?.message?.includes("settled as won")) {
-        // We already auto-cashed out! The socket might just be slightly behind.
-        const winMatch = res.message.match(/Crash point was ([\d.]+)x/);
-        handleWin(targetMultiplier, (Number(betAmount) * targetMultiplier).toFixed(2));
-      } else if (res?.message?.includes("Crashed at") || res?.message?.includes("settled as lost")) {
-        // Backend handles sending the crash socket, but we can fallback here
-        const crashMatch = res.message.match(/([\d.]+)x/);
-        const pt = crashMatch ? Number(crashMatch[1]) : currentMultiplier;
-        handleCrash(pt);
-      } else {
-        setError(res?.message || "Cash out failed");
-        setDisplayState("crashed");
-      }
+      setDisplayState("crashed");
     }
-  };
-
-  const handleCrash = (point) => {
-    setIsPlaying(false);
-    playingRef.current = false;
-    activeBetRef.current = null;
-    setActiveBetId(null);
-    if (animRef.current) cancelAnimationFrame(animRef.current);
     
-    setCurrentMultiplier(point);
-    setCrashPoint(point);
-    setDisplayState("crashed");
-    fetchHistory();
-  };
-
-  const handleWin = (multiplier, payout) => {
-    setIsPlaying(false);
-    playingRef.current = false;
-    activeBetRef.current = null;
-    setActiveBetId(null);
-    if (animRef.current) cancelAnimationFrame(animRef.current);
-    
-    setCurrentMultiplier(multiplier);
-    setDisplayState("won");
+    fetchBalance();
     fetchHistory();
   };
 
@@ -356,59 +294,53 @@ export default function LimboGameScreen() {
         <div style={styles.controlsArea}>
           {error && <div style={styles.errorText}>{error}</div>}
           
-          <div style={styles.inputsRow}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Bet Amount</label>
-              <div style={styles.inputWrapper}>
-                <button 
-                  style={styles.adjustBtn} 
-                  onClick={() => setBetAmount(p => Math.max(10, Number(p)/2))}
-                  disabled={isPlaying}
-                >½</button>
-                <input
-                  type="text"
-                  value={betAmount}
-                  onChange={handleBetChange}
-                  style={styles.input}
-                  disabled={isPlaying}
-                />
-                <button 
-                  style={styles.adjustBtn} 
-                  onClick={() => setBetAmount(p => Number(p)*2)}
-                  disabled={isPlaying}
-                >2x</button>
-              </div>
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Auto Cash Out</label>
-              <div style={styles.inputWrapper}>
-                <input
-                  type="text"
-                  value={targetMultiplier}
-                  onChange={handleTargetChange}
-                  style={styles.input}
-                  disabled={isPlaying}
-                />
-              </div>
-            </div>
+          <div style={styles.targetWrapper}>
+            <button 
+              style={styles.adjustBtn} 
+              onClick={() => setTargetMultiplier(Math.max(1.01, Number(targetMultiplier) - 0.1).toFixed(2))}
+              disabled={isPlaying}
+            >-</button>
+            <input 
+              type="number" 
+              style={styles.targetInput} 
+              value={targetMultiplier} 
+              onChange={handleTargetChange} 
+              disabled={isPlaying}
+            />
+            <button 
+              style={styles.adjustBtn} 
+              onClick={() => setTargetMultiplier((Number(targetMultiplier) + 0.1).toFixed(2))}
+              disabled={isPlaying}
+            >+</button>
           </div>
 
-          {!isPlaying ? (
+          <div style={styles.bottomControls}>
+            <div style={styles.betWrapper}>
+              <div style={styles.betLabelBox}>
+                <span style={{fontSize: 12, color: "#888"}}>Bet</span>
+                <span style={{fontWeight: "bold", fontSize: 14}}>{Number(betAmount).toFixed(2)} INR</span>
+              </div>
+              <button style={styles.adjustBtn} onClick={() => setBetAmount(Math.max(10, Number(betAmount) - 10))} disabled={isPlaying}>-</button>
+              <button style={styles.adjustBtn} onClick={() => setBetAmount(Number(betAmount) * 2)} disabled={isPlaying}>💰</button>
+              <button style={styles.adjustBtn} onClick={() => setBetAmount(Number(betAmount) + 10)} disabled={isPlaying}>+</button>
+            </div>
+            
+            <button style={styles.autoBtn} disabled={isPlaying}>
+              <span style={{fontSize: 18}}>↻</span>
+            </button>
+
             <button 
-              style={{...styles.actionButton, background: "#22c55e", color: "#000"}}
+              style={{
+                ...styles.playBtn,
+                opacity: isPlaying ? 0.5 : 1,
+                cursor: isPlaying ? "not-allowed" : "pointer"
+              }}
               onClick={placeBet}
+              disabled={isPlaying}
             >
-              BET
+              <span style={{fontSize: 20}}>▶</span> BET
             </button>
-          ) : (
-            <button 
-              style={{...styles.actionButton, background: "#eab308", color: "#000"}}
-              onClick={handleManualCashout}
-            >
-              CASH OUT ₹{(Number(betAmount) * currentMultiplier).toFixed(2)}
-            </button>
-          )}
+          </div>
         </div>
       </div>
 
@@ -829,29 +761,16 @@ const styles = {
     textAlign: "center",
     marginBottom: "10px",
   },
-  inputsRow: {
+  targetWrapper: {
     display: "flex",
-    gap: "10px",
-    marginBottom: "15px",
-  },
-  inputGroup: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px",
-  },
-  label: {
-    fontSize: "12px",
-    color: "#aaa",
-  },
-  inputWrapper: {
-    display: "flex",
-    background: "#080808",
-    borderRadius: "8px",
-    border: "1px solid rgba(212,175,55,0.25)",
+    background: "rgba(30,58,138,0.3)",
+    borderRadius: "20px",
+    width: "180px",
+    margin: "0 auto 15px auto",
     overflow: "hidden",
+    border: "1px solid rgba(59,130,246,0.3)",
   },
-  input: {
+  targetInput: {
     flex: 1,
     background: "transparent",
     border: "none",
@@ -861,29 +780,65 @@ const styles = {
     fontWeight: "bold",
     outline: "none",
     width: "100%",
-    padding: "10px 0",
   },
-  adjustBtn: {
-    background: "#141414",
+  bottomControls: {
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
+  },
+  betWrapper: {
+    flex: 1,
+    display: "flex",
+    background: "rgba(30,58,138,0.3)",
+    borderRadius: "20px",
+    overflow: "hidden",
+    border: "1px solid rgba(59,130,246,0.3)",
+  },
+  betLabelBox: {
+    padding: "5px 15px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    background: "rgba(30,58,138,0.5)",
+    flex: 1,
+  },
+  autoBtn: {
+    background: "#2563eb",
     border: "none",
-    color: "#D4AF37",
-    padding: "0 12px",
+    color: "#fff",
+    width: "45px",
+    height: "45px",
+    borderRadius: "50%",
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "bold",
-    transition: "background 0.2s",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 2px 8px rgba(37,99,235,0.4)",
   },
-  actionButton: {
-    width: "100%",
-    padding: "16px",
-    borderRadius: "8px",
+  playBtn: {
+    background: "#4ade80",
     border: "none",
-    fontSize: "18px",
+    color: "#000",
+    padding: "0 25px",
+    height: "45px",
+    borderRadius: "25px",
+    fontSize: "16px",
     fontWeight: "900",
     cursor: "pointer",
-    textTransform: "uppercase",
-    transition: "all 0.2s",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    boxShadow: "0 4px 15px rgba(74,222,128,0.4)",
+  },
+  adjustBtn: {
+    background: "transparent",
+    border: "none",
+    color: "#93c5fd",
+    padding: "0 12px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: "bold",
+    transition: "background 0.2s",
   },
   modalOverlay: {
     position: "fixed",

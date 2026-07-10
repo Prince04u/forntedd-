@@ -50,7 +50,6 @@ router.get("/dice/rolls/my", protect, getDiceRolls);
 
 // Limbo routes
 router.post("/limbo/play", protect, playLimbo);
-router.post("/limbo/cashout", protect, cashOutLimbo);
 router.get("/limbo/bets/my", protect, getLimboBets);
 
 module.exports = router;
