@@ -101,6 +101,7 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
       if (!resCustom || resCustom.ok !== true) {
         throw new Error(resCustom?.description || "Telegram API returned ok: false");
       }
+      return { success: true, method: "custom", data: resCustom };
     } catch (apiErr) {
       logger.warn(`[TELEGRAM] Custom emoji FAILED for "${statusType}", falling back: ${apiErr.message}`);
       try {
@@ -112,13 +113,17 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
         logger.info(`[TELEGRAM] Fallback response for "${statusType}": ${JSON.stringify(resFallback || {})}`);
         if (!resFallback || resFallback.ok !== true) {
           logger.error(`[TELEGRAM] FALLBACK ALSO FAILED for "${statusType}": ${JSON.stringify(resFallback || {})}`);
+          return { success: false, error: resFallback?.description || "Fallback failed", apiErr: apiErr.message };
         }
+        return { success: true, method: "fallback", data: resFallback };
       } catch (fallbackErr) {
         logger.error(`[TELEGRAM] FALLBACK THREW for "${statusType}": ${fallbackErr.message}`);
+        return { success: false, error: fallbackErr.message, apiErr: apiErr.message };
       }
     }
   } catch (err) {
     logger.error(`[TELEGRAM] OUTER CATCH - Failed to send "${statusType || 'unknown'}" notification:`, err);
+    return { success: false, error: err.message };
   }
 };
 

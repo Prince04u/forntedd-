@@ -583,11 +583,12 @@ const testTelegramSuccess = async (req, res) => {
 
     logger.info(`[TEST] Sending Telegram success notification for deposit ${deposit._id}, user UID: ${user.uid || user._id}`);
     
-    await sendTelegramNotification(deposit, user, "success");
+    const teleRes = await sendTelegramNotification(deposit, user, "success");
 
     return res.json({
-      success: true,
-      message: "Telegram success notification sent! Check your Telegram group.",
+      success: teleRes?.success || false,
+      message: teleRes?.success ? "Telegram success notification sent!" : "Telegram rejected the message.",
+      telegramData: teleRes,
       depositId: deposit._id,
       userUid: user.uid || user._id,
       amount: deposit.amount,
