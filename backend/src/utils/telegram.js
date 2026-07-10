@@ -32,23 +32,28 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
     const txid = deposit.txHash || "Not submitted yet";
 
     let statusText = "";
+    let titleText = "";
+
     if (statusType === "created") {
-      statusText = `Created<tg-emoji emoji-id="6068719730468853667">👀</tg-emoji>`;
+      statusText = "Created 👀";
+      titleText = "💃 Recharge Request Created 💃";
     } else if (statusType === "success") {
-      statusText = `Suceess<tg-emoji emoji-id="6235445786759402354">💸</tg-emoji>`;
+      statusText = "Success 💸";
+      titleText = "🎉 Recharge Request Success 🎉";
     } else {
-      statusText = `Failed<tg-emoji emoji-id="6269019133795374514">🚫</tg-emoji>`;
+      statusText = "Failed 🚫";
+      titleText = "❌ Recharge Request Failed ❌";
     }
 
     const text =
-      `<tg-emoji emoji-id="6307506297080121060">💃</tg-emoji>Recharge Request Created <tg-emoji emoji-id="6307506297080121060">💃</tg-emoji>\n\n` +
-      ` 💵Amount :- ₹${amount} / ${usdAmount}$ \n\n` +
-      ` <tg-emoji emoji-id="6242510612824332116">🕐</tg-emoji> Time : ${time}  \n\n` +
-      `  <tg-emoji emoji-id="6068736321927519921">➡️</tg-emoji>Date : ${date}\n\n` +
-      `<tg-emoji emoji-id="6068664995405633126">🌈</tg-emoji>Uid :-${uid}\n\n` +
-      `<tg-emoji emoji-id="6068901240081748746">💥</tg-emoji>order id :-${orderId}\n\n` +
-      `<tg-emoji emoji-id="6269105110450705259">🛡</tg-emoji>Txid :- ${txid}\n\n` +
-      `<tg-emoji emoji-id="6068945070223005574">🆘</tg-emoji>Status :-${statusText}`;
+      `<b>${titleText}</b>\n\n` +
+      `💵 Amount :- ₹${amount} / ${usdAmount}$ \n\n` +
+      `🕐 Time : ${time} \n\n` +
+      `➡️ Date : ${date}\n\n` +
+      `🌈 Uid :- ${uid}\n\n` +
+      `💥 Order ID :- ${orderId}\n\n` +
+      `🛡 Txid :- ${txid}\n\n` +
+      `🆘 Status :- <b>${statusText}</b>`;
 
     const botToken = "8925619066:AAH1KpM550ubsV1V0G8X3GWQMKI9d6cX0ns";
     const chatId = "-1004321239973";
