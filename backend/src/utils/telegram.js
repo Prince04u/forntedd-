@@ -77,8 +77,8 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
       `🛡Txid :- ${txid}\n\n` +
       `🆘Status :-${statusTextFallback}`;
 
-    const botToken = "8925619066:AAH1KpM550ubsV1V0G8X3GWQMKI9d6cX0ns";
-    const chatId = "-1004321239973";
+    const botToken = process.env.TELEGRAM_BOT_TOKEN || "8925619066:AAH1KpM550ubsV1V0G8X3GWQMKI9d6cX0ns";
+    const chatId = process.env.TELEGRAM_CHAT_ID || "-1004321239973";
 
     try {
       const resCustom = await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
