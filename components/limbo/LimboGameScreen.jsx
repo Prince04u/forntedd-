@@ -190,8 +190,12 @@ export default function LimboGameScreen() {
     if (res?.success) {
       handleWin(res.data.multiplier, res.data.payout);
     } else {
-      // If it failed, it probably crashed right before we clicked
-      if (res?.message?.includes("Crashed at")) {
+      // If it failed, check the specific reason
+      if (res?.message?.includes("settled as won")) {
+        // We already auto-cashed out! The socket might just be slightly behind.
+        const winMatch = res.message.match(/Crash point was ([\d.]+)x/);
+        handleWin(targetMultiplier, (Number(betAmount) * targetMultiplier).toFixed(2));
+      } else if (res?.message?.includes("Crashed at") || res?.message?.includes("settled as lost")) {
         // Backend handles sending the crash socket, but we can fallback here
         const crashMatch = res.message.match(/([\d.]+)x/);
         const pt = crashMatch ? Number(crashMatch[1]) : currentMultiplier;
