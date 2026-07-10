@@ -126,34 +126,11 @@ export default function LimboGameScreen() {
     setCrashPoint(null);
     setBalance(prev => prev - amount); // Optimistic
 
-    const res = await playLimbo({ amount, targetMultiplier: target });
-
-    if (!res?.success) {
-      setError(res?.message || "Bet failed");
-      setIsPlaying(false);
-      playingRef.current = false;
-      setDisplayState("idle");
-      fetchBalance();
-      return;
-    }
-
-    // Store the exact result, falling back to 1.0 if backend returns undefined
-    const finalResult = res.data.result !== undefined ? res.data.result : 1.0;
-    resultRef.current = {
-      result: finalResult,
-      status: res.data.status || "lost",
-      payout: res.data.winAmount || 0
-    };
+    // Set a placeholder result while we wait for the network
+    resultRef.current = { result: null, status: "pending", payout: 0 };
     targetMultiplierRef.current = target;
-
-    // Show win popup and update balance instantly
-    if (resultRef.current.status === "won") {
-      setWinPopupAmount(resultRef.current.payout);
-      setBalance(prev => prev + resultRef.current.payout);
-      setTimeout(() => setWinPopupAmount(null), 3000);
-    }
     
-    // Start local animation loop to tick up to the result over 1.5 seconds
+    // Start local animation loop INSTANTLY
     startTimeRef.current = Date.now();
     const durationMs = 1500;
     
@@ -166,18 +143,59 @@ export default function LimboGameScreen() {
       // Easing out curve
       const easeOut = 1 - Math.pow(1 - progress, 3);
       
-      // Tick up to result
-      const current = 1.0 + ((resultRef.current.result || 1.0) - 1.0) * easeOut;
-      setCurrentMultiplier(current || 1.0);
+      // If we don't have the result yet, tick up towards 1.01 very slowly to prevent overshooting
+      const targetResult = resultRef.current.result !== null ? resultRef.current.result : 1.01;
+      const current = 1.0 + (targetResult - 1.0) * easeOut;
+      setCurrentMultiplier(current);
 
       if (progress < 1.0) {
         animRef.current = requestAnimationFrame(animateMultiplier);
       } else {
-        // Animation finished
-        finishGame();
+        // Animation duration finished
+        if (resultRef.current.result === null) {
+          // If network is extremely slow, keep waiting
+          animRef.current = requestAnimationFrame(animateMultiplier);
+        } else {
+          finishGame();
+        }
       }
     };
     animRef.current = requestAnimationFrame(animateMultiplier);
+
+    // Now make the network request asynchronously without blocking the UI
+    try {
+      const res = await playLimbo({ amount, targetMultiplier: target });
+
+      if (!res?.success) {
+        setError(res?.message || "Bet failed");
+        setIsPlaying(false);
+        playingRef.current = false;
+        setDisplayState("idle");
+        fetchBalance();
+        return;
+      }
+
+      // Store the exact result
+      const finalResult = res.data.result !== undefined ? res.data.result : 1.0;
+      resultRef.current = {
+        result: finalResult,
+        status: res.data.status || "lost",
+        payout: res.data.winAmount || 0
+      };
+      
+      // Show win popup and update balance instantly when network returns
+      if (resultRef.current.status === "won") {
+        setWinPopupAmount(resultRef.current.payout);
+        setBalance(prev => prev + resultRef.current.payout);
+        setTimeout(() => setWinPopupAmount(null), 3000);
+      }
+    } catch (err) {
+      setError("Network error");
+      setIsPlaying(false);
+      playingRef.current = false;
+      setDisplayState("idle");
+      fetchBalance();
+    }
   };
 
   const finishGame = () => {
