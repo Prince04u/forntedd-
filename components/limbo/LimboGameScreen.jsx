@@ -49,6 +49,7 @@ export default function LimboGameScreen() {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [error, setError] = useState(null);
   const [popupData, setPopupData] = useState(null);
+  const [isStarting, setIsStarting] = useState(false);
   
   const animRef = useRef(null);
   const startTimeRef = useRef(null);
@@ -120,8 +121,8 @@ export default function LimboGameScreen() {
 
     setError(null);
     setIsPlaying(true);
+    setIsStarting(true);
     playingRef.current = true;
-    setDisplayState("playing");
     setCurrentMultiplier(1.0);
     setCrashPoint(null);
     setBalance(prev => prev - amount); // Optimistic
@@ -205,9 +206,13 @@ export default function LimboGameScreen() {
         payout: res.data.winAmount || 0,
         betAmount: amount
       };
+      
+      setIsStarting(false);
+      setDisplayState("playing");
     } catch (err) {
       setError("Network error");
       setIsPlaying(false);
+      setIsStarting(false);
       playingRef.current = false;
       setDisplayState("idle");
       fetchBalance();
@@ -388,7 +393,11 @@ export default function LimboGameScreen() {
               onClick={placeBet}
               disabled={isPlaying}
             >
-              <span style={{fontSize: 20}}>▶</span> BET
+              {isStarting ? (
+                 <span style={{fontSize: 16}}>LOADING...</span>
+              ) : (
+                 <><span style={{fontSize: 20}}>▶</span> BET</>
+              )}
             </button>
           </div>
         </div>
