@@ -17,7 +17,6 @@ const {
   rollDice,
   getDiceRolls,
   playLimbo,
-  cashOutLimbo,
   getLimboBets,
 } = require("../controllers/game.controller");
 const { protect } = require("../middlewares/auth");
