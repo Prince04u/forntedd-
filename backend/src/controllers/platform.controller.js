@@ -28,7 +28,7 @@ const getDepositPayment = async (req, res, next) => {
     const amount = Number(req.query.amount); // USDT amount from frontend, e.g. 10
 
     // Determine the minimum amount required for NOWPayments API transaction session
-    const apiMinLimit = isBep20 ? 7 : 12;
+    const apiMinLimit = isBep20 ? 1 : 12;
 
     if (amount >= apiMinLimit && req.user) {
       const Deposit = require("../models/Deposit");
@@ -73,7 +73,7 @@ const getDepositPayment = async (req, res, next) => {
               pay_currency: payCurrency,
               ipn_callback_url: callbackUrl,
               order_id: deposit._id.toString(),
-              is_fee_paid_by_user: true
+              is_fee_paid_by_user: amount >= 12
             }
           );
 
