@@ -434,9 +434,9 @@ export default function DiceGameScreen() {
 
   const trackBackground = useMemo(() => {
     if (condition === "under") {
-      return `linear-gradient(to right, #22c55e 0%, #22c55e ${normalizedTarget}%, #991b1b ${normalizedTarget}%, #991b1b 100%)`;
+      return `linear-gradient(to right, #22c55e 0%, #22c55e ${normalizedTarget}%, #ef4444 ${normalizedTarget}%, #ef4444 100%)`;
     } else {
-      return `linear-gradient(to right, #991b1b 0%, #991b1b ${normalizedTarget}%, #3b82f6 ${normalizedTarget}%, #3b82f6 100%)`;
+      return `linear-gradient(to right, #ef4444 0%, #ef4444 ${normalizedTarget}%, #22c55e ${normalizedTarget}%, #22c55e 100%)`;
     }
   }, [condition, normalizedTarget]);
 
@@ -455,7 +455,7 @@ export default function DiceGameScreen() {
           <Link href="/" className="dc-back" aria-label="Back to home">
             ‹
           </Link>
-          <span className="dc-header-logo-text">DICE</span>
+          <span className="dc-header-logo-text">LUCKY NOVA</span>
           <button className="dc-header-how" type="button">How to Play?</button>
         </div>
         <div className="dc-header-right">
@@ -499,8 +499,28 @@ export default function DiceGameScreen() {
 
         {/* Roll outcome main screen display */}
         <div className="dc-outcome-card">
-          <div className="dc-outcome-value">
-            {typeof rollDisplay === "number" ? rollDisplay.toFixed(2) : rollDisplay}
+          <div className="dc-particles">
+            <span className="dc-part p1"></span>
+            <span className="dc-part p2"></span>
+            <span className="dc-part p3"></span>
+            <span className="dc-part p4"></span>
+          </div>
+
+          <div className="dc-outcome-main-row">
+            {/* Premium Animated Gold Casino Dice */}
+            <div className={`dc-dice-wrap ${rollingNumber !== null ? "rolling" : ""}`}>
+              <div className="dc-die-container d1">
+                <GoldDie value={d1} />
+              </div>
+              <div className="dc-die-container d2">
+                <GoldDie value={d2} />
+              </div>
+            </div>
+
+            {/* Large Gold Gradient Roll Value */}
+            <div className="dc-outcome-value">
+              {typeof rollDisplay === "number" ? rollDisplay.toFixed(2) : rollDisplay}
+            </div>
           </div>
 
           {/* Golden Spribe Slider bar indicator (read-only output representation of target & roll values) */}
@@ -579,7 +599,22 @@ export default function DiceGameScreen() {
                 onChange={(e) => setBetAmount(Math.max(0, Number(e.target.value) || 0))} 
                 className="sp-dc-bet-input"
               />
-              <button type="button" className="sp-dc-picker-btn-presets">🔲</button>
+              <button 
+                type="button" 
+                className="sp-dc-preset-btn"
+                disabled={bettingLocked || autoRunning}
+                onClick={() => setBetAmount(prev => Math.max(cfg.minBetAmount, Math.floor(prev / 2)))}
+              >
+                ½
+              </button>
+              <button 
+                type="button" 
+                className="sp-dc-preset-btn"
+                disabled={bettingLocked || autoRunning}
+                onClick={() => setBetAmount(prev => Math.min(cfg.maxBetAmount, prev * 2))}
+              >
+                2x
+              </button>
               <button 
                 type="button"
                 className="sp-dc-picker-btn" 

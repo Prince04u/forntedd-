@@ -1,27 +1,47 @@
+:root {
+  --ln-bg-primary: #080808;
+  --ln-bg-charcoal: #141414;
+  --ln-bg-card: #1B1B1B;
+  --ln-gold: #D4AF37;
+  --ln-gold-glow: rgba(212, 175, 55, 0.15);
+  --ln-gold-border: rgba(212, 175, 55, 0.25);
+  --ln-highlight: #F8D76A;
+  --ln-win: #22c55e;
+  --ln-loss: #ef4444;
+  --ln-glass-bg: rgba(27, 27, 27, 0.6);
+  --ln-glass-border: rgba(255, 255, 255, 0.05);
+}
+
 .dice-game {
   min-height: 100vh;
   max-width: 480px;
   margin: 0 auto;
-  background: #121214;
+  background: var(--ln-bg-primary);
   color: #fff;
   padding-bottom: 90px;
-  font-family: sans-serif;
+  font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+  overflow-x: hidden;
 }
 
-/* Header */
+/* Premium Header Glass Effect */
 .dc-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background: #1e1e24;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.875rem 1.25rem;
+  background: rgba(14, 14, 14, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid var(--ln-gold-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .dc-header-left {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.875rem;
 }
 
 .dc-back {
@@ -29,36 +49,52 @@
   font-size: 1.75rem;
   text-decoration: none;
   line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.dc-back:hover {
+  transform: translateX(-3px);
+  color: var(--ln-highlight);
 }
 
 .dc-header-logo-text {
   font-size: 0.95rem;
   font-weight: 900;
-  letter-spacing: 0.05em;
-  color: #fbbf24;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #FFFDF2 0%, #fbbf24 60%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .dc-header-how {
-  background: #eab308;
+  background: linear-gradient(135deg, #fbbf24 0%, #d4af37 100%);
   color: #000;
   border: none;
   font-size: 0.6875rem;
-  font-weight: 700;
-  padding: 0.25rem 0.625rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
   border-radius: 99px;
   cursor: pointer;
+  box-shadow: 0 2px 8px var(--ln-gold-glow);
+  transition: all 0.2s ease;
+}
+
+.dc-header-how:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
 }
 
 .dc-header-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.875rem;
 }
 
 .dc-header-balance {
   font-size: 0.875rem;
-  font-weight: 700;
-  color: #22c55e;
+  font-weight: 800;
+  color: var(--ln-win);
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
 }
 
 .dc-header-menu-btn {
@@ -77,45 +113,216 @@
   display: block;
   width: 100%;
   height: 2px;
-  background: #fbbf24;
+  background: var(--ln-gold);
   border-radius: 99px;
+  transition: all 0.2s ease;
 }
 
-/* Main Board Stage */
+.dc-header-menu-btn:hover span {
+  background: var(--ln-highlight);
+}
+
+/* Real-Time Recent Outcomes Bar */
+.sp-dc-history-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+
+.sp-dc-history-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+  padding: 0.25rem 0;
+}
+
+.sp-dc-history-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.sp-dc-history-pill {
+  flex-shrink: 0;
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid var(--ln-gold-border);
+  padding: 0.3rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  box-shadow: 0 0 8px var(--ln-gold-glow);
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  cursor: pointer;
+}
+
+.sp-dc-history-pill:hover {
+  transform: translateY(-2px);
+  background: rgba(30, 30, 30, 0.9);
+  border-color: var(--ln-highlight);
+  box-shadow: 0 4px 12px var(--ln-gold-glow);
+}
+
+.sp-dc-history-pill.low {
+  color: var(--ln-loss);
+  text-shadow: 0 0 6px rgba(239, 68, 68, 0.2);
+}
+
+.sp-dc-history-pill.high {
+  color: var(--ln-highlight);
+  text-shadow: 0 0 6px rgba(248, 215, 106, 0.2);
+}
+
+.sp-dc-history-toggle-btn {
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid var(--ln-gold-border);
+  border-radius: 99px;
+  padding: 0.3rem 0.625rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--ln-gold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sp-dc-history-toggle-btn:hover {
+  border-color: var(--ln-highlight);
+  color: var(--ln-highlight);
+}
+
+.sp-dc-clock-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.sp-dc-chevron {
+  font-size: 0.625rem;
+}
+
+/* Main Board Stage Card */
 .dc-board-stage {
   margin: 1rem 0.375rem;
   padding: 1.25rem;
-  border-radius: 18px;
-  background: #1e1e24;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  border-radius: 20px;
+  background: var(--ln-bg-charcoal);
+  border: 1px solid var(--ln-gold-border);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(212, 175, 55, 0.03);
+  backdrop-filter: blur(10px);
 }
 
-/* Outcome Card (Display last roll & golden slider) */
+/* Premium Main Outcome Hero card */
 .dc-outcome-card {
-  background: #121214;
-  border-radius: 14px;
-  padding: 1.5rem 1rem;
+  background: var(--ln-glass-bg);
+  border-radius: 24px;
+  padding: 1.75rem 1rem;
   text-align: center;
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1.5px solid var(--ln-gold-border);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(212, 175, 55, 0.05);
+  overflow: hidden;
 }
 
+/* Luxury particles */
+.dc-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dc-part {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--ln-gold);
+  border-radius: 50%;
+  filter: blur(1px);
+  opacity: 0.25;
+}
+
+.dc-part.p1 { top: 20%; left: 15%; animation: particleFloat 6s infinite ease-in-out; }
+.dc-part.p2 { top: 75%; left: 25%; animation: particleFloat 8s infinite ease-in-out 1s; }
+.dc-part.p3 { top: 30%; left: 80%; animation: particleFloat 7s infinite ease-in-out 2s; }
+.dc-part.p4 { top: 80%; left: 75%; animation: particleFloat 9s infinite ease-in-out 3s; }
+
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.15; }
+  50% { transform: translateY(-15px) scale(1.3); opacity: 0.4; }
+}
+
+.dc-outcome-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* 3D Gold Casino Dice Visuals */
+.dc-dice-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.5rem 0.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--ln-gold-border);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
+
+.dc-die-container {
+  width: 38px;
+  height: 38px;
+  transition: transform 0.1s ease;
+}
+
+/* 60 FPS Roll rotations */
+@keyframes spin-d1 {
+  0% { transform: rotate(0deg) scale(0.9); }
+  50% { transform: rotate(180deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(0.9); }
+}
+
+@keyframes spin-d2 {
+  0% { transform: rotate(360deg) scale(1.1); }
+  50% { transform: rotate(180deg) scale(0.85); }
+  100% { transform: rotate(0deg) scale(1.1); }
+}
+
+.dc-dice-wrap.rolling .d1 {
+  animation: spin-d1 0.2s linear infinite;
+}
+
+.dc-dice-wrap.rolling .d2 {
+  animation: spin-d2 0.2s linear infinite;
+}
+
+/* Large Gold Gradient Outcome Value */
 .dc-outcome-value {
-  font-size: 3.5rem;
+  font-size: 3.25rem;
   font-weight: 900;
-  color: #fff;
-  margin-bottom: 1.25rem;
-  letter-spacing: -0.02em;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #FFFDF2 0%, #fbbf24 60%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
 }
 
-/* Spribe Custom Range Slider */
+/* Visual Slider Indicator */
 .sp-dc-slider-container {
   position: relative;
   width: 100%;
   margin-top: 1rem;
   padding: 0 4px;
+  z-index: 2;
 }
 
 .sp-dc-slider-track-overlay {
@@ -123,11 +330,11 @@
   width: 100%;
   height: 12px;
   border-radius: 6px;
-  background: #7f1d1d; /* Deep red base */
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   overflow: visible;
 }
 
-/* Red ticks indicator scale on the slider track */
 .sp-dc-ticks {
   position: absolute;
   top: 0;
@@ -137,22 +344,24 @@
   border-radius: 6px;
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.06),
-    rgba(255, 255, 255, 0.06) 1px,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.05) 1px,
     transparent 1px,
     transparent 4px
   );
 }
 
+/* 3D Gold Knob Handle */
 .sp-dc-handle {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: #eab308; /* Yellow handle */
-  box-shadow: 0 0 8px rgba(234, 179, 8, 0.6);
+  background: radial-gradient(circle at 35% 35%, #FFFDF2 0%, #fbbf24 40%, #b28414 100%);
+  border: 1.5px solid #fff;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,19 +373,8 @@
 .sp-dc-handle-dot {
   width: 6px;
   height: 6px;
-  background: #000;
+  background: #222;
   border-radius: 50%;
-}
-
-.sp-dc-native-slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 12px;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 3;
 }
 
 .sp-dc-slider-labels {
@@ -188,17 +386,19 @@
 
 .sp-dc-slider-labels span {
   font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 600;
+  color: var(--ln-gold);
+  font-weight: 700;
 }
 
-/* Payout & Stats Capsule */
+/* Glass Payout Card Capsule */
 .sp-dc-payout-box {
-  background: #121214;
-  border-radius: 12px;
+  background: var(--ln-glass-bg);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
   margin-top: 1rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 0.875rem 1.25rem;
+  border: 1px solid var(--ln-gold-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .sp-dc-payout-row {
@@ -206,6 +406,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  padding-bottom: 0.625rem;
+  margin-bottom: 0.625rem;
 }
 
 .sp-dc-payout-col {
@@ -219,19 +422,20 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.4);
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .sp-dc-value-badge {
-  background: #1c1c22;
-  color: #fff;
+  background: #0a0a0c;
+  color: var(--ln-highlight);
   font-weight: 800;
   font-size: 0.875rem;
   padding: 0.25rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ln-gold-border);
 }
 
+/* Mini track payout slider with overlay range input */
 .sp-dc-mini-track {
   flex: 1;
   height: 6px;
@@ -245,7 +449,7 @@
   top: 0;
   left: 0;
   height: 100%;
-  background: #fbbf24;
+  background: linear-gradient(90deg, #fbbf24, #d4af37);
   border-radius: 3px;
 }
 
@@ -253,7 +457,8 @@
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  background: #fbbf24;
+  background: radial-gradient(circle at 35% 35%, #FFFDF2 0%, #fbbf24 40%, #b28414 100%);
+  border: 1px solid #fff;
   color: #000;
   font-size: 0.625rem;
   font-weight: 900;
@@ -263,13 +468,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+}
+
+.sp-dc-mini-range-native {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 5;
+  margin: 0;
 }
 
 .sp-dc-metrics-sub {
   display: flex;
   justify-content: space-between;
-  margin-top: 0.625rem;
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
 }
@@ -278,7 +494,7 @@
   color: #fff;
 }
 
-/* Control Row Bottom */
+/* Glass Bet Picker Input & Controls */
 .sp-dc-control-row {
   display: flex;
   align-items: center;
@@ -288,10 +504,16 @@
 
 .sp-dc-bet-picker {
   flex: 1;
-  background: #121214;
+  background: rgba(20, 20, 20, 0.7);
   border-radius: 12px;
   padding: 0.375rem 0.625rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ln-gold-border);
+  transition: border-color 0.2s ease;
+}
+
+.sp-dc-bet-picker:focus-within {
+  border-color: var(--ln-highlight);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.15);
 }
 
 .sp-dc-bet-label {
@@ -313,20 +535,37 @@
 .sp-dc-picker-btn {
   background: transparent;
   border: none;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
+  color: var(--ln-gold);
+  font-size: 1.15rem;
+  font-weight: 800;
   width: 20px;
   height: 20px;
   cursor: pointer;
+  transition: transform 0.1s ease, color 0.2s ease;
 }
 
-.sp-dc-picker-btn-presets {
+.sp-dc-picker-btn:hover {
+  color: var(--ln-highlight);
+  transform: scale(1.15);
+}
+
+/* ½ and 2x buttons styling */
+.sp-dc-preset-btn {
   background: transparent;
-  border: none;
-  color: #fbbf24;
-  font-size: 0.75rem;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--ln-gold);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sp-dc-preset-btn:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--ln-highlight);
+  color: var(--ln-highlight);
 }
 
 .sp-dc-bet-input {
@@ -335,15 +574,16 @@
   border: none;
   color: #fff;
   font-weight: 800;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   text-align: center;
   outline: none;
 }
 
+/* Speed Button */
 .sp-dc-speed-btn {
-  width: 40px;
-  height: 40px;
-  background: #fbbf24;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #fbbf24 0%, #d4af37 100%);
   color: #000;
   border: none;
   border-radius: 50%;
@@ -351,11 +591,19 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px var(--ln-gold-glow);
+}
+
+.sp-dc-speed-btn:hover {
+  transform: rotate(30deg) scale(1.05);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
 }
 
 .sp-dc-speed-icon {
   width: 18px;
   height: 18px;
+  stroke: #000;
 }
 
 /* Roll Buttons */
@@ -371,21 +619,45 @@
   cursor: pointer;
   font-weight: 800;
   color: #fff;
-  transition: transform 0.1s ease;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .sp-dc-roll-btn:active {
   transform: scale(0.96);
 }
 
+/* Roll Under: Gold gradient */
 .sp-dc-under {
-  background: #22c55e;
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+  background: linear-gradient(135deg, #fbbf24 0%, #d4af37 100%);
+  color: #000;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
 }
 
+.sp-dc-under:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+}
+
+.sp-dc-under .sp-dc-arrow-svg {
+  stroke: #000;
+}
+
+/* Roll Over: Dark card with gold outline */
 .sp-dc-over {
-  background: #3b82f6;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  background: #141414;
+  border: 2px solid var(--ln-gold);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.sp-dc-over:hover {
+  transform: translateY(-1px);
+  border-color: var(--ln-highlight);
+  box-shadow: 0 4px 18px var(--ln-gold-glow);
+}
+
+.sp-dc-over .sp-dc-arrow-svg {
+  stroke: var(--ln-gold);
 }
 
 .sp-dc-arrow-svg {
@@ -398,20 +670,22 @@
   margin-top: 0.125rem;
 }
 
-/* Roll History */
+/* Premium Rounded History Table Container */
 .dc-history {
   margin: 1rem 0.375rem 1.5rem;
   padding: 1rem;
-  background: #1e1e24;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--ln-bg-charcoal);
+  border-radius: 18px;
+  border: 1px solid var(--ln-gold-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .dc-history h2 {
   font-size: 0.9375rem;
   font-weight: 800;
   margin: 0 0 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #fff;
+  letter-spacing: 0.03em;
 }
 
 .dc-table {
@@ -424,116 +698,56 @@
   font-size: 0.6875rem;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1.5px solid rgba(212, 175, 55, 0.15);
 }
 
 .dc-table td {
-  padding: 0.5rem 0;
+  padding: 0.625rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   font-size: 0.75rem;
 }
 
+.dc-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.dc-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.dc-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Status Badges */
 .dc-pill {
   font-size: 0.625rem;
   font-weight: 900;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .dc-pill.win {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: var(--ln-win);
 }
 
 .dc-pill.loss {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--ln-loss);
 }
 
 .auth-error.dc-msg {
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #ef4444;
+  color: var(--ln-loss);
   padding: 0.625rem;
   border-radius: 10px;
   font-size: 0.8125rem;
   margin: 0.75rem;
-}
-
-/* History Bar */
-.sp-dc-history-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.875rem;
-  padding: 0 0.5rem;
-}
-
-.sp-dc-history-scroll {
-  display: flex;
-  gap: 0.375rem;
-  overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
-  flex: 1;
-}
-
-.sp-dc-history-scroll::-webkit-scrollbar {
-  display: none; /* Webkit */
-}
-
-.sp-dc-history-pill {
-  flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 0.25rem 0.625rem;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.sp-dc-history-pill.low {
-  color: #f43f5e; /* Rose red */
-}
-
-.sp-dc-history-pill.high {
-  color: #38bdf8; /* Cyan blue */
-}
-
-.sp-dc-history-toggle-btn {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 99px;
-  padding: 0.25rem 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-}
-
-.sp-dc-clock-icon {
-  width: 14px;
-  height: 14px;
-}
-
-.sp-dc-chevron {
-  font-size: 0.625rem;
-}
-
-/* Mini Slider Range Input Overlay */
-.sp-dc-mini-track {
-  position: relative;
-}
-
-.sp-dc-mini-range-native {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 5;
-  margin: 0;
 }
