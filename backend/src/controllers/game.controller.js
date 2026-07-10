@@ -231,7 +231,8 @@ const getActiveMinesGame = async (req, res, next) => {
 const startMinesGame = async (req, res, next) => {
   try {
     const reqMinesCount = req.body.minesCount !== undefined ? req.body.minesCount : req.body.mineCount;
-    const { betAmount } = req.body;
+    const reqAmount = req.body.betAmount !== undefined ? req.body.betAmount : req.body.amount;
+    const betAmount = Number(reqAmount);
     const minesCount = Number(reqMinesCount);
 
     if (!betAmount || isNaN(minesCount)) {

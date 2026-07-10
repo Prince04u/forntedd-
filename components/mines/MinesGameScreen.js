@@ -363,38 +363,7 @@ export default function MinesGameScreen() {
 
       {error && <div className="auth-error ms-msg">{error}</div>}
 
-      <section className="ms-hero-card">
-        <div className="ms-hero-top">
-          <div>
-            <span className="ms-hero-kicker">Mines</span>
-            <h1 className="ms-hero-title">Tap gems and cash out before you hit a bomb.</h1>
-            <p className="ms-hero-copy">
-              Live balance, shared login session, and the same real-time wallet sync used across
-              the platform.
-            </p>
-          </div>
-          <button type="button" className="ms-hero-link" onClick={() => setRulesOpen(true)}>
-            How to play
-          </button>
-        </div>
 
-        <div className="ms-hero-metrics">
-          <div className="ms-hero-metric">
-            <span>Risk</span>
-            <strong>{riskLabel}</strong>
-          </div>
-          <div className="ms-hero-metric">
-            <span>Safe tiles</span>
-            <strong>
-              {safeTilesLeft}/{safeTilesTotal}
-            </strong>
-          </div>
-          <div className="ms-hero-metric">
-            <span>Next safe chance</span>
-            <strong>{nextSafeChance}%</strong>
-          </div>
-        </div>
-      </section>
 
       <section className="ms-game-panel">
         <div className="ms-panel-top">
