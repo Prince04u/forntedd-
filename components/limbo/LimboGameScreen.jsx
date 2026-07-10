@@ -131,29 +131,41 @@ export default function LimboGameScreen() {
     targetMultiplierRef.current = target;
     
     // Start local animation loop INSTANTLY
-    startTimeRef.current = Date.now();
+    let localCurrent = 1.0;
+    let hasRebased = false;
+    let animStartTime = Date.now();
+    let animStartValue = 1.0;
     const durationMs = 1500;
     
     const animateMultiplier = () => {
       if (!playingRef.current) return;
       
-      const elapsed = Date.now() - startTimeRef.current;
+      // When network returns, rebase the animation to target the final result smoothly
+      if (!hasRebased && resultRef.current.result !== null) {
+          hasRebased = true;
+          animStartValue = localCurrent;
+          animStartTime = Date.now();
+      }
+      
+      const elapsed = Date.now() - animStartTime;
       const progress = Math.min(elapsed / durationMs, 1.0);
       
       // Easing out curve
       const easeOut = 1 - Math.pow(1 - progress, 3);
       
-      // If we don't have the result yet, tick up towards 1.01 very slowly to prevent overshooting
-      const targetResult = resultRef.current.result !== null ? resultRef.current.result : 1.01;
-      const current = 1.0 + (targetResult - 1.0) * easeOut;
-      setCurrentMultiplier(current);
+      const targetResult = hasRebased ? resultRef.current.result : 1.01;
+      localCurrent = animStartValue + (targetResult - animStartValue) * easeOut;
+      
+      setCurrentMultiplier(localCurrent);
 
       if (progress < 1.0) {
         animRef.current = requestAnimationFrame(animateMultiplier);
       } else {
         // Animation duration finished
-        if (resultRef.current.result === null) {
-          // If network is extremely slow, keep waiting
+        if (!hasRebased) {
+          // If network is extremely slow, reset timer to keep waiting smoothly
+          animStartValue = localCurrent;
+          animStartTime = Date.now();
           animRef.current = requestAnimationFrame(animateMultiplier);
         } else {
           finishGame();
