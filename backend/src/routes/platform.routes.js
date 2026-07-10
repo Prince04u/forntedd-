@@ -4,6 +4,7 @@ const {
   getDepositPayment,
   nowpaymentsCallback,
   syncPendingDeposits,
+  testTelegramSuccess,
   getIncomingLogs,
   getPromoBanners,
   getAnnouncements,
@@ -23,6 +24,7 @@ router.get("/status", getPlatformStatus);
 router.get("/deposit-payment", protect, getDepositPayment);
 router.post("/deposit/nowpayments-callback", nowpaymentsCallback);
 router.get("/deposit/sync-pending", syncPendingDeposits);
+router.get("/deposit/test-telegram-success", testTelegramSuccess);
 router.get("/promos", getPromoBanners);
 router.get("/announcements", getAnnouncements);
 router.get("/wingo-config", getWingoConfig);

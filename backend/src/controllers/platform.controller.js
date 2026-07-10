@@ -559,12 +559,52 @@ const getIncomingLogs = async (req, res, next) => {
   }
 };
 
+// ===================== DIAGNOSTIC TEST ENDPOINT =====================
+// Hit: GET /api/platform/deposit/test-telegram-success
+// This manually sends a Telegram "success" notification for the latest approved deposit.
+// Use this to verify that the success message format works correctly.
+const testTelegramSuccess = async (req, res) => {
+  try {
+    const Deposit = require("../models/Deposit");
+    const User = require("../models/User");
+    const { sendTelegramNotification } = require("../utils/telegram");
+    const logger = require("../config/logger");
+
+    // Find the most recently approved deposit
+    const deposit = await Deposit.findOne({ status: "approved" }).sort({ updatedAt: -1 });
+    if (!deposit) {
+      return res.json({ success: false, message: "No approved deposits found." });
+    }
+
+    const user = await User.findById(deposit.user);
+    if (!user) {
+      return res.json({ success: false, message: "User not found for deposit." });
+    }
+
+    logger.info(`[TEST] Sending Telegram success notification for deposit ${deposit._id}, user UID: ${user.uid || user._id}`);
+    
+    await sendTelegramNotification(deposit, user, "success");
+
+    return res.json({
+      success: true,
+      message: "Telegram success notification sent! Check your Telegram group.",
+      depositId: deposit._id,
+      userUid: user.uid || user._id,
+      amount: deposit.amount,
+      txHash: deposit.txHash || "N/A",
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message, stack: error.stack });
+  }
+};
+
 module.exports = {
   getIncomingLogs,
   getPlatformStatus,
   getDepositPayment,
   nowpaymentsCallback,
   syncPendingDeposits,
+  testTelegramSuccess,
   getPromoBanners,
   getAnnouncements,
   getWingoConfig,

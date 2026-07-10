@@ -89,27 +89,36 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN || "8925619066:AAH1KpM550ubsV1V0G8X3GWQMKI9d6cX0ns";
     const chatId = process.env.TELEGRAM_CHAT_ID || "-1004321239973";
 
+    logger.info(`[TELEGRAM] Sending "${statusType}" notification | botToken: ${botToken.slice(0,10)}... | chatId: ${chatId} | depositId: ${deposit._id}`);
+
     try {
       const resCustom = await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
         chat_id: chatId,
         text: textCustom,
         parse_mode: "HTML",
       });
-      logger.info(`Telegram send custom response: ${JSON.stringify(resCustom || {})}`);
+      logger.info(`[TELEGRAM] Custom emoji response for "${statusType}": ${JSON.stringify(resCustom || {})}`);
       if (!resCustom || resCustom.ok !== true) {
         throw new Error(resCustom?.description || "Telegram API returned ok: false");
       }
     } catch (apiErr) {
-      logger.warn(`Custom Telegram emojis failed, falling back to standard Unicode format: ${apiErr.message}`);
-      const resFallback = await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
-        chat_id: chatId,
-        text: textFallback,
-        parse_mode: "HTML",
-      });
-      logger.info(`Telegram send fallback response: ${JSON.stringify(resFallback || {})}`);
+      logger.warn(`[TELEGRAM] Custom emoji FAILED for "${statusType}", falling back: ${apiErr.message}`);
+      try {
+        const resFallback = await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
+          chat_id: chatId,
+          text: textFallback,
+          parse_mode: "HTML",
+        });
+        logger.info(`[TELEGRAM] Fallback response for "${statusType}": ${JSON.stringify(resFallback || {})}`);
+        if (!resFallback || resFallback.ok !== true) {
+          logger.error(`[TELEGRAM] FALLBACK ALSO FAILED for "${statusType}": ${JSON.stringify(resFallback || {})}`);
+        }
+      } catch (fallbackErr) {
+        logger.error(`[TELEGRAM] FALLBACK THREW for "${statusType}": ${fallbackErr.message}`);
+      }
     }
   } catch (err) {
-    logger.error("Failed to send Telegram notification:", err);
+    logger.error(`[TELEGRAM] OUTER CATCH - Failed to send "${statusType || 'unknown'}" notification:`, err);
   }
 };
 
