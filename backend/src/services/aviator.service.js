@@ -39,6 +39,12 @@ const startWaitingState = async () => {
     });
     await period.save();
 
+    // Activate all queued next_round bets for this new period
+    await Bet.updateMany(
+      { game: "aviator", state: "next_round" },
+      { state: "pending", periodId: currentPeriodId }
+    );
+
     logger.info(`Aviator round waiting: ${currentPeriodId}`);
 
     const io = getIO();

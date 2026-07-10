@@ -500,9 +500,23 @@ const placeAviatorBet = async (req, res, next) => {
       });
     }
 
+    const activeBetsCount = await Bet.countDocuments({
+      user: req.user._id,
+      game: "aviator",
+      state: { $in: ["pending", "next_round"] }
+    });
+
+    if (activeBetsCount >= 2) {
+      return res.status(400).json({ message: "Maximum of 2 active bets allowed per round." });
+    }
+
     const { state, periodId } = aviatorService.getFlightState();
+    let betPeriodId = periodId;
+    let betState = "pending";
+
     if (state !== "waiting") {
-      return res.status(400).json({ message: "Flight rounds closed. Place bet on next flight." });
+      betPeriodId = "next";
+      betState = "next_round";
     }
 
     const wallet = await Wallet.findOne({ user: req.user._id });
@@ -517,9 +531,9 @@ const placeAviatorBet = async (req, res, next) => {
     const bet = new Bet({
       user: req.user._id,
       game: "aviator",
-      periodId,
+      periodId: betPeriodId,
       amount,
-      state: "pending",
+      state: betState,
     });
     await bet.save();
 
@@ -557,6 +571,60 @@ const cashOutAviator = async (req, res, next) => {
     return res.json({ success: true, data: outcome });
   } catch (error) {
     return res.status(400).json({ message: error.message });
+  }
+};
+
+const cancelAviatorBet = async (req, res, next) => {
+  try {
+    const { betId } = req.body;
+    if (!betId) {
+      return res.status(400).json({ message: "Bet ID is required." });
+    }
+
+    const bet = await Bet.findOne({ _id: betId, user: req.user._id });
+    if (!bet) {
+      return res.status(404).json({ message: "Bet not found." });
+    }
+
+    if (bet.state !== "pending" && bet.state !== "next_round") {
+      return res.status(400).json({ message: `Bet is already settled as ${bet.state}.` });
+    }
+
+    const { state } = aviatorService.getFlightState();
+    if (bet.state === "pending" && state !== "waiting") {
+      return res.status(400).json({ message: "Flight rounds are already running. Cannot cancel bet." });
+    }
+
+    bet.state = "cancelled";
+    await bet.save();
+
+    const wallet = await Wallet.findOne({ user: req.user._id });
+    if (wallet) {
+      const prevBalance = wallet.balance;
+      wallet.balance += bet.amount;
+      await wallet.save();
+
+      const txn = new Transaction({
+        user: req.user._id,
+        type: "game_refund",
+        amount: bet.amount,
+        direction: "credit",
+        prevBalance,
+        postBalance: wallet.balance,
+        refId: bet._id,
+        description: `Aviator flight bet cancelled and refunded`,
+      });
+      await txn.save();
+
+      sendToUser(req.user._id, "wallet:balance", {
+        balance: wallet.balance,
+        commissionBalance: wallet.commissionBalance,
+      });
+    }
+
+    return res.json({ success: true, message: "Bet successfully cancelled and refunded." });
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -743,6 +811,7 @@ module.exports = {
   getMinesBets,
   placeAviatorBet,
   cashOutAviator,
+  cancelAviatorBet,
   getAviatorBets,
   getRecentAviatorRounds,
   rollDice,

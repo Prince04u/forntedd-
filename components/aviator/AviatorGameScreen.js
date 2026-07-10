@@ -9,7 +9,7 @@ import { getToken } from "@/lib/auth";
 import { getSocket } from "@/lib/socket";
 import { getBalance } from "@/lib/walletApi";
 import { getAviatorConfig } from "@/lib/platformApi";
-import { cashOut, getMyBets, getRecentRounds, placeBet } from "@/lib/aviatorApi";
+import { cashOut, cancelBet, getMyBets, getRecentRounds, placeBet } from "@/lib/aviatorApi";
 
 const DEFAULT_LIMITS = { minBetAmount: 10, maxBetAmount: 50000, maxAutoCashOut: 100, houseEdge: 0.01 };
 const HISTORY_LIMIT = 25;
@@ -324,17 +324,45 @@ export default function AviatorGameScreen() {
     }
   };
 
-  // Cancel Bet Panel 1 (Local reset before round starts)
-  const handleCancel1 = () => {
-    if (roundStatus === "starting" || roundStatus === "idle") {
-      setActiveBet1(null);
+  // Cancel Bet Panel 1
+  const handleCancel1 = async () => {
+    if (!activeBet1) return;
+    const betId = activeBet1.id || activeBet1._id;
+    if (!betId) return;
+
+    setError1("");
+    setLoading1(true);
+    try {
+      const res = await cancelBet({ betId });
+      if (res?.success) {
+        setActiveBet1(null);
+        await loadData();
+      }
+    } catch (err) {
+      setError1(err.response?.data?.message || "Failed to cancel bet");
+    } finally {
+      setLoading1(false);
     }
   };
 
-  // Cancel Bet Panel 2 (Local reset before round starts)
-  const handleCancel2 = () => {
-    if (roundStatus === "starting" || roundStatus === "idle") {
-      setActiveBet2(null);
+  // Cancel Bet Panel 2
+  const handleCancel2 = async () => {
+    if (!activeBet2) return;
+    const betId = activeBet2.id || activeBet2._id;
+    if (!betId) return;
+
+    setError2("");
+    setLoading2(true);
+    try {
+      const res = await cancelBet({ betId });
+      if (res?.success) {
+        setActiveBet2(null);
+        await loadData();
+      }
+    } catch (err) {
+      setError2(err.response?.data?.message || "Failed to cancel bet");
+    } finally {
+      setLoading2(false);
     }
   };
 

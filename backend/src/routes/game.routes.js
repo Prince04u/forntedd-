@@ -11,6 +11,7 @@ const {
   getMinesBets,
   placeAviatorBet,
   cashOutAviator,
+  cancelAviatorBet,
   getAviatorBets,
   getRecentAviatorRounds,
   rollDice,
@@ -36,6 +37,7 @@ router.get("/mines/bets/my", protect, getMinesBets);
 // Aviator routes
 router.post("/aviator/bet", protect, placeAviatorBet);
 router.post("/aviator/cashout", protect, cashOutAviator);
+router.post("/aviator/cancel", protect, cancelAviatorBet);
 router.get("/aviator/bets/my", protect, getAviatorBets);
 router.get("/aviator/rounds/recent", getRecentAviatorRounds);
 
