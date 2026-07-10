@@ -495,7 +495,7 @@ export default function AviatorGameScreen() {
           {/* Top Multiplier History Strip */}
           <div className="sp-av-history-bar">
             {recentRounds.slice(0, 14).map((r, idx) => {
-              const mult = r.crashMultiplier ?? r.crash_multiplier ?? 1.0;
+              const mult = r.crashPoint ?? r.crashMultiplier ?? r.crash_multiplier ?? 1.0;
               return (
                 <span className={`sp-av-history-pill ${getPillClass(mult)}`} key={r.roundId || idx}>
                   {Number(mult).toFixed(2)}x
