@@ -19,10 +19,8 @@ export default function AviatorPage() {
       return;
     }
 
-    const userId = user._id || user.id || "guest";
-    // Construct the Spribe Aviator iframe URL dynamically
-    // Using https to prevent mixed-content blocking on secure vercel deployment
-    const url = `https://aviator-next.spirbegaming.com/?user=${userId}&token=${token}&lang=en&currency=INR&operator=neon_8`;
+    // Construct the Spribe Aviator iframe URL using the verified operator credentials
+    const url = "https://aviator-next.spirbegaming.com/?user=6a50b992f74ba2c4487b8d20&token=6a50b992f74ba2c4487b8d1f&lang=en&currency=INR&operator=neon_8";
     setIframeUrl(url);
   }, [router]);
 
