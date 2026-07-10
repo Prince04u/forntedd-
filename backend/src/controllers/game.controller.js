@@ -391,6 +391,7 @@ const revealMinesTile = async (req, res, next) => {
 
     game.details.revealedTiles = nextRevealed;
     game.payoutRatio = finalMultiplier;
+    game.markModified("details");
     await game.save();
 
     return res.json({

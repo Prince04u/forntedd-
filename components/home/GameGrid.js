@@ -18,14 +18,6 @@ const GAMES = {
       featured: true,
     },
     {
-      id: "aviator",
-      label: "Aviator",
-      category: "Crash",
-      href: "/aviator",
-      className: "aviator",
-      art: "✈️",
-    },
-    {
       id: "cricket",
       label: "Cricket",
       category: "Sports",
@@ -56,14 +48,6 @@ const GAMES = {
       className: "wingo",
       art: "🎱",
       featured: true,
-    },
-    {
-      id: "aviator",
-      label: "Aviator",
-      category: "Crash",
-      href: "/aviator",
-      className: "aviator",
-      art: "✈️",
     },
     {
       id: "cricket",
