@@ -19,8 +19,9 @@ export default function AviatorPage() {
       return;
     }
 
-    // Construct the Spribe Aviator iframe URL using the verified operator credentials
-    const url = "https://aviator-next.spirbegaming.com/?user=6a50b992f74ba2c4487b8d20&token=6a50b992f74ba2c4487b8d1f&lang=en&currency=INR&operator=neon_8";
+    const userId = user._id || user.id || "guest";
+    // Construct the Spribe Aviator iframe URL dynamically using the user's real ID
+    const url = `https://aviator-next.spirbegaming.com/?user=${userId}&token=${userId}&lang=en&currency=INR&operator=neon_8`;
     setIframeUrl(url);
   }, [router]);
 
