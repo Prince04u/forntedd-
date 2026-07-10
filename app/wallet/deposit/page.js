@@ -230,8 +230,13 @@ export default function DepositPage() {
 
   const isBep20 = selectedChannel?.label?.includes("BEP20") || selectedChannel?.id?.includes("bep20");
   const networkName = isBep20 ? "BEP20" : "TRC20";
+  const minText = isBep20 ? "1 USDT" : "12 USDT";
   const instructionList = isCrypto
-    ? CRYPTO_RECHARGE_INSTRUCTIONS.map((item) => item.replace("TRC20", networkName))
+    ? CRYPTO_RECHARGE_INSTRUCTIONS.map((item) =>
+        item
+          .replace("10 USDT", minText)
+          .replace("TRC20", networkName)
+      )
     : RECHARGE_INSTRUCTIONS;
 
   if (!mounted || optionsLoading) {
