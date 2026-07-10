@@ -85,7 +85,8 @@ const getDepositPayment = async (req, res, next) => {
                 pay_amount: amount,
                 pay_currency: payCurrency,
                 ipn_callback_url: callbackUrl,
-                order_id: deposit._id.toString()
+                order_id: deposit._id.toString(),
+                is_fee_paid_by_user: true
               }
             );
 
