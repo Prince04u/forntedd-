@@ -135,7 +135,11 @@ export default function LimboGameScreen() {
     let hasRebased = false;
     let animStartTime = Date.now();
     let animStartValue = 1.0;
+    let hasShownPopup = false;
     const durationMs = 1500;
+    
+    // Clear any existing popup when starting a new bet
+    setWinPopupAmount(null);
     
     const animateMultiplier = () => {
       if (!playingRef.current) return;
@@ -170,6 +174,14 @@ export default function LimboGameScreen() {
       
       setCurrentMultiplier(localCurrent);
 
+      // Trigger the win popup exactly when the visual multiplier crosses the user's target
+      if (!hasShownPopup && resultRef.current.status === "won" && localCurrent >= targetMultiplierRef.current) {
+        hasShownPopup = true;
+        setWinPopupAmount(resultRef.current.payout);
+        setBalance(prev => prev + resultRef.current.payout);
+        setTimeout(() => setWinPopupAmount(null), 3000);
+      }
+
       if (progress < 1.0 && localCurrent < resultRef.current.result) {
         animRef.current = requestAnimationFrame(animateMultiplier);
       } else {
@@ -198,13 +210,6 @@ export default function LimboGameScreen() {
         status: res.data.status || "lost",
         payout: res.data.winAmount || 0
       };
-      
-      // Show win popup and update balance instantly when network returns
-      if (resultRef.current.status === "won") {
-        setWinPopupAmount(resultRef.current.payout);
-        setBalance(prev => prev + resultRef.current.payout);
-        setTimeout(() => setWinPopupAmount(null), 3000);
-      }
     } catch (err) {
       setError("Network error");
       setIsPlaying(false);
