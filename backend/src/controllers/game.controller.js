@@ -804,6 +804,132 @@ const getDiceRolls = async (req, res, next) => {
   }
 };
 
+// ==========================================
+// LIMBO GAME LOGIC
+// ==========================================
+
+const playLimbo = async (req, res, next) => {
+  try {
+    const reqAmount = req.body.amount !== undefined ? req.body.amount : req.body.betAmount;
+    const reqTarget = req.body.targetMultiplier;
+
+    const betAmount = Number(reqAmount);
+    const targetMultiplier = Number(reqTarget);
+
+    if (!betAmount || !targetMultiplier || targetMultiplier < 1.01) {
+      return res.status(400).json({ message: "Invalid bet amount or target multiplier. Minimum target is 1.01x." });
+    }
+
+    // You can customize limits in PlatformConfig if needed, using defaults here
+    const minBet = 10;
+    const maxBet = 50000;
+
+    if (betAmount < minBet || betAmount > maxBet) {
+      return res.status(400).json({
+        message: `Bet must be between ₹${minBet} and ₹${maxBet}.`,
+      });
+    }
+
+    const wallet = await Wallet.findOne({ user: req.user._id });
+    if (!wallet || wallet.balance < betAmount) {
+      return res.status(400).json({ message: "Insufficient balance." });
+    }
+
+    // Deduct bet
+    const prevBalance = wallet.balance;
+    wallet.balance -= betAmount;
+    await wallet.save();
+
+    // Limbo RNG logic (99% RTP / 1% House Edge)
+    const floatPoint = 100000000;
+    const randomSeed = Math.floor(Math.random() * floatPoint) + 1; // avoid 0
+    let rolled = 0.99 / (randomSeed / floatPoint);
+    
+    if (rolled < 1.00) rolled = 1.00;
+    if (rolled > 1000000) rolled = 1000000;
+    rolled = parseFloat(rolled.toFixed(2));
+
+    const won = rolled >= targetMultiplier;
+    const winAmount = won ? parseFloat((betAmount * targetMultiplier).toFixed(2)) : 0.0;
+    
+    const bet = new Bet({
+      user: req.user._id,
+      game: "limbo",
+      amount: betAmount,
+      winAmount,
+      payoutRatio: won ? targetMultiplier : 0.0,
+      state: won ? "won" : "lost",
+      details: { targetMultiplier, rolledMultiplier: rolled },
+    });
+    await bet.save();
+
+    // Log txn
+    const betTxn = new Transaction({
+      user: req.user._id,
+      type: "game_bet",
+      amount: betAmount,
+      direction: "debit",
+      prevBalance,
+      postBalance: wallet.balance,
+      refId: bet._id,
+      description: `Limbo bet placed, Target: ${targetMultiplier.toFixed(2)}x`,
+    });
+    await betTxn.save();
+
+    if (won) {
+      const balanceBeforeWin = wallet.balance;
+      wallet.balance += winAmount;
+      await wallet.save();
+
+      const winTxn = new Transaction({
+        user: req.user._id,
+        type: "game_win",
+        amount: winAmount,
+        direction: "credit",
+        prevBalance: balanceBeforeWin,
+        postBalance: wallet.balance,
+        refId: bet._id,
+        description: `Limbo win payout for multiplier: ${rolled.toFixed(2)}x`,
+      });
+      await winTxn.save();
+    }
+
+    sendToUser(req.user._id, "wallet:balance", {
+      balance: wallet.balance,
+      commissionBalance: wallet.commissionBalance,
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        id: bet._id,
+        result: rolled,
+        status: won ? "won" : "lost",
+        payout: winAmount,
+        profit: won ? parseFloat((winAmount - betAmount).toFixed(2)) : -betAmount,
+        rolledMultiplier: rolled,
+        targetMultiplier: targetMultiplier,
+        winAmount,
+        won,
+        newBalance: wallet.balance,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getLimboBets = async (req, res, next) => {
+  try {
+    const list = await Bet.find({ user: req.user._id, game: "limbo" })
+      .sort({ createdAt: -1 })
+      .limit(30);
+    return res.json({ success: true, data: list });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getCurrentPeriod,
   getRecentResults,
@@ -821,4 +947,6 @@ module.exports = {
   getRecentAviatorRounds,
   rollDice,
   getDiceRolls,
+  playLimbo,
+  getLimboBets,
 };

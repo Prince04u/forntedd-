@@ -14,8 +14,9 @@ const {
   cancelAviatorBet,
   getAviatorBets,
   getRecentAviatorRounds,
-  rollDice,
   getDiceRolls,
+  playLimbo,
+  getLimboBets,
 } = require("../controllers/game.controller");
 const { protect } = require("../middlewares/auth");
 
@@ -44,5 +45,9 @@ router.get("/aviator/rounds/recent", getRecentAviatorRounds);
 // Dice routes
 router.post("/dice/roll", protect, rollDice);
 router.get("/dice/rolls/my", protect, getDiceRolls);
+
+// Limbo routes
+router.post("/limbo/play", protect, playLimbo);
+router.get("/limbo/bets/my", protect, getLimboBets);
 
 module.exports = router;
