@@ -28,7 +28,7 @@ const getDepositPayment = async (req, res, next) => {
     const amount = Number(req.query.amount); // USDT amount from frontend, e.g. 10
 
     // Determine the minimum amount required for NOWPayments API transaction session
-    const apiMinLimit = isBep20 ? 1 : 12;
+    const apiMinLimit = 12;
 
     if (amount >= apiMinLimit && req.user) {
       const Deposit = require("../models/Deposit");
@@ -73,7 +73,7 @@ const getDepositPayment = async (req, res, next) => {
               pay_currency: payCurrency,
               ipn_callback_url: callbackUrl,
               order_id: deposit._id.toString(),
-              is_fee_paid_by_user: amount >= 12
+              is_fee_paid_by_user: true
             }
           );
 
@@ -311,7 +311,7 @@ const getDepositOptions = async (req, res) => {
       ],
       channels: [
         { id: "usdt-trc20", label: "TronPay-USDT (TRC20)", type: "crypto", enabled: true, min: 12, max: 100000, usdtRate: 98, range: "12 - 100K USDT", icon: "usdt" },
-        { id: "usdt-bep20", label: "Binance-USDT (BEP20)", type: "crypto", enabled: true, min: 1, max: 100000, usdtRate: 98, range: "1 - 100K USDT", icon: "usdt" }
+        { id: "usdt-bep20", label: "Binance-USDT (BEP20)", type: "crypto", enabled: true, min: 12, max: 100000, usdtRate: 98, range: "12 - 100K USDT", icon: "usdt" }
       ]
     }
   });
