@@ -485,7 +485,7 @@ const getMinesBets = async (req, res, next) => {
 
 const placeAviatorBet = async (req, res, next) => {
   try {
-    const { amount } = req.body;
+    const { amount, autoCashOutMultiplier } = req.body;
 
     if (!amount) {
       return res.status(400).json({ message: "Bet amount is required." });
@@ -534,6 +534,9 @@ const placeAviatorBet = async (req, res, next) => {
       periodId: betPeriodId,
       amount,
       state: betState,
+      details: {
+        autoCashOutMultiplier: autoCashOutMultiplier ? parseFloat(autoCashOutMultiplier) : null
+      }
     });
     await bet.save();
 

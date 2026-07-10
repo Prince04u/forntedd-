@@ -109,6 +109,8 @@ export default function AviatorGameScreen() {
   const [roundId, setRoundId] = useState(null);
   const [players, setPlayers] = useState([]);
   const [fakePlayers, setFakePlayers] = useState([]);
+  const [winBanner1, setWinBanner1] = useState(null);
+  const [winBanner2, setWinBanner2] = useState(null);
   const [myBets, setMyBets] = useState([]);
   const [recentRounds, setRecentRounds] = useState([]);
 
@@ -233,19 +235,41 @@ export default function AviatorGameScreen() {
       socket.on("aviator:bet:update", (data) => {
         if (!data?.betId) return;
         
-        setActiveBet1((prev) => {
-          if (prev && (prev.id === data.betId || prev._id === data.betId)) {
-            return { ...prev, ...data };
-          }
-          return prev;
-        });
+        if (data.state === "won") {
+          setActiveBet1((prev) => {
+            if (prev && (prev.id === data.betId || prev._id === data.betId)) {
+              const amt = prev.amount * data.payoutRatio;
+              setWinBanner1({ multiplier: data.payoutRatio, amount: amt });
+              setTimeout(() => setWinBanner1(null), 3500);
+              return null;
+            }
+            return prev;
+          });
 
-        setActiveBet2((prev) => {
-          if (prev && (prev.id === data.betId || prev._id === data.betId)) {
-            return { ...prev, ...data };
-          }
-          return prev;
-        });
+          setActiveBet2((prev) => {
+            if (prev && (prev.id === data.betId || prev._id === data.betId)) {
+              const amt = prev.amount * data.payoutRatio;
+              setWinBanner2({ multiplier: data.payoutRatio, amount: amt });
+              setTimeout(() => setWinBanner2(null), 3500);
+              return null;
+            }
+            return prev;
+          });
+        } else {
+          setActiveBet1((prev) => {
+            if (prev && (prev.id === data.betId || prev._id === data.betId)) {
+              return { ...prev, ...data };
+            }
+            return prev;
+          });
+
+          setActiveBet2((prev) => {
+            if (prev && (prev.id === data.betId || prev._id === data.betId)) {
+              return { ...prev, ...data };
+            }
+            return prev;
+          });
+        }
       });
     });
 
@@ -311,7 +335,14 @@ export default function AviatorGameScreen() {
     try {
       const res = await cashOut({ betId });
       const bet = res?.data?.bet || res?.bet || null;
-      if (bet) setActiveBet1(bet);
+      if (bet && (bet.state === "won" || bet.status === "won")) {
+        const payout = bet.payoutRatio || bet.winAmount / bet.amount;
+        setWinBanner1({ multiplier: payout, amount: bet.winAmount });
+        setTimeout(() => setWinBanner1(null), 3500);
+        setActiveBet1(null);
+      } else {
+        if (bet) setActiveBet1(bet);
+      }
       if (res?.data?.balance != null) setBalance(res.data.balance);
       if (res?.balance != null) setBalance(res.balance);
       await loadData();
@@ -369,8 +400,15 @@ export default function AviatorGameScreen() {
     setLoading2(true);
     try {
       const res = await cashOut({ betId });
-      const bet = res?.data?.bet || res?.bet || null;
-      if (bet) setActiveBet2(bet);
+      const bet = res?.data?.bet || res?.bet || res?.data || null;
+      if (bet && (bet.state === "won" || bet.status === "won")) {
+        const payout = bet.payoutRatio || bet.winAmount / bet.amount;
+        setWinBanner2({ multiplier: payout, amount: bet.winAmount });
+        setTimeout(() => setWinBanner2(null), 3500);
+        setActiveBet2(null);
+      } else {
+        if (bet) setActiveBet2(bet);
+      }
       if (res?.data?.balance != null) setBalance(res.data.balance);
       if (res?.balance != null) setBalance(res.balance);
       await loadData();
@@ -764,6 +802,13 @@ export default function AviatorGameScreen() {
           <div className="sp-av-double-bet-wrapper">
             {/* Bet Panel 1 */}
             <div className="sp-av-bet-panel">
+              {winBanner1 && (
+                <div className="sp-av-win-overlay-banner">
+                  <span className="sp-av-win-overlay-title">CASHED OUT</span>
+                  <span className="sp-av-win-overlay-multiplier">{Number(winBanner1.multiplier).toFixed(2)}x</span>
+                  <span className="sp-av-win-overlay-amount">Won {winBanner1.amount.toFixed(2)} INR</span>
+                </div>
+              )}
               <div className="sp-av-panel-header">
                 <button 
                   className={`sp-av-mode-btn ${!autoBetEnabled1 && !autoCashOutEnabled1 ? "active" : ""}`}
@@ -872,6 +917,13 @@ export default function AviatorGameScreen() {
 
             {/* Bet Panel 2 */}
             <div className="sp-av-bet-panel">
+              {winBanner2 && (
+                <div className="sp-av-win-overlay-banner">
+                  <span className="sp-av-win-overlay-title">CASHED OUT</span>
+                  <span className="sp-av-win-overlay-multiplier">{Number(winBanner2.multiplier).toFixed(2)}x</span>
+                  <span className="sp-av-win-overlay-amount">Won {winBanner2.amount.toFixed(2)} INR</span>
+                </div>
+              )}
               <div className="sp-av-panel-header">
                 <button 
                   className={`sp-av-mode-btn ${!autoBetEnabled2 && !autoCashOutEnabled2 ? "active" : ""}`}

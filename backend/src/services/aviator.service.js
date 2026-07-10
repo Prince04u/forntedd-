@@ -99,6 +99,62 @@ const startFlyingState = () => {
 
     const io = getIO();
 
+    // Server-side Auto-Cashout processing
+    try {
+      const eligibleBets = await Bet.find({
+        game: "aviator",
+        periodId: currentPeriodId,
+        state: "pending",
+        "details.autoCashOutMultiplier": { $ne: null, $lte: currentMultiplier }
+      });
+
+      for (const bet of eligibleBets) {
+        const targetMult = bet.details.autoCashOutMultiplier;
+        if (targetMult <= targetCrashPoint) {
+          const wallet = await Wallet.findOne({ user: bet.user });
+          if (wallet) {
+            const winAmount = bet.amount * targetMult;
+            const prevBalance = wallet.balance;
+
+            wallet.balance += winAmount;
+            await wallet.save();
+
+            const txn = new Transaction({
+              user: bet.user,
+              type: "game_win",
+              amount: winAmount,
+              direction: "credit",
+              prevBalance,
+              postBalance: wallet.balance,
+              refId: bet._id,
+              description: `Aviator Auto-Cashout at ${targetMult}x`,
+            });
+            await txn.save();
+
+            bet.state = "won";
+            bet.winAmount = winAmount;
+            bet.payoutRatio = targetMult;
+            await bet.save();
+
+            sendToUser(bet.user.toString(), "wallet:balance", {
+              balance: wallet.balance,
+              commissionBalance: wallet.commissionBalance,
+            });
+
+            // Notify user client of winnings
+            io.to("aviator").emit("aviator:bet:update", {
+              betId: bet._id.toString(),
+              state: "won",
+              winAmount,
+              payoutRatio: targetMult
+            });
+          }
+        }
+      }
+    } catch (err) {
+      logger.error(`Error in Aviator Auto-Cashout: ${err.message}`);
+    }
+
     if (currentMultiplier >= targetCrashPoint) {
       clearInterval(tickInterval);
       currentMultiplier = targetCrashPoint; // Lock to exact crash value
