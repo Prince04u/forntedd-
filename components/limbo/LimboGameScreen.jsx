@@ -136,11 +136,12 @@ export default function LimboGameScreen() {
       return;
     }
 
-    // Store the exact result
+    // Store the exact result, falling back to 1.0 if backend returns undefined
+    const finalResult = res.data.result !== undefined ? res.data.result : 1.0;
     resultRef.current = {
-      result: res.data.result,
-      status: res.data.status,
-      payout: res.data.winAmount
+      result: finalResult,
+      status: res.data.status || "lost",
+      payout: res.data.winAmount || 0
     };
     targetMultiplierRef.current = target;
     
@@ -158,8 +159,8 @@ export default function LimboGameScreen() {
       const easeOut = 1 - Math.pow(1 - progress, 3);
       
       // Tick up to result
-      const current = 1.0 + (resultRef.current.result - 1.0) * easeOut;
-      setCurrentMultiplier(current);
+      const current = 1.0 + ((resultRef.current.result || 1.0) - 1.0) * easeOut;
+      setCurrentMultiplier(current || 1.0);
 
       if (progress < 1.0) {
         animRef.current = requestAnimationFrame(animateMultiplier);
@@ -176,8 +177,8 @@ export default function LimboGameScreen() {
     playingRef.current = false;
     
     const { result, status, payout } = resultRef.current;
-    setCurrentMultiplier(result);
-    setCrashPoint(result);
+    setCurrentMultiplier(result || 1.0);
+    setCrashPoint(result || 1.0);
     
     if (status === "won") {
       setDisplayState("won");
@@ -208,7 +209,7 @@ export default function LimboGameScreen() {
           </button>
           <div style={styles.walletBox}>
             <span style={styles.walletLabel}>Balance</span>
-            <span style={styles.walletAmount}>₹{balance.toFixed(2)}</span>
+            <span style={styles.walletAmount}>₹{(balance || 0).toFixed(2)}</span>
           </div>
         </div>
       </header>
@@ -228,7 +229,7 @@ export default function LimboGameScreen() {
                   color: isWin ? "#4ade80" : "#f87171",
                 }}
               >
-                {bet.result.toFixed(2)}x
+                {(bet.result || 1.0).toFixed(2)}x
               </div>
             );
           })}
@@ -250,7 +251,7 @@ export default function LimboGameScreen() {
                 color: (displayState === "playing" || displayState === "won") ? "#4ade80" : displayState === "crashed" ? "#f87171" : "#fff",
               }}
             >
-              {currentMultiplier.toFixed(2)}x
+              {(currentMultiplier || 1.0).toFixed(2)}x
             </div>
             {displayState === "won" && (
               <div style={styles.winText}>Cashed Out!</div>
@@ -318,7 +319,7 @@ export default function LimboGameScreen() {
             <div style={styles.betWrapper}>
               <div style={styles.betLabelBox}>
                 <span style={{fontSize: 12, color: "#888"}}>Bet</span>
-                <span style={{fontWeight: "bold", fontSize: 14}}>{Number(betAmount).toFixed(2)} INR</span>
+                <span style={{fontWeight: "bold", fontSize: 14}}>{(Number(betAmount) || 0).toFixed(2)} INR</span>
               </div>
               <button style={styles.adjustBtn} onClick={() => setBetAmount(Math.max(10, Number(betAmount) - 10))} disabled={isPlaying}>-</button>
               <button style={styles.adjustBtn} onClick={() => setBetAmount(Number(betAmount) * 2)} disabled={isPlaying}>💰</button>
@@ -367,7 +368,7 @@ export default function LimboGameScreen() {
                     <div style={styles.historyCol}>
                       <span style={{fontSize: 12, color: "#888"}}>Crash/Cashout</span>
                       <span style={{fontWeight: "bold", color: bet.status === "won" ? "#4ade80" : "#f87171"}}>
-                        {bet.result.toFixed(2)}x
+                        {(bet.result || 1.0).toFixed(2)}x
                       </span>
                     </div>
                     <div style={{...styles.historyCol, alignItems: "flex-end"}}>
