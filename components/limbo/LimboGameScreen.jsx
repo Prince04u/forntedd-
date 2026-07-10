@@ -31,45 +31,6 @@ const normalizeBet = (b) => {
   };
 };
 
-const styles = {
-  container: {
-    minHeight: "100vh",
-    background: "#0f172a",
-    color: "#fff",
-    fontFamily: "sans-serif",
-    display: "flex",
-    flexDirection: "column",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "1rem",
-    borderBottom: "1px solid #1e293b",
-    background: "#0f172a",
-  },
-  headerLeft: { display: "flex", alignItems: "center", gap: "12px" },
-  headerRight: { display: "flex", alignItems: "center", gap: "12px" },
-  headerTitle: { fontSize: "1.25rem", fontWeight: "bold" },
-  backButton: { fontSize: "0.875rem", color: "#94a3b8", textDecoration: "none" },
-  walletBox: { background: "#1e293b", padding: "8px 16px", borderRadius: "8px", display: "flex", flexDirection: "column" },
-  walletLabel: { fontSize: "0.65rem", color: "#94a3b8", textTransform: "uppercase" },
-  walletAmount: { fontSize: "1rem", fontWeight: "bold" },
-  historyBtn: { background: "transparent", border: "1px solid #334155", color: "#e2e8f0", padding: "6px 12px", borderRadius: "6px", cursor: "pointer" },
-  content: { flex: 1, padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem" },
-  historyBar: { display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "8px" },
-  winPopup: {
-    background: "#22c55e",
-    color: "#fff",
-    padding: "4px 10px",
-    borderRadius: "12px",
-    fontSize: "12px",
-    fontWeight: "bold",
-    boxShadow: "0 2px 10px rgba(34,197,94,0.5)",
-    animation: "slideIn 0.3s ease-out",
-  }
-};
-
 export default function LimboGameScreen() {
   const router = useRouter();
   const { isMaintenance, isLoaded: platformLoaded } = usePlatformStatus();
