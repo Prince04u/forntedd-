@@ -253,7 +253,11 @@ export default function DiceGameScreen() {
     return "";
   };
 
-  const executeRoll = useCallback(async () => {
+  const executeRoll = useCallback(async (overrideCondition) => {
+    const activeCondition = overrideCondition ?? condition;
+    if (overrideCondition) {
+      setCondition(overrideCondition);
+    }
     const validation = validate();
     if (validation) {
       setError(validation);
@@ -274,7 +278,7 @@ export default function DiceGameScreen() {
     try {
       const payload = {
         amount: betAmount,
-        condition,
+        condition: activeCondition,
         target: normalizedTarget,
         clientRollId: `dc_${Date.now()}`,
       };
@@ -315,9 +319,9 @@ export default function DiceGameScreen() {
     }
   }, [betAmount, condition, loadData, normalizedTarget]);
 
-  const handleRollClick = async () => {
+  const handleRollClick = async (overrideCondition) => {
     if (bettingLocked) return;
-    await executeRoll();
+    await executeRoll(overrideCondition);
   };
 
   const startAuto = async () => {
@@ -384,10 +388,7 @@ export default function DiceGameScreen() {
     if (!autoRunning) return;
   }, [autoBetEnabled, autoRunning]);
 
-  const rollDisplay = rollingNumber != null ? rollingNumber : lastRoll?.result ?? "—";
-  const lastStatus = lastRoll?.status;
-  const resultPill =
-    lastStatus === "won" ? <span className="dc-pill win">WIN</span> : lastStatus === "lost" ? <span className="dc-pill loss">LOST</span> : null;
+  const rollDisplay = rollingNumber !== null ? rollingNumber : lastRoll ? lastRoll.result : 50.00;
 
   if (!mounted) {
     return (
@@ -400,216 +401,143 @@ export default function DiceGameScreen() {
   return (
     <main className="dice-game">
       <header className="dc-header">
-        <Link href="/" className="dc-back" aria-label="Back to home">
-          ‹
-        </Link>
-        <BrandLogo href="/" size="sm" className="dc-brand-logo" />
-        <div className="dc-header-icons">
-          <button type="button" onClick={loadData} disabled={loading} title="Refresh" aria-label="Refresh">
-            ↻
+        <div className="dc-header-left">
+          <Link href="/" className="dc-back" aria-label="Back to home">
+            ‹
+          </Link>
+          <span className="dc-header-logo-text">DICE</span>
+          <button className="dc-header-how" type="button">How to Play?</button>
+        </div>
+        <div className="dc-header-right">
+          <span className="dc-header-balance">{balance.toFixed(2)} INR</span>
+          <button className="dc-header-menu-btn" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
         </div>
       </header>
 
-      <section className="dc-wallet-card">
-        <div className="dc-wallet-row">
-          <div>
-            <span className="dc-wallet-label">Wallet balance</span>
-            <div className="dc-wallet-amount">₹{balance.toFixed(2)}</div>
-          </div>
-          <div className="dc-wallet-actions">
-            <Link href="/wallet" className="dc-btn-withdraw">
-              Withdraw
-            </Link>
-            <Link href="/wallet/deposit" className="dc-btn-deposit">
-              Deposit
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {(maintenanceMode || blocksAction("bet")) && (
-        <div className="dc-maintenance-notice">
-          {maintenanceMessage || "Dice is temporarily unavailable during maintenance."}
-        </div>
-      )}
-
       {error && <div className="auth-error dc-msg">{error}</div>}
 
-      <section className="dc-hero">
-        <span className="dc-hero-kicker">Dice</span>
-        <h1 className="dc-hero-title">Bet under or over. Fast rolls. Instant payouts.</h1>
-        <p className="dc-hero-copy">
-          Adjustable win chance and multiplier using Lucky Nova’s existing wallet flow and bet locking rules.
-        </p>
-      </section>
-
-      <section className="dc-panel">
-        <div className="dc-panel-top">
-          <div className="dc-metric">
-            <span>Win chance</span>
-            <strong>{winChance.toFixed(2)}%</strong>
-            <small>{condition === "under" ? `Roll under ${normalizedTarget.toFixed(2)}` : `Roll over ${normalizedTarget.toFixed(2)}`}</small>
+      <section className="dc-board-stage">
+        {/* Roll outcome main screen display */}
+        <div className="dc-outcome-card">
+          <div className="dc-outcome-value">
+            {typeof rollDisplay === "number" ? rollDisplay.toFixed(2) : rollDisplay}
           </div>
-          <div className="dc-metric">
-            <span>Multiplier</span>
-            <strong>{multiplier.toFixed(2)}x</strong>
-            <small>Profit on win: +₹{profitOnWin.toFixed(2)}</small>
-          </div>
-        </div>
 
-        <div className="dc-roll-stage">
-          <div className="dc-dice-container" aria-label="Gold metallic casino dice">
-            <div className={`dc-dice-wrap ${rollingNumber !== null ? "dc-rolling" : ""}`}>
-              <div className="dc-die">
-                <GoldDie value={d1} />
-              </div>
-              <div className="dc-die">
-                <GoldDie value={d2} />
+          {/* Golden Spribe Slider bar indicator */}
+          <div className="sp-dc-slider-container">
+            <div className="sp-dc-slider-track-overlay">
+              <div className="sp-dc-ticks" />
+              <div className="sp-dc-handle" style={{ left: `${normalizedTarget}%` }}>
+                <span className="sp-dc-handle-dot" />
               </div>
             </div>
-            <div className="dc-dice-number-display">
-              <div className="dc-roll-number">{typeof rollDisplay === "number" ? rollDisplay.toFixed(2) : rollDisplay}</div>
-              <div className="dc-roll-label">{rollingNumber !== null ? "ROLLING..." : "ROLL RESULT"}</div>
+            <input 
+              type="range"
+              className="sp-dc-native-slider"
+              min={cfg.minTarget}
+              max={cfg.maxTarget}
+              step={0.1}
+              value={normalizedTarget}
+              disabled={bettingLocked || autoRunning}
+              onChange={(e) => setTarget(Number(e.target.value))}
+            />
+            <div className="sp-dc-slider-labels">
+              <span>0</span>
+              <span>25</span>
+              <span>50</span>
+              <span>75</span>
+              <span>100</span>
             </div>
           </div>
-          <div className="dc-roll-result">
-            {resultPill}
-            <p>
-              Target: <strong>{normalizedTarget.toFixed(2)}</strong> · Mode: <strong>{condition}</strong>
-            </p>
-            <p>
-              Stake: <strong>₹{betAmount.toFixed(2)}</strong> · Session P/L:{" "}
-              <strong style={{ color: sessionProfit >= 0 ? "#86efac" : "var(--theme-danger-text)" }}>
-                {sessionProfit >= 0 ? "+" : "−"}₹{Math.abs(sessionProfit).toFixed(2)}
-              </strong>
-            </p>
+        </div>
+
+        {/* Payout & win stats capsule pill card */}
+        <div className="sp-dc-payout-box">
+          <div className="sp-dc-payout-row">
+            <div className="sp-dc-payout-col">
+              <span className="sp-dc-label">Payout</span>
+              <div className="sp-dc-value-badge">{multiplier.toFixed(2)} x</div>
+            </div>
+            <div className="sp-dc-mini-track">
+              <div className="sp-dc-mini-fill" style={{ width: `${winChance}%` }} />
+              <div className="sp-dc-mini-thumb" style={{ left: `${winChance}%` }}>
+                ‹›
+              </div>
+            </div>
           </div>
+          <div className="sp-dc-metrics-sub">
+            <span className="sp-dc-pot-win">Potential win: <strong>{profitOnWin.toFixed(2)} INR</strong></span>
+            <span className="sp-dc-chance">Chance: <strong>{winChance.toFixed(2)} %</strong></span>
+          </div>
+        </div>
+
+        {/* Spribe Control bar row */}
+        <div className="sp-dc-control-row">
+          {/* Bet Amount input */}
+          <div className="sp-dc-bet-picker">
+            <span className="sp-dc-bet-label">Bet INR</span>
+            <div className="sp-dc-bet-control-container">
+              <button 
+                type="button"
+                className="sp-dc-picker-btn" 
+                disabled={bettingLocked || autoRunning}
+                onClick={() => setBetAmount(prev => Math.max(cfg.minBetAmount, prev - 10))}
+              >
+                -
+              </button>
+              <input 
+                type="number" 
+                value={betAmount} 
+                disabled={bettingLocked || autoRunning}
+                onChange={(e) => setBetAmount(Math.max(0, Number(e.target.value) || 0))} 
+                className="sp-dc-bet-input"
+              />
+              <button type="button" className="sp-dc-picker-btn-presets">🔲</button>
+              <button 
+                type="button"
+                className="sp-dc-picker-btn" 
+                disabled={bettingLocked || autoRunning}
+                onClick={() => setBetAmount(prev => Math.min(cfg.maxBetAmount, prev + 10))}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* Speed roll toggle */}
+          <button className="sp-dc-speed-btn" type="button" disabled={bettingLocked || autoRunning}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="sp-dc-speed-icon"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          </button>
+
+          {/* Roll Under Button */}
+          <button 
+            type="button" 
+            className="sp-dc-roll-btn sp-dc-under" 
+            disabled={bettingLocked || autoRunning} 
+            onClick={() => handleRollClick("under")}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="sp-dc-arrow-svg"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            <span className="sp-dc-target-val">{normalizedTarget.toFixed(2)}</span>
+          </button>
+
+          {/* Roll Over Button */}
+          <button 
+            type="button" 
+            className="sp-dc-roll-btn sp-dc-over" 
+            disabled={bettingLocked || autoRunning} 
+            onClick={() => handleRollClick("over")}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="sp-dc-arrow-svg"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <span className="sp-dc-target-val">{(100 - normalizedTarget).toFixed(2)}</span>
+          </button>
         </div>
       </section>
 
-      <section className="dc-controls">
-        <span className="dc-control-label">Bet controls</span>
 
-        <div className="dc-toggle-row">
-          <button
-            type="button"
-            className={`dc-toggle ${condition === "under" ? "active" : ""}`}
-            disabled={bettingLocked || autoRunning}
-            onClick={() => setCondition("under")}
-          >
-            Under
-          </button>
-          <button
-            type="button"
-            className={`dc-toggle ${condition === "over" ? "active" : ""}`}
-            disabled={bettingLocked || autoRunning}
-            onClick={() => setCondition("over")}
-          >
-            Over
-          </button>
-        </div>
-
-        <div className="dc-slider-wrap">
-          <div className="dc-slider-meta">
-            <span>Target</span>
-            <strong>{normalizedTarget.toFixed(2)}</strong>
-            <span>
-              Limits {cfg.minTarget}–{cfg.maxTarget}
-            </span>
-          </div>
-          <input
-            className="dc-slider"
-            type="range"
-            min={cfg.minTarget}
-            max={cfg.maxTarget}
-            step={0.1}
-            value={normalizedTarget}
-            disabled={bettingLocked || autoRunning}
-            onChange={(e) => setTarget(Number(e.target.value))}
-          />
-        </div>
-
-        <div className="dc-input-row">
-          <input
-            className="dc-input"
-            type="number"
-            min={cfg.minBetAmount}
-            max={cfg.maxBetAmount}
-            value={betAmount}
-            disabled={bettingLocked || autoRunning}
-            onChange={(e) => setBetAmount(Math.max(0, Number(e.target.value) || 0))}
-            aria-label="Bet amount"
-          />
-          <input
-            className="dc-input"
-            type="number"
-            min={250}
-            max={5000}
-            step={50}
-            value={autoDelayMs}
-            disabled={bettingLocked || autoRunning}
-            onChange={(e) => setAutoDelayMs(clamp(Number(e.target.value) || 900, 250, 5000))}
-            aria-label="Auto bet delay milliseconds"
-          />
-        </div>
-
-        <div className="dc-autobet">
-          <input
-            className="dc-input"
-            type="number"
-            min={0}
-            step={1}
-            value={stopOnProfit}
-            disabled={bettingLocked || autoRunning}
-            onChange={(e) => setStopOnProfit(Math.max(0, Number(e.target.value) || 0))}
-            aria-label="Stop on profit"
-            placeholder="Stop on profit"
-          />
-          <input
-            className="dc-input"
-            type="number"
-            min={0}
-            step={1}
-            value={stopOnLoss}
-            disabled={bettingLocked || autoRunning}
-            onChange={(e) => setStopOnLoss(Math.max(0, Number(e.target.value) || 0))}
-            aria-label="Stop on loss"
-            placeholder="Stop on loss"
-          />
-        </div>
-
-        <div style={{ marginTop: "0.75rem" }}>
-          <button
-            type="button"
-            className={`dc-toggle ${autoBetEnabled ? "active" : ""}`}
-            disabled={bettingLocked || autoRunning}
-            onClick={() => setAutoBetEnabled((v) => !v)}
-          >
-            Auto bet
-          </button>
-        </div>
-
-        <div style={{ marginTop: "0.75rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
-          <button type="button" className="dc-btn roll" disabled={bettingLocked || autoRunning} onClick={handleRollClick}>
-            {loading ? "Rolling..." : `Roll · ₹${betAmount.toFixed(2)}`}
-          </button>
-          {autoBetEnabled ? (
-            <button
-              type="button"
-              className="dc-btn stop"
-              disabled={bettingLocked}
-              onClick={() => (autoRunning ? stopAuto() : startAuto())}
-            >
-              {autoRunning ? "Stop" : "Start auto"}
-            </button>
-          ) : (
-            <button type="button" className="dc-btn stop" disabled>
-              Auto bet off
-            </button>
-          )}
-        </div>
-      </section>
 
       <section className="dc-history">
         <h2>Roll history</h2>
