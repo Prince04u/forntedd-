@@ -53,6 +53,7 @@ export default function LimboGameScreen() {
   const startTimeRef = useRef(null);
   const playingRef = useRef(false);
   const activeBetRef = useRef(null);
+  const earlyEventRef = useRef(null); // Stores events that arrive before HTTP response
 
   useEffect(() => {
     if (platformLoaded && isMaintenance) {
@@ -80,13 +81,15 @@ export default function LimboGameScreen() {
         });
 
         socketInstance.on("limbo:crash", (data) => {
-          if (activeBetRef.current === data.betId) {
+          earlyEventRef.current = { type: "crash", ...data };
+          if (activeBetRef.current == data.betId) {
             handleCrash(data.crashPoint);
           }
         });
 
         socketInstance.on("limbo:win", (data) => {
-          if (activeBetRef.current === data.betId) {
+          earlyEventRef.current = { type: "win", ...data };
+          if (activeBetRef.current == data.betId) {
             handleWin(data.multiplier, data.payout);
           }
         });
@@ -168,6 +171,17 @@ export default function LimboGameScreen() {
     setActiveBetId(res.data.id);
     activeBetRef.current = res.data.id;
     
+    // Check if an early socket event beat this HTTP response!
+    if (earlyEventRef.current && earlyEventRef.current.betId == res.data.id) {
+      if (earlyEventRef.current.type === "crash") {
+        handleCrash(earlyEventRef.current.crashPoint);
+        return;
+      } else if (earlyEventRef.current.type === "win") {
+        handleWin(earlyEventRef.current.multiplier, earlyEventRef.current.payout);
+        return;
+      }
+    }
+
     // Start local animation loop synced to server via latency estimate
     const latency = Math.max(0, (responseTime - requestStartTime) / 2);
     startTimeRef.current = Date.now() - latency;

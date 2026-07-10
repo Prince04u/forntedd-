@@ -939,7 +939,7 @@ const playLimbo = async (req, res, next) => {
         if (checkBet && checkBet.state === "pending") {
           checkBet.state = "lost";
           await checkBet.save();
-          sendToUser(checkBet.user.toString(), "limbo:crash", { betId: checkBet._id, crashPoint: rolled });
+          sendToUser(checkBet.user.toString(), "limbo:crash", { betId: checkBet._id.toString(), crashPoint: rolled });
         }
       } catch (e) {
         logger.error(`Limbo crash timeout error: ${e.message}`);
@@ -992,7 +992,7 @@ const cashOutLimbo = async (req, res, next) => {
       // Race condition - crashed
       bet.state = "lost";
       await bet.save();
-      sendToUser(req.user._id.toString(), "limbo:crash", { betId: bet._id, crashPoint: maxMultiplier });
+      sendToUser(req.user._id.toString(), "limbo:crash", { betId: bet._id.toString(), crashPoint: maxMultiplier });
       return res.status(400).json({ message: `Too late! Crashed at ${maxMultiplier.toFixed(2)}x` });
     }
 
