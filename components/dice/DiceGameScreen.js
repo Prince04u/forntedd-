@@ -270,10 +270,12 @@ export default function DiceGameScreen() {
   }, [loadData, router]);
 
   const validate = () => {
-    if (betAmount < cfg.minBetAmount || betAmount > cfg.maxBetAmount) {
+    const numericBet = Number(betAmount);
+    const numericBalance = Number(balance);
+    if (numericBet < cfg.minBetAmount || numericBet > cfg.maxBetAmount) {
       return `Bet amount must be between ₹${cfg.minBetAmount} and ₹${cfg.maxBetAmount.toLocaleString("en-IN")}`;
     }
-    if (betAmount > balance) return "Insufficient balance";
+    if (numericBet > numericBalance) return "Insufficient balance";
     return "";
   };
 
