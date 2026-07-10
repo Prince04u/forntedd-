@@ -273,6 +273,8 @@ const processDepositApproval = async (req, res, next) => {
     deposit.comments = comments || "";
     await deposit.save();
 
+    const user = await User.findById(deposit.user);
+
     if (status === "approved") {
       const wallet = await Wallet.findOne({ user: deposit.user });
       if (wallet) {
@@ -301,6 +303,11 @@ const processDepositApproval = async (req, res, next) => {
         // Pay commission to referral parents if any
         await settleReferralCommissions(deposit.user, deposit.amount);
       }
+    }
+
+    if (user) {
+      const { sendTelegramNotification } = require("../utils/telegram");
+      await sendTelegramNotification(deposit, user, status === "approved" ? "success" : "failed");
     }
 
     logger.info(`Deposit request ID ${id} marked: ${status}`);
