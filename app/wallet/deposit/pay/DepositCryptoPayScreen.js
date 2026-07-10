@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import DepositProofUploadField from "@/components/wallet/DepositProofUploadField";
 import { buildDepositOrderNo, formatUsdtAmount } from "@/lib/depositCrypto";
-import { requestDeposit } from "@/lib/walletApi";
+import { requestDeposit, getDeposits } from "@/lib/walletApi";
 import { getApiBaseUrl } from "@/lib/serviceOrigin";
 import "./deposit-pay.css";
 
@@ -71,6 +71,10 @@ export default function DepositCryptoPayScreen({
   const isBep20 = channelId?.toLowerCase()?.includes("bep20") || channelLabel?.toUpperCase()?.includes("BEP20");
   const networkLabel = paymentDetails?.networkLabel || (isBep20 ? "BSC(BEP-20)" : "TRON(TRC-20)");
 
+  const isAutomated = Boolean(paymentDetails?.depositId);
+  const displayOrderNo = isAutomated ? paymentDetails.depositId : orderNo;
+  const [pollingStatus, setPollingStatus] = useState("waiting"); // "waiting", "approved", "failed"
+
   const canSubmit =
     amountUsdt > 0 &&
     inrAmount > 0 &&
@@ -88,6 +92,39 @@ export default function DepositCryptoPayScreen({
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (!isAutomated || !paymentDetails?.depositId) return;
+    
+    let interval;
+    const poll = async () => {
+      try {
+        const res = await getDeposits();
+        if (res.success && Array.isArray(res.data)) {
+          const matched = res.data.find(d => d._id === paymentDetails.depositId);
+          if (matched && matched.status === "approved") {
+            setPollingStatus("approved");
+            setSuccess({
+              amountUsdt,
+              inrAmount,
+              reference: matched.txHash || "AUTO",
+              orderNo: paymentDetails.depositId,
+            });
+            clearInterval(interval);
+          } else if (matched && matched.status === "rejected") {
+            setPollingStatus("failed");
+            setError("Deposit was rejected or expired by payment gateway.");
+            clearInterval(interval);
+          }
+        }
+      } catch (err) {
+        // ignore polling errors
+      }
+    };
+    
+    interval = setInterval(poll, 10000);
+    return () => clearInterval(interval);
+  }, [isAutomated, paymentDetails?.depositId, amountUsdt, inrAmount]);
+
   const time = useMemo(() => formatTimerParts(remainingSec), [remainingSec]);
 
   const handleDeposit = async () => {
@@ -98,7 +135,7 @@ export default function DepositCryptoPayScreen({
       await requestDeposit({
         amount: inrAmount,
         cryptoAmount: amountUsdt,
-        orderNo,
+        orderNo: displayOrderNo,
         method: `${methodId}-${channelId}`,
         reference: trimmedReference,
         proofUrl: proofPath,
@@ -108,7 +145,7 @@ export default function DepositCryptoPayScreen({
         amountUsdt,
         inrAmount,
         reference: trimmedReference,
-        orderNo,
+        orderNo: displayOrderNo,
       });
     } catch (err) {
       setError(err.response?.data?.message || "Deposit request failed");
@@ -176,8 +213,8 @@ export default function DepositCryptoPayScreen({
 
         {/* ORDER ID ROW */}
         <div className="arupi-ref-order" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "#666", marginTop: "1rem" }}>
-          <span>No.{orderNo}</span>
-          <button type="button" onClick={() => copyText(orderNo)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "2px" }} aria-label="Copy Order ID">
+          <span>No.{displayOrderNo}</span>
+          <button type="button" onClick={() => copyText(displayOrderNo)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "2px" }} aria-label="Copy Order ID">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           </button>
         </div>
@@ -235,77 +272,98 @@ export default function DepositCryptoPayScreen({
       </div>
 
       {/* TXID INPUT AND UPLOAD FORM CONTAINER */}
-      <div className="arupi-submission-box" style={{ background: "#ffffff", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.06)", maxWidth: "480px", width: "100%", padding: "1.5rem", marginTop: "1rem", display: "flex", flexDirection: "column", gap: "1.25rem", color: "#333" }}>
-        
-        {/* TXID FIELD */}
-        <div>
-          <h2 style={{ fontSize: "0.95rem", fontWeight: "bold", color: "#000", margin: "0 0 4px" }}>• Input TxID / Paste TxID</h2>
-          <p style={{ fontSize: "0.75rem", color: "#dc2626", margin: "0 0 8px" }}>If you do not submit the transaction hash, your deposit will fail.</p>
-          <div className="arupi-utr-field" style={{ display: "flex", border: "1px solid #eaeaea", borderRadius: "10px", overflow: "hidden", background: "#f9fafb" }}>
-            <input
-              type="text"
-              placeholder="Paste transaction hash / TxID"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              style={{ flex: 1, border: "none", background: "transparent", padding: "0.75rem", fontSize: "0.85rem", color: "#000", outline: "none" }}
+      {isAutomated ? (
+        <div className="arupi-submission-box" style={{ background: "#ffffff", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.06)", maxWidth: "480px", width: "100%", padding: "2rem", marginTop: "1rem", display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center", color: "#333", textAlign: "center" }}>
+          {pollingStatus === "waiting" && (
+            <>
+              <div className="wallet-screen-loading" style={{ margin: "1rem 0" }} />
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "bold", color: "#000", margin: "0" }}>Awaiting Payment...</h2>
+              <p style={{ fontSize: "0.85rem", color: "#555", margin: "0", lineHeight: "1.4" }}>
+                Please send the funds to the address above. This page will automatically update once the blockchain confirms your transaction.
+              </p>
+              <div style={{ marginTop: "1rem", display: "flex", width: "100%" }}>
+                <Link href={onBackHref} style={{ flex: 1, textDecoration: "none", background: "#f1f3f7", color: "#333333", padding: "0.85rem", borderRadius: "10px", fontWeight: "bold", textAlign: "center", fontSize: "0.9rem" }}>
+                  Cancel
+                </Link>
+              </div>
+            </>
+          )}
+          {pollingStatus === "failed" && (
+            <div style={{ color: "#dc2626", fontSize: "0.9rem", textAlign: "center", padding: "1rem" }}>{error}</div>
+          )}
+        </div>
+      ) : (
+        <div className="arupi-submission-box" style={{ background: "#ffffff", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.06)", maxWidth: "480px", width: "100%", padding: "1.5rem", marginTop: "1rem", display: "flex", flexDirection: "column", gap: "1.25rem", color: "#333" }}>
+          
+          {/* TXID FIELD */}
+          <div>
+            <h2 style={{ fontSize: "0.95rem", fontWeight: "bold", color: "#000", margin: "0 0 4px" }}>• Input TxID / Paste TxID</h2>
+            <p style={{ fontSize: "0.75rem", color: "#dc2626", margin: "0 0 8px" }}>If you do not submit the transaction hash, your deposit will fail.</p>
+            <div className="arupi-utr-field" style={{ display: "flex", border: "1px solid #eaeaea", borderRadius: "10px", overflow: "hidden", background: "#f9fafb" }}>
+              <input
+                type="text"
+                placeholder="Paste transaction hash / TxID"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                style={{ flex: 1, border: "none", background: "transparent", padding: "0.75rem", fontSize: "0.85rem", color: "#000", outline: "none" }}
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const text = await navigator.clipboard.readText();
+                    setReference(text.trim());
+                  } catch {
+                    setError("Could not paste from clipboard");
+                  }
+                }}
+                style={{ background: "#00a685", color: "#ffffff", border: "none", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: "bold", cursor: "pointer" }}
+              >
+                Paste
+              </button>
+            </div>
+          </div>
+
+          {/* SCREENSHOT FIELD */}
+          <div>
+            <h2 style={{ fontSize: "0.95rem", fontWeight: "bold", color: "#000", margin: "0 0 4px" }}>• Upload payment screenshot</h2>
+            <p style={{ fontSize: "0.75rem", color: "#dc2626", margin: "0 0 10px" }}>Payment screenshot is mandatory. Deposits without proof will not be processed.</p>
+            <DepositProofUploadField
+              proofPath={proofPath}
+              previewUrl={proofPreviewUrl}
+              disabled={loading}
+              onProofChange={(nextPath, nextPreviewUrl) => {
+                setProofPath(nextPath);
+                setProofPreviewUrl(nextPreviewUrl);
+              }}
             />
+          </div>
+
+          {error ? <div style={{ color: "#dc2626", fontSize: "0.8rem", textAlign: "center" }}>{error}</div> : null}
+
+          {/* ACTION BUTTONS */}
+          <div style={{ display: "flex", gap: "10px", marginTop: "0.5rem" }}>
+            <Link href={onBackHref} style={{ flex: 1, textDecoration: "none", background: "#f1f3f7", color: "#333333", padding: "0.85rem", borderRadius: "10px", fontWeight: "bold", textAlign: "center", fontSize: "0.9rem" }}>
+              Cancel
+            </Link>
             <button
               type="button"
-              onClick={async () => {
-                try {
-                  const text = await navigator.clipboard.readText();
-                  setReference(text.trim());
-                } catch {
-                  setError("Could not paste from clipboard");
-                }
-              }}
-              style={{ background: "#00a685", color: "#ffffff", border: "none", padding: "0.5rem 1rem", fontSize: "0.82rem", fontWeight: "bold", cursor: "pointer" }}
+              className="arupi-pay-submit"
+              disabled={!canSubmit}
+              onClick={handleDeposit}
+              style={{ flex: 2, border: "none", background: canSubmit ? "#00a685" : "#e1e3e7", color: canSubmit ? "#ffffff" : "#999999", padding: "0.85rem", borderRadius: "10px", fontWeight: "bold", cursor: canSubmit ? "pointer" : "not-allowed", fontSize: "0.9rem" }}
             >
-              Paste
+              {loading
+                ? "Submitting..."
+                : !hasValidProof
+                  ? "Submit (screenshot required)"
+                  : hasValidReference
+                    ? "Submit"
+                    : "Submit (TxID required)"}
             </button>
           </div>
         </div>
-
-        {/* SCREENSHOT FIELD */}
-        <div>
-          <h2 style={{ fontSize: "0.95rem", fontWeight: "bold", color: "#000", margin: "0 0 4px" }}>• Upload payment screenshot</h2>
-          <p style={{ fontSize: "0.75rem", color: "#dc2626", margin: "0 0 10px" }}>Payment screenshot is mandatory. Deposits without proof will not be processed.</p>
-          <DepositProofUploadField
-            proofPath={proofPath}
-            previewUrl={proofPreviewUrl}
-            disabled={loading}
-            onProofChange={(nextPath, nextPreviewUrl) => {
-              setProofPath(nextPath);
-              setProofPreviewUrl(nextPreviewUrl);
-            }}
-          />
-        </div>
-
-        {error ? <div style={{ color: "#dc2626", fontSize: "0.8rem", textAlign: "center" }}>{error}</div> : null}
-
-        {/* ACTION BUTTONS */}
-        <div style={{ display: "flex", gap: "10px", marginTop: "0.5rem" }}>
-          <Link href={onBackHref} style={{ flex: 1, textDecoration: "none", background: "#f1f3f7", color: "#333333", padding: "0.85rem", borderRadius: "10px", fontWeight: "bold", textAlign: "center", fontSize: "0.9rem" }}>
-            Cancel
-          </Link>
-          <button
-            type="button"
-            className="arupi-pay-submit"
-            disabled={!canSubmit}
-            onClick={handleDeposit}
-            style={{ flex: 2, border: "none", background: canSubmit ? "#00a685" : "#e1e3e7", color: canSubmit ? "#ffffff" : "#999999", padding: "0.85rem", borderRadius: "10px", fontWeight: "bold", cursor: canSubmit ? "pointer" : "not-allowed", fontSize: "0.9rem" }}
-          >
-            {loading
-              ? "Submitting..."
-              : !hasValidProof
-                ? "Submit (screenshot required)"
-                : !hasValidReference
-                  ? "Submit (TxID required)"
-                  : "Submit"}
-          </button>
-        </div>
-
-      </div>
+      )}
     </main>
   );
 }
