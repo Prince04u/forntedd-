@@ -85,7 +85,12 @@ const getDepositPayment = async (req, res, next) => {
         } catch (err) {
           // Rollback the local deposit if NOWPayments initiation failed
           await Deposit.findByIdAndDelete(deposit._id);
-          throw err;
+          const logger = require("../config/logger");
+          logger.error("Failed to initialize NOWPayments transaction:", err);
+          return res.status(400).json({
+            success: false,
+            message: err.message || "Failed to initialize payment gateway. Please ensure your deposit amount meets the minimum required limit."
+          });
         }
       }
 

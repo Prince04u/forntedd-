@@ -151,8 +151,8 @@ function DepositPayContent() {
         setPaymentDetails(paymentRes?.data || null);
         setOptionsReady(true);
       })
-      .catch(() => {
-        router.replace("/wallet/deposit");
+      .catch((err) => {
+        setError(err.response?.data?.message || "Failed to initialize payment details.");
       });
   }, [amountParam, inrParam, methodIdParam, channelId, router]);
 
@@ -218,6 +218,23 @@ function DepositPayContent() {
       setLoading(false);
     }
   };
+
+  if (error && !optionsReady) {
+    return (
+      <main className="arupi-pay-page" style={{ background: "#f4f6fa", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+        <div style={{ background: "#ffffff", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.06)", maxWidth: "480px", width: "100%", padding: "2rem 1.5rem", textAlign: "center", border: "1px solid rgba(220,38,38,0.15)" }}>
+          <div style={{ width: "50px", height: "50px", background: "#fee2e2", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
+            <span style={{ color: "#dc2626", fontSize: "1.5rem", fontWeight: "bold" }}>!</span>
+          </div>
+          <h2 style={{ fontSize: "1.2rem", fontWeight: "bold", color: "#dc2626", margin: "0 0 0.5rem" }}>Payment Error</h2>
+          <p style={{ fontSize: "0.95rem", color: "#555", margin: "0 0 1.5rem", lineHeight: "1.4" }}>{error}</p>
+          <button onClick={() => router.replace("/wallet/deposit")} style={{ background: "#dc2626", color: "#ffffff", border: "none", padding: "0.75rem 1.5rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", width: "100%" }}>
+            Go Back
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   if (!optionsReady) {
     return (
