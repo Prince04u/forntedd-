@@ -41,6 +41,15 @@ const DepositSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    paymentId: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    payAmount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

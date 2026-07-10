@@ -112,7 +112,7 @@ function DepositPayContent() {
       return;
     }
 
-    Promise.all([getDepositOptions(), getDepositPayment(channelId)])
+    Promise.all([getDepositOptions(), getDepositPayment(channelId, amountParam)])
       .then(([optionsRes, paymentRes]) => {
         const methods = (optionsRes?.data?.methods || []).filter((item) => item.enabled);
         const channels = optionsRes?.data?.channels || [];

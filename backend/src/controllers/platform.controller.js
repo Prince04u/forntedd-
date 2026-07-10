@@ -25,6 +25,85 @@ const getDepositPayment = async (req, res, next) => {
     const network = isBep20 ? "BEP20" : "TRC20";
     const networkLabel = isBep20 ? "BSC (BEP20)" : "Tron (TRC20)";
 
+    const amount = Number(req.query.amount); // USDT amount from frontend, e.g. 10
+
+    if (amount > 0 && req.user) {
+      const Deposit = require("../models/Deposit");
+      const { httpsPost } = require("../utils/http");
+      const { sendTelegramNotification } = require("../utils/telegram");
+
+      // Find an existing pending deposit created in the last 15 minutes for this user, network, and amount
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+      let deposit = await Deposit.findOne({
+        user: req.user._id,
+        channel: network,
+        payAmount: { $gt: 0 },
+        status: "pending",
+        createdAt: { $gte: fifteenMinutesAgo }
+      });
+
+      if (!deposit) {
+        // Create new local deposit document first to get the unique Mongo ObjectId for order_id
+        deposit = new Deposit({
+          user: req.user._id,
+          amount: Math.round(amount * 98), // Convert to INR
+          channel: network,
+          status: "pending",
+          address: "generating..."
+        });
+        await deposit.save();
+
+        try {
+          const apiKey = "0C95QTK-86K4WRF-PXH4VNN-4BBWACM";
+          const payCurrency = isBep20 ? "usdtbep20" : "usdttrc20";
+          const callbackUrl = `${req.secure ? 'https' : 'http'}://${req.headers.host}/api/platform/deposit/nowpayments-callback`;
+
+          const npResponse = await httpsPost(
+            "https://api.nowpayments.io/v1/payment",
+            { "x-api-key": apiKey },
+            {
+              price_amount: amount,
+              price_currency: "usd",
+              pay_amount: amount,
+              pay_currency: payCurrency,
+              ipn_callback_url: callbackUrl,
+              order_id: deposit._id.toString()
+            }
+          );
+
+          if (npResponse && npResponse.payment_id) {
+            deposit.paymentId = npResponse.payment_id;
+            deposit.address = npResponse.pay_address;
+            deposit.payAmount = npResponse.pay_amount || npResponse.price_amount || amount;
+            await deposit.save();
+
+            // Send Telegram "Created👀" notification
+            await sendTelegramNotification(deposit, req.user, "created");
+          } else {
+            throw new Error(npResponse?.message || "Failed to create payment session on NOWPayments.");
+          }
+        } catch (err) {
+          // Rollback the local deposit if NOWPayments initiation failed
+          await Deposit.findByIdAndDelete(deposit._id);
+          throw err;
+        }
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          type: "crypto",
+          walletAddress: deposit.address,
+          qrCodeUrl: "", // Canvas renders QR code in frontend
+          networkLabel: networkLabel,
+          usdtRate: 98,
+          channelLabel: isBep20 ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)",
+          payAmount: deposit.payAmount,
+          depositId: deposit._id.toString()
+        }
+      });
+    }
+
     const config = await PlatformConfig.findOne() || new PlatformConfig();
 
     // Fetch active bulk addresses for this network
@@ -51,6 +130,88 @@ const getDepositPayment = async (req, res, next) => {
         channelLabel: isBep20 ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)"
       }
     });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const nowpaymentsCallback = async (req, res, next) => {
+  try {
+    const { payment_id, payment_status, order_id } = req.body;
+    const logger = require("../config/logger");
+    
+    logger.info(`Received NOWPayments callback for payment_id: ${payment_id}, status: ${payment_status}, order_id: ${order_id}`);
+
+    if (!payment_id || !order_id) {
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
+    // Call NOWPayments GET endpoint to verify status securely using our API key
+    const apiKey = "0C95QTK-86K4WRF-PXH4VNN-4BBWACM";
+    const { httpsGet } = require("../utils/http");
+    
+    const verifyData = await httpsGet(
+      `https://api.nowpayments.io/v1/payment/${payment_id}`,
+      { "x-api-key": apiKey }
+    );
+
+    if (!verifyData || !verifyData.payment_status) {
+      return res.status(400).json({ message: "Failed to verify payment status on NOWPayments API." });
+    }
+
+    const realStatus = verifyData.payment_status; // "finished", "confirmed", "failed", "expired"
+    
+    const Deposit = require("../models/Deposit");
+    const User = require("../models/User");
+    const Wallet = require("../models/Wallet");
+    const Transaction = require("../models/Transaction");
+    const { sendTelegramNotification } = require("../utils/telegram");
+
+    const deposit = await Deposit.findById(order_id);
+    if (!deposit) {
+      return res.status(404).json({ message: "Deposit not found." });
+    }
+
+    const user = await User.findById(deposit.user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (deposit.status !== "pending") {
+      return res.json({ success: true, message: "Payment already processed." });
+    }
+
+    if (realStatus === "finished" || realStatus === "confirmed") {
+      deposit.status = "approved";
+      await deposit.save();
+
+      let wallet = await Wallet.findOne({ user: user._id });
+      if (!wallet) {
+        wallet = new Wallet({ user: user._id, balance: 0 });
+      }
+      wallet.balance += deposit.amount;
+      await wallet.save();
+
+      const transaction = new Transaction({
+        user: user._id,
+        type: "deposit",
+        amount: deposit.amount,
+        status: "completed",
+        description: `USDT Auto Deposit via NOWPayments`,
+      });
+      await transaction.save();
+
+      await sendTelegramNotification(deposit, user, "success");
+      logger.info(`Deposit ${deposit._id} auto-approved and credited: ₹${deposit.amount}`);
+    } else if (realStatus === "failed" || realStatus === "expired") {
+      deposit.status = "rejected";
+      await deposit.save();
+
+      await sendTelegramNotification(deposit, user, "failed");
+      logger.info(`Deposit ${deposit._id} automatically rejected (NOWPayments: ${realStatus})`);
+    }
+
+    return res.json({ success: true });
   } catch (error) {
     return next(error);
   }
@@ -182,6 +343,7 @@ const getVipProgram = async (req, res) => {
 module.exports = {
   getPlatformStatus,
   getDepositPayment,
+  nowpaymentsCallback,
   getPromoBanners,
   getAnnouncements,
   getWingoConfig,

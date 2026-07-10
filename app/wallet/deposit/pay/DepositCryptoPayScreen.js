@@ -102,6 +102,7 @@ export default function DepositCryptoPayScreen({
         method: `${methodId}-${channelId}`,
         reference: trimmedReference,
         proofUrl: proofPath,
+        depositId: paymentDetails?.depositId,
       });
       setSuccess({
         amountUsdt,
@@ -156,8 +157,8 @@ export default function DepositCryptoPayScreen({
 
         {/* AMOUNT */}
         <div className="arupi-ref-amount" style={{ fontSize: "2rem", fontWeight: "800", color: "#000", marginTop: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
-          <span>{formatUsdtAmount(amountUsdt)}.00 USDT</span>
-          <button type="button" onClick={() => copyText(String(amountUsdt))} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "4px" }} aria-label="Copy Amount">
+          <span>{paymentDetails?.payAmount || amountUsdt} USDT</span>
+          <button type="button" onClick={() => copyText(String(paymentDetails?.payAmount || amountUsdt))} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: "4px" }} aria-label="Copy Amount">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           </button>
         </div>

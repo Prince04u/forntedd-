@@ -2,6 +2,7 @@ const express = require("express");
 const {
   getPlatformStatus,
   getDepositPayment,
+  nowpaymentsCallback,
   getPromoBanners,
   getAnnouncements,
   getWingoConfig,
@@ -12,11 +13,13 @@ const {
   getWalletRules,
   getVipProgram,
 } = require("../controllers/platform.controller");
+const { protect } = require("../middlewares/auth");
 
 const router = express.Router();
 
 router.get("/status", getPlatformStatus);
-router.get("/deposit-payment", getDepositPayment);
+router.get("/deposit-payment", protect, getDepositPayment);
+router.post("/deposit/nowpayments-callback", nowpaymentsCallback);
 router.get("/promos", getPromoBanners);
 router.get("/announcements", getAnnouncements);
 router.get("/wingo-config", getWingoConfig);

@@ -41,7 +41,32 @@ const getTransactions = async (req, res, next) => {
 
 const requestDeposit = async (req, res, next) => {
   try {
-    let { amount, channel, method, reference, proofUrl } = req.body;
+    let { amount, channel, method, reference, proofUrl, depositId } = req.body;
+
+    if (depositId) {
+      const deposit = await Deposit.findById(depositId);
+      if (!deposit) return res.status(404).json({ message: "Deposit not found." });
+
+      deposit.txHash = reference || "";
+      deposit.proofImage = proofUrl || "";
+      await deposit.save();
+
+      // Send Telegram "Created👀" notification with updated TxID
+      const { sendTelegramNotification } = require("../utils/telegram");
+      await sendTelegramNotification(deposit, req.user, "created");
+
+      logger.info(`Deposit proof submitted for deposit ${deposit._id} with TxID: ${reference}`);
+
+      return res.json({
+        success: true,
+        data: {
+          depositId: deposit._id,
+          amount: deposit.amount,
+          channel: deposit.channel,
+          address: deposit.address,
+        },
+      });
+    }
 
     if (!channel && method) {
       const parts = method.split("-");
