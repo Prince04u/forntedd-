@@ -31,6 +31,45 @@ const normalizeBet = (b) => {
   };
 };
 
+const styles = {
+  container: {
+    minHeight: "100vh",
+    background: "#0f172a",
+    color: "#fff",
+    fontFamily: "sans-serif",
+    display: "flex",
+    flexDirection: "column",
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "1rem",
+    borderBottom: "1px solid #1e293b",
+    background: "#0f172a",
+  },
+  headerLeft: { display: "flex", alignItems: "center", gap: "12px" },
+  headerRight: { display: "flex", alignItems: "center", gap: "12px" },
+  headerTitle: { fontSize: "1.25rem", fontWeight: "bold" },
+  backButton: { fontSize: "0.875rem", color: "#94a3b8", textDecoration: "none" },
+  walletBox: { background: "#1e293b", padding: "8px 16px", borderRadius: "8px", display: "flex", flexDirection: "column" },
+  walletLabel: { fontSize: "0.65rem", color: "#94a3b8", textTransform: "uppercase" },
+  walletAmount: { fontSize: "1rem", fontWeight: "bold" },
+  historyBtn: { background: "transparent", border: "1px solid #334155", color: "#e2e8f0", padding: "6px 12px", borderRadius: "6px", cursor: "pointer" },
+  content: { flex: 1, padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem" },
+  historyBar: { display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "8px" },
+  winPopup: {
+    background: "#22c55e",
+    color: "#fff",
+    padding: "4px 10px",
+    borderRadius: "12px",
+    fontSize: "12px",
+    fontWeight: "bold",
+    boxShadow: "0 2px 10px rgba(34,197,94,0.5)",
+    animation: "slideIn 0.3s ease-out",
+  }
+};
+
 export default function LimboGameScreen() {
   const router = useRouter();
   const { isMaintenance, isLoaded: platformLoaded } = usePlatformStatus();
@@ -48,6 +87,7 @@ export default function LimboGameScreen() {
   const [history, setHistory] = useState([]);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [error, setError] = useState(null);
+  const [winPopupAmount, setWinPopupAmount] = useState(null);
   
   const animRef = useRef(null);
   const startTimeRef = useRef(null);
@@ -182,6 +222,8 @@ export default function LimboGameScreen() {
     
     if (status === "won") {
       setDisplayState("won");
+      setWinPopupAmount(payout);
+      setTimeout(() => setWinPopupAmount(null), 3000);
     } else {
       setDisplayState("crashed");
     }
@@ -207,9 +249,16 @@ export default function LimboGameScreen() {
           >
             History
           </button>
-          <div style={styles.walletBox}>
-            <span style={styles.walletLabel}>Balance</span>
-            <span style={styles.walletAmount}>₹{(balance || 0).toFixed(2)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {winPopupAmount !== null && (
+              <div style={styles.winPopup}>
+                +{winPopupAmount.toFixed(2)} INR
+              </div>
+            )}
+            <div style={styles.walletBox}>
+              <span style={styles.walletLabel}>Balance</span>
+              <span style={styles.walletAmount}>₹{(balance || 0).toFixed(2)}</span>
+            </div>
           </div>
         </div>
       </header>
@@ -253,12 +302,6 @@ export default function LimboGameScreen() {
             >
               {(currentMultiplier || 1.0).toFixed(2)}x
             </div>
-            {displayState === "won" && (
-              <div style={styles.winText}>Cashed Out!</div>
-            )}
-            {displayState === "crashed" && (
-              <div style={styles.crashText}>Boom!</div>
-            )}
           </div>
 
           <div style={styles.rocketContainer(displayState)}>
@@ -512,16 +555,22 @@ const styles = {
     flex: 1,
     display: "flex",
     flexDirection: "column",
-    padding: "15px",
-    gap: "15px",
+    padding: "0",
+    position: "relative",
   },
   historyBar: {
     display: "flex",
     gap: "8px",
     overflowX: "auto",
-    padding: "5px 0",
+    padding: "10px 15px",
     scrollbarWidth: "none",
     msOverflowStyle: "none",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    background: "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%)",
   },
   historyPill: {
     padding: "4px 12px",
@@ -535,16 +584,12 @@ const styles = {
   gameArea: {
     flex: 1,
     background: "#141414",
-    borderRadius: "12px",
-    border: "1px solid rgba(212,175,55,0.25)",
-    boxShadow: "inset 0 0 40px rgba(0,0,0,0.8)",
     position: "relative",
     overflow: "hidden",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: "350px",
   },
   spaceBackground: (state) => ({
     position: "absolute",
@@ -751,25 +796,33 @@ const styles = {
     boxShadow: "inset 0 2px 4px rgba(0,0,0,0.6), 0 1px 1px rgba(255,255,255,0.1)",
   },
   controlsArea: {
-    background: "#1B1B1B",
-    borderRadius: "12px",
-    padding: "15px",
-    border: "1px solid rgba(212,175,55,0.25)",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    background: "transparent",
+    padding: "10px",
+    zIndex: 20,
+    display: "flex",
+    flexDirection: "column",
   },
   errorText: {
     color: "#f87171",
     fontSize: "12px",
     textAlign: "center",
-    marginBottom: "10px",
+    marginBottom: "5px",
+    textShadow: "0 1px 2px rgba(0,0,0,0.8)",
   },
   targetWrapper: {
     display: "flex",
-    background: "rgba(30,58,138,0.3)",
+    background: "rgba(15, 30, 80, 0.8)",
     borderRadius: "20px",
-    width: "180px",
-    margin: "0 auto 15px auto",
+    width: "160px",
+    margin: "0 auto -10px auto",
     overflow: "hidden",
-    border: "1px solid rgba(59,130,246,0.3)",
+    border: "1px solid rgba(59,130,246,0.5)",
+    zIndex: 2,
+    boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
   },
   targetInput: {
     flex: 1,
@@ -790,17 +843,18 @@ const styles = {
   betWrapper: {
     flex: 1,
     display: "flex",
-    background: "rgba(30,58,138,0.3)",
+    background: "rgba(15, 30, 80, 0.8)",
     borderRadius: "20px",
     overflow: "hidden",
-    border: "1px solid rgba(59,130,246,0.3)",
+    border: "1px solid rgba(59,130,246,0.5)",
+    backdropFilter: "blur(5px)",
   },
   betLabelBox: {
     padding: "5px 15px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    background: "rgba(30,58,138,0.5)",
+    background: "rgba(30,58,138,0.8)",
     flex: 1,
   },
   autoBtn: {
