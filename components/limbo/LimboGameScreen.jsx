@@ -145,6 +145,13 @@ export default function LimboGameScreen() {
       payout: res.data.winAmount || 0
     };
     targetMultiplierRef.current = target;
+
+    // Show win popup and update balance instantly
+    if (resultRef.current.status === "won") {
+      setWinPopupAmount(resultRef.current.payout);
+      setBalance(prev => prev + resultRef.current.payout);
+      setTimeout(() => setWinPopupAmount(null), 3000);
+    }
     
     // Start local animation loop to tick up to the result over 1.5 seconds
     startTimeRef.current = Date.now();
@@ -183,8 +190,6 @@ export default function LimboGameScreen() {
     
     if (status === "won") {
       setDisplayState("won");
-      setWinPopupAmount(payout);
-      setTimeout(() => setWinPopupAmount(null), 3000);
     } else {
       setDisplayState("crashed");
     }
