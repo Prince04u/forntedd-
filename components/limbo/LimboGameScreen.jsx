@@ -140,8 +140,16 @@ export default function LimboGameScreen() {
     const animateMultiplier = () => {
       if (!playingRef.current) return;
       
+      // If network hasn't returned yet, keep a constant velocity so it never stops or slows down
+      if (resultRef.current.result === null) {
+          localCurrent += 0.005; // small constant speed
+          setCurrentMultiplier(localCurrent);
+          animRef.current = requestAnimationFrame(animateMultiplier);
+          return;
+      }
+
       // When network returns, rebase the animation to target the final result smoothly
-      if (!hasRebased && resultRef.current.result !== null) {
+      if (!hasRebased) {
           hasRebased = true;
           animStartValue = localCurrent;
           animStartTime = Date.now();
@@ -150,26 +158,22 @@ export default function LimboGameScreen() {
       const elapsed = Date.now() - animStartTime;
       const progress = Math.min(elapsed / durationMs, 1.0);
       
-      // Easing out curve
+      // Easing out curve for the remaining distance
       const easeOut = 1 - Math.pow(1 - progress, 3);
       
-      const targetResult = hasRebased ? resultRef.current.result : 1.01;
-      localCurrent = animStartValue + (targetResult - animStartValue) * easeOut;
+      localCurrent = animStartValue + (resultRef.current.result - animStartValue) * easeOut;
+      
+      // Prevent moving backwards if the final result is lower than what we ticked up to
+      if (resultRef.current.result <= animStartValue) {
+          localCurrent = resultRef.current.result;
+      }
       
       setCurrentMultiplier(localCurrent);
 
-      if (progress < 1.0) {
+      if (progress < 1.0 && localCurrent < resultRef.current.result) {
         animRef.current = requestAnimationFrame(animateMultiplier);
       } else {
-        // Animation duration finished
-        if (!hasRebased) {
-          // If network is extremely slow, reset timer to keep waiting smoothly
-          animStartValue = localCurrent;
-          animStartTime = Date.now();
-          animRef.current = requestAnimationFrame(animateMultiplier);
-        } else {
-          finishGame();
-        }
+        finishGame();
       }
     };
     animRef.current = requestAnimationFrame(animateMultiplier);
