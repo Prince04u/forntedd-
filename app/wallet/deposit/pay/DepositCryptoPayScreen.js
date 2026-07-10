@@ -225,7 +225,7 @@ export default function DepositCryptoPayScreen({
         <div className="arupi-ref-tips" style={{ width: "100%", textAlign: "left", fontSize: "0.82rem", color: "#666666", marginTop: "1.5rem", borderTop: "1px dashed #eaeaea", paddingTop: "1rem" }}>
           <h3 style={{ fontWeight: "bold", color: "#333333", fontSize: "0.88rem", margin: "0 0 8px" }}>Tips:</h3>
           <ol style={{ paddingLeft: "14px", margin: "0", display: "flex", flexDirection: "column", gap: "6px", listStyleType: "decimal" }}>
-            <li>This channel only supports <strong>USDT-TRC20</strong> recharge.</li>
+            <li>This channel only supports <strong>{isBep20 ? "USDT-BEP20" : "USDT-TRC20"}</strong> recharge.</li>
             <li>The recharge address is a <strong>one-time address</strong>, please do not save it or transfer it repeatedly.</li>
             <li>The amount received will be subject to the actual transfer amount, not less than <strong>{formatUsdtAmount(amountUsdt)}.00 USDT</strong>.</li>
             <li>Please complete the transfer within the countdown time.</li>
