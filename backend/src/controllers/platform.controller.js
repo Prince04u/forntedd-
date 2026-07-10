@@ -65,7 +65,7 @@ const getDepositPayment = async (req, res, next) => {
             { "x-api-key": apiKey },
             {
               price_amount: amount,
-              price_currency: "usd",
+              price_currency: payCurrency,
               pay_amount: amount,
               pay_currency: payCurrency,
               ipn_callback_url: callbackUrl,
