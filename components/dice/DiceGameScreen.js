@@ -27,6 +27,29 @@ const safeNumber = (value, fallback) => {
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+const normalizeRoll = (r) => {
+  if (!r) return null;
+  const details = r.details || {};
+  const result = details.rolledValue ?? r.result ?? r.rollResult ?? 50.00;
+  const target = details.targetValue ?? r.target ?? 50.00;
+  const condition = details.prediction ?? r.condition ?? "under";
+  const status = r.state ?? r.status ?? (r.payout > 0 || r.winAmount > 0 ? "won" : "lost");
+  const amount = r.amount ?? r.betAmount ?? 100;
+  const winAmount = r.winAmount ?? r.payout ?? 0;
+  const profit = r.profit !== undefined ? r.profit : (status === "won" ? winAmount - amount : -amount);
+  
+  return {
+    id: r._id || r.id,
+    result: Number(result),
+    target: Number(target),
+    condition,
+    status,
+    amount: Number(amount),
+    winAmount: Number(winAmount),
+    profit: Number(profit),
+  };
+};
+
 function GoldDie({ value }) {
   const renderTopPips = () => {
     switch (value) {
@@ -209,7 +232,7 @@ export default function DiceGameScreen() {
       });
 
       const rolls = rollsRes?.data?.rolls || rollsRes?.rolls || rollsRes?.data || [];
-      setMyRolls(Array.isArray(rolls) ? rolls : []);
+      setMyRolls((Array.isArray(rolls) ? rolls : []).map(normalizeRoll));
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load Dice");
     }
@@ -285,12 +308,13 @@ export default function DiceGameScreen() {
       };
 
       const res = await roll(payload);
-      const rollData = res?.data?.roll || res?.roll || res?.data || null;
+      const rawRollData = res?.data || res;
+      const rollData = normalizeRoll(rawRollData);
       if (rollData) {
         setLastRoll(rollData);
         setMyRolls((prev) => [rollData, ...prev].slice(0, 30));
         
-        // Settle dice based on roll result (0 to 100 maps to sum 2 to 12)
+        // Settle dice based on roll result
         const val = rollData.result;
         const finalSum = Math.round(2 + (val / 100) * 10);
         let finalD1 = Math.min(6, Math.max(1, Math.floor(finalSum / 2)));
@@ -600,26 +624,24 @@ export default function DiceGameScreen() {
                   </td>
                 </tr>
               ) : (
-                myRolls.slice(0, 25).map((r) => {
-                  const status = r.status || (r.payout > 0 ? "won" : "lost");
-                  const profit = safeNumber(r.profit, status === "won" ? r.payout - r.amount : -r.amount);
-                  return (
-                    <tr key={r.id || r._id}>
-                      <td style={{ fontFamily: "monospace", color: "var(--theme-text-muted)" }}>
-                        {safeNumber(r.result, 0).toFixed(2)}
-                      </td>
-                      <td>
-                        {String(r.condition || condition)} {safeNumber(r.target, 0).toFixed(2)}
-                      </td>
-                      <td>
-                        <span className={`dc-pill ${status === "won" ? "win" : "loss"}`}>{status}</span>
-                      </td>
-                      <td style={{ color: profit >= 0 ? "#86efac" : "var(--theme-danger-text)", fontWeight: 800 }}>
-                        {profit >= 0 ? "+" : "−"}₹{Math.abs(profit).toFixed(2)}
-                      </td>
-                    </tr>
-                  );
-                })
+              myRolls.slice(0, 25).map((r) => {
+                return (
+                  <tr key={r.id}>
+                    <td style={{ fontFamily: "monospace", color: "var(--theme-text-muted)" }}>
+                      {r.result.toFixed(2)}
+                    </td>
+                    <td>
+                      {r.condition} {r.target.toFixed(2)}
+                    </td>
+                    <td>
+                      <span className={`dc-pill ${r.status === "won" ? "win" : "loss"}`}>{r.status}</span>
+                    </td>
+                    <td style={{ color: r.profit >= 0 ? "#86efac" : "var(--theme-danger-text)", fontWeight: 800 }}>
+                      {r.profit >= 0 ? "+" : "−"}₹{Math.abs(r.profit).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })
               )}
             </tbody>
           </table>
