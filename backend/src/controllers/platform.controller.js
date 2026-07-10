@@ -27,7 +27,7 @@ const getDepositPayment = async (req, res, next) => {
 
     const amount = Number(req.query.amount); // USDT amount from frontend, e.g. 10
 
-    if (amount > 0 && req.user) {
+    if (amount >= 12 && req.user) {
       const Deposit = require("../models/Deposit");
       const { httpsPost } = require("../utils/http");
       const { sendTelegramNotification } = require("../utils/telegram");
@@ -111,9 +111,32 @@ const getDepositPayment = async (req, res, next) => {
       });
     }
 
-    return res.status(400).json({
-      success: false,
-      message: "Invalid deposit request parameters."
+    // Fallback to manual rotating wallet addresses if amount is below NOWPayments API minimum limit of 12 USDT
+    const config = await PlatformConfig.findOne() || new PlatformConfig();
+
+    // Fetch active bulk addresses for this network
+    const activeAddresses = await UsdtAddress.find({ network, active: true });
+    
+    let walletAddress = isBep20 ? config.usdt_bep20 : config.usdt_trc20;
+    let qrCodeUrl = "";
+
+    // Pick one randomly if bulk entries are present
+    if (activeAddresses.length > 0) {
+      const randomIndex = Math.floor(Math.random() * activeAddresses.length);
+      walletAddress = activeAddresses[randomIndex].address;
+      qrCodeUrl = activeAddresses[randomIndex].qrCodeUrl || "";
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        type: "crypto",
+        walletAddress: walletAddress,
+        qrCodeUrl: qrCodeUrl,
+        networkLabel: networkLabel,
+        usdtRate: 98,
+        channelLabel: isBep20 ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)"
+      }
     });
   } catch (error) {
     return next(error);
