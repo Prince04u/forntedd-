@@ -353,7 +353,7 @@ export default function DiceGameScreen() {
       setRollingNumber(null);
       setLoading(false);
     }
-  }, [betAmount, condition, loadData, normalizedTarget]);
+  }, [betAmount, balance, condition, loadData, normalizedTarget]);
 
   const handleRollClick = async (overrideCondition) => {
     if (bettingLocked) return;
