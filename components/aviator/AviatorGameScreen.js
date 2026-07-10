@@ -132,7 +132,7 @@ export default function AviatorGameScreen() {
       });
 
       socket.on("aviator:multiplier", (data) => {
-        setRoundStatus("running");
+        setRoundStatus("flying");
         if (data?.roundId) setRoundId(data.roundId);
         if (typeof data?.multiplier === "number") {
           setLiveMultiplier(Math.max(1.0, data.multiplier));
@@ -389,7 +389,7 @@ export default function AviatorGameScreen() {
 
   // Plane animation coordinate mapping
   const stageTransform = useMemo(() => {
-    if (roundStatus !== "running") return "translate(10px, 0px)";
+    if (roundStatus !== "flying") return "translate(10px, 0px)";
     const m = Math.max(1, safeNumber(liveMultiplier, 1.0));
     
     // Custom exponential flight curve matching Spribe physics
@@ -552,7 +552,7 @@ export default function AviatorGameScreen() {
             )}
 
             {/* In-Flight Multiplier Display */}
-            {roundStatus === "running" && (
+            {roundStatus === "flying" && (
               <div className="sp-av-live-multiplier-center">
                 {formatMultiplier(liveMultiplier)}
               </div>
@@ -569,7 +569,7 @@ export default function AviatorGameScreen() {
             )}
 
             {/* Flight Path SVG Line */}
-            {roundStatus === "running" && (
+            {roundStatus === "flying" && (
               <svg className="sp-av-flight-svg" width="100%" height="100%">
                 <path
                   d={`M 10,135 Q 120,130 250,35`}
@@ -583,7 +583,7 @@ export default function AviatorGameScreen() {
             )}
 
             {/* Flying Red Plane Icon */}
-            {roundStatus === "running" && (
+            {roundStatus === "flying" && (
               <div className="sp-av-plane-wrapper" style={{ transform: stageTransform }}>
                 <img
                   src="/design/game-illustrations/aviator_plane_gold.svg"
@@ -649,7 +649,7 @@ export default function AviatorGameScreen() {
                       <span className="btn-label-title">BET</span>
                       <span className="btn-label-sub">{betAmount1} INR</span>
                     </button>
-                  ) : activeBet1.status === "active" && roundStatus === "running" ? (
+                  ) : activeBet1.status === "active" && roundStatus === "flying" ? (
                     <button 
                       className="sp-av-giant-btn btn-orange"
                       disabled={loading1}
@@ -757,7 +757,7 @@ export default function AviatorGameScreen() {
                       <span className="btn-label-title">BET</span>
                       <span className="btn-label-sub">{betAmount2} INR</span>
                     </button>
-                  ) : activeBet2.status === "active" && roundStatus === "running" ? (
+                  ) : activeBet2.status === "active" && roundStatus === "flying" ? (
                     <button 
                       className="sp-av-giant-btn btn-orange"
                       disabled={loading2}
