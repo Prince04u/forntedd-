@@ -29,130 +29,91 @@ const getDepositPayment = async (req, res, next) => {
 
     if (amount > 0 && req.user) {
       const Deposit = require("../models/Deposit");
-      const { httpsGet, httpsPost } = require("../utils/http");
+      const { httpsPost } = require("../utils/http");
       const { sendTelegramNotification } = require("../utils/telegram");
       const logger = require("../config/logger");
 
       const apiKey = "0C95QTK-86K4WRF-PXH4VNN-4BBWACM";
       const payCurrency = isBep20 ? "usdtbsc" : "usdttrc20";
 
-      // Fetch dynamic min limit from NOWPayments
-      let minLimit = 19; // Safe default fallback
-      try {
-        const minData = await httpsGet(
-          `https://api.nowpayments.io/v1/min-amount?currency_from=usd&currency_to=${payCurrency}`,
-          { "x-api-key": apiKey }
-        );
-        if (minData && minData.min_amount) {
-          minLimit = Number(minData.min_amount) + 0.1; // Add slight buffer
-        }
-      } catch (err) {
-        logger.warn(`Failed to fetch NOWPayments minimal limit: ${err.message}`);
-      }
+      // Find an existing pending deposit created in the last 15 minutes for this user, network, and amount
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+      let deposit = await Deposit.findOne({
+        user: req.user._id,
+        channel: network,
+        payAmount: { $gt: 0 },
+        status: "pending",
+        createdAt: { $gte: fifteenMinutesAgo }
+      });
 
-      // If the deposit amount meets the NOWPayments minimal limit, use automated checkout!
-      if (amount >= minLimit) {
-        // Find an existing pending deposit created in the last 15 minutes for this user, network, and amount
-        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-        let deposit = await Deposit.findOne({
+      if (!deposit) {
+        // Create new local deposit document first to get the unique Mongo ObjectId for order_id
+        deposit = new Deposit({
           user: req.user._id,
+          amount: Math.round(amount * 98), // Convert to INR
           channel: network,
-          payAmount: { $gt: 0 },
           status: "pending",
-          createdAt: { $gte: fifteenMinutesAgo }
+          address: "generating..."
         });
+        await deposit.save();
 
-        if (!deposit) {
-          // Create new local deposit document first to get the unique Mongo ObjectId for order_id
-          deposit = new Deposit({
-            user: req.user._id,
-            amount: Math.round(amount * 98), // Convert to INR
-            channel: network,
-            status: "pending",
-            address: "generating..."
-          });
-          await deposit.save();
+        try {
+          const callbackUrl = `${req.secure ? 'https' : 'http'}://${req.headers.host}/api/platform/deposit/nowpayments-callback`;
 
-          try {
-            const callbackUrl = `${req.secure ? 'https' : 'http'}://${req.headers.host}/api/platform/deposit/nowpayments-callback`;
-
-            const npResponse = await httpsPost(
-              "https://api.nowpayments.io/v1/payment",
-              { "x-api-key": apiKey },
-              {
-                price_amount: amount,
-                price_currency: "usd",
-                pay_amount: amount,
-                pay_currency: payCurrency,
-                ipn_callback_url: callbackUrl,
-                order_id: deposit._id.toString(),
-                is_fee_paid_by_user: true
-              }
-            );
-
-            if (npResponse && npResponse.payment_id) {
-              deposit.paymentId = npResponse.payment_id;
-              deposit.address = npResponse.pay_address;
-              deposit.payAmount = npResponse.pay_amount || npResponse.price_amount || amount;
-              await deposit.save();
-
-              // Send Telegram "Created👀" notification
-              await sendTelegramNotification(deposit, req.user, "created");
-            } else {
-              throw new Error(npResponse?.message || "Failed to create payment session on NOWPayments.");
+          const npResponse = await httpsPost(
+            "https://api.nowpayments.io/v1/payment",
+            { "x-api-key": apiKey },
+            {
+              price_amount: amount,
+              price_currency: "usd",
+              pay_amount: amount,
+              pay_currency: payCurrency,
+              ipn_callback_url: callbackUrl,
+              order_id: deposit._id.toString(),
+              is_fee_paid_by_user: true
             }
-          } catch (err) {
-            // Rollback the local deposit if NOWPayments initiation failed
-            await Deposit.findByIdAndDelete(deposit._id);
-            logger.error("Failed to initialize NOWPayments transaction:", err);
-            return res.status(400).json({
-              success: false,
-              message: err.message || "Failed to initialize payment gateway. Please ensure your deposit amount meets the minimum required limit."
-            });
+          );
+
+          if (npResponse && npResponse.payment_id) {
+            deposit.paymentId = npResponse.payment_id;
+            deposit.address = npResponse.pay_address;
+            deposit.payAmount = npResponse.pay_amount || npResponse.price_amount || amount;
+            await deposit.save();
+
+            // Send Telegram "Created👀" notification
+            await sendTelegramNotification(deposit, req.user, "created");
+          } else {
+            throw new Error(npResponse?.message || "Failed to create payment session on NOWPayments.");
           }
+        } catch (err) {
+          // Rollback the local deposit if NOWPayments initiation failed
+          await Deposit.findByIdAndDelete(deposit._id);
+          logger.error("Failed to initialize NOWPayments transaction:", err);
+          return res.status(400).json({
+            success: false,
+            message: err.message || "Failed to initialize payment gateway. Please ensure your deposit amount meets the minimum required limit."
+          });
         }
-
-        return res.json({
-          success: true,
-          data: {
-            type: "crypto",
-            walletAddress: deposit.address,
-            qrCodeUrl: "", // Canvas renders QR code in frontend
-            networkLabel: networkLabel,
-            usdtRate: 98,
-            channelLabel: isBep20 ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)",
-            payAmount: deposit.payAmount,
-            depositId: deposit._id.toString()
-          }
-        });
       }
+
+      return res.json({
+        success: true,
+        data: {
+          type: "crypto",
+          walletAddress: deposit.address,
+          qrCodeUrl: "", // Canvas renders QR code in frontend
+          networkLabel: networkLabel,
+          usdtRate: 98,
+          channelLabel: isBep20 ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)",
+          payAmount: deposit.payAmount,
+          depositId: deposit._id.toString()
+        }
+      });
     }
 
-    const config = await PlatformConfig.findOne() || new PlatformConfig();
-
-    // Fetch active bulk addresses for this network
-    const activeAddresses = await UsdtAddress.find({ network, active: true });
-    
-    let walletAddress = isBep20 ? config.usdt_bep20 : config.usdt_trc20;
-    let qrCodeUrl = "";
-
-    // Pick one randomly if bulk entries are present
-    if (activeAddresses.length > 0) {
-      const randomIndex = Math.floor(Math.random() * activeAddresses.length);
-      walletAddress = activeAddresses[randomIndex].address;
-      qrCodeUrl = activeAddresses[randomIndex].qrCodeUrl || "";
-    }
-
-    return res.json({
-      success: true,
-      data: {
-        type: "crypto",
-        walletAddress: walletAddress,
-        qrCodeUrl: qrCodeUrl,
-        networkLabel: networkLabel,
-        usdtRate: 98,
-        channelLabel: isBep20 ? "Binance-USDT (BEP20)" : "TronPay-USDT (TRC20)"
-      }
+    return res.status(400).json({
+      success: false,
+      message: "Invalid deposit request parameters."
     });
   } catch (error) {
     return next(error);
