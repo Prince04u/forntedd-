@@ -197,6 +197,9 @@ const nowpaymentsCallback = async (req, res, next) => {
 
     if (realStatus === "finished" || realStatus === "confirmed") {
       deposit.status = "approved";
+      if (req.body.tx_hash) {
+        deposit.txHash = req.body.tx_hash;
+      }
       await deposit.save();
 
       let wallet = await Wallet.findOne({ user: user._id });
@@ -395,6 +398,9 @@ const syncPendingDeposits = async (req, res, next) => {
         
         if (realStatus === "finished" || realStatus === "confirmed") {
           deposit.status = "approved";
+          if (verifyData.pay_tx_key) {
+            deposit.txHash = verifyData.pay_tx_key;
+          }
           await deposit.save();
 
           const user = await User.findById(deposit.user);
