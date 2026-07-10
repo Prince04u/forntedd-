@@ -52,7 +52,7 @@ export default function DepositPage() {
   const [error, setError] = useState("");
   const [depositOptions, setDepositOptions] = useState(null);
   const [optionsLoading, setOptionsLoading] = useState(true);
-  const [platformDepositRules, setPlatformDepositRules] = useState({ minAmount: 100, maxAmount: 50000 });
+  const [platformDepositRules, setPlatformDepositRules] = useState({ minAmount: 1, maxAmount: 50000 });
 
   const allMethods = depositOptions?.methods || [];
   const allChannels = depositOptions?.channels || [];
