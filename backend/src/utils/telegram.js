@@ -45,13 +45,13 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
       titleTextFallback = "💃Recharge Request Created 💃";
     } else if (statusType === "success") {
       statusTextCustom = `Suceess<tg-emoji emoji-id="6235445786759402354">💸</tg-emoji>`;
-      titleTextCustom = `<tg-emoji emoji-id="6235445786759402354">💸</tg-emoji>Recharge Request Success <tg-emoji emoji-id="6235445786759402354">💸</tg-emoji>`;
+      titleTextCustom = `<tg-emoji emoji-id="6307506297080121060">💃</tg-emoji>Recharge Request Success <tg-emoji emoji-id="6307506297080121060">💃</tg-emoji>`;
       
       statusTextFallback = "Suceess💸";
       titleTextFallback = "💃Recharge Request Success 💃";
     } else {
       statusTextCustom = `Failed<tg-emoji emoji-id="6269019133795374514">🚫</tg-emoji>`;
-      titleTextCustom = `<tg-emoji emoji-id="6269019133795374514">🚫</tg-emoji>Recharge Request Failed <tg-emoji emoji-id="6269019133795374514">🚫</tg-emoji>`;
+      titleTextCustom = `<tg-emoji emoji-id="6307506297080121060">💃</tg-emoji>Recharge Request Failed <tg-emoji emoji-id="6307506297080121060">💃</tg-emoji>`;
       
       statusTextFallback = "Failed🚫";
       titleTextFallback = "💃Recharge Request Failed 💃";
