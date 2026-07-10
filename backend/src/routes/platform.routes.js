@@ -3,6 +3,7 @@ const {
   getPlatformStatus,
   getDepositPayment,
   nowpaymentsCallback,
+  syncPendingDeposits,
   getPromoBanners,
   getAnnouncements,
   getWingoConfig,
@@ -20,6 +21,7 @@ const router = express.Router();
 router.get("/status", getPlatformStatus);
 router.get("/deposit-payment", protect, getDepositPayment);
 router.post("/deposit/nowpayments-callback", nowpaymentsCallback);
+router.get("/deposit/sync-pending", syncPendingDeposits);
 router.get("/promos", getPromoBanners);
 router.get("/announcements", getAnnouncements);
 router.get("/wingo-config", getWingoConfig);

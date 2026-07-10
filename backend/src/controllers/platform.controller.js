@@ -338,6 +338,133 @@ const getWalletRules = async (req, res, next) => {
   }
 };
 
+const syncPendingDeposits = async (req, res, next) => {
+  try {
+    const Deposit = require("../models/Deposit");
+    const User = require("../models/User");
+    const Wallet = require("../models/Wallet");
+    const Transaction = require("../models/Transaction");
+    const { httpsGet } = require("../utils/http");
+    const { sendTelegramNotification } = require("../utils/telegram");
+    const logger = require("../config/logger");
+
+    const apiKey = "0C95QTK-86K4WRF-PXH4VNN-4BBWACM";
+
+    // Find all pending deposits in the system
+    const pendingDeposits = await Deposit.find({ status: "pending" });
+    const results = [];
+
+    for (const deposit of pendingDeposits) {
+      if (!deposit.paymentId || deposit.paymentId === "generating...") {
+        results.push({
+          depositId: deposit._id,
+          status: "skipped",
+          reason: "No paymentId associated"
+        });
+        continue;
+      }
+
+      try {
+        const verifyData = await httpsGet(
+          `https://api.nowpayments.io/v1/payment/${deposit.paymentId}`,
+          { "x-api-key": apiKey }
+        );
+
+        if (!verifyData || !verifyData.payment_status) {
+          results.push({
+            depositId: deposit._id,
+            paymentId: deposit.paymentId,
+            status: "failed",
+            reason: "Could not query NOWPayments API"
+          });
+          continue;
+        }
+
+        const realStatus = verifyData.payment_status; // "finished", "confirmed", "failed", "expired", "waiting"
+        
+        if (realStatus === "finished" || realStatus === "confirmed") {
+          deposit.status = "approved";
+          await deposit.save();
+
+          const user = await User.findById(deposit.user);
+          if (user) {
+            let wallet = await Wallet.findOne({ user: user._id });
+            if (!wallet) {
+              wallet = new Wallet({ user: user._id, balance: 0 });
+            }
+            wallet.balance += deposit.amount;
+            await wallet.save();
+
+            const transaction = new Transaction({
+              user: user._id,
+              type: "deposit",
+              amount: deposit.amount,
+              status: "completed",
+              description: `USDT Auto Deposit via NOWPayments Sync`,
+            });
+            await transaction.save();
+
+            await sendTelegramNotification(deposit, user, "success");
+            
+            results.push({
+              depositId: deposit._id,
+              paymentId: deposit.paymentId,
+              amount: deposit.amount,
+              nowpaymentsStatus: realStatus,
+              status: "credited",
+              user: user.name || user.mobile
+            });
+          } else {
+            results.push({
+              depositId: deposit._id,
+              paymentId: deposit.paymentId,
+              status: "failed",
+              reason: "User not found"
+            });
+          }
+        } else if (realStatus === "failed" || realStatus === "expired") {
+          deposit.status = "rejected";
+          await deposit.save();
+          
+          const user = await User.findById(deposit.user);
+          if (user) {
+            await sendTelegramNotification(deposit, user, "failed");
+          }
+
+          results.push({
+            depositId: deposit._id,
+            paymentId: deposit.paymentId,
+            nowpaymentsStatus: realStatus,
+            status: "rejected"
+          });
+        } else {
+          results.push({
+            depositId: deposit._id,
+            paymentId: deposit.paymentId,
+            nowpaymentsStatus: realStatus,
+            status: "still_pending"
+          });
+        }
+      } catch (err) {
+        results.push({
+          depositId: deposit._id,
+          paymentId: deposit.paymentId,
+          status: "error",
+          error: err.message
+        });
+      }
+    }
+
+    return res.json({
+      success: true,
+      processedCount: pendingDeposits.length,
+      results
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const getVipProgram = async (req, res) => {
   // Returns VIP levels definitions
   return res.json({
@@ -355,6 +482,7 @@ module.exports = {
   getPlatformStatus,
   getDepositPayment,
   nowpaymentsCallback,
+  syncPendingDeposits,
   getPromoBanners,
   getAnnouncements,
   getWingoConfig,
