@@ -552,8 +552,7 @@ export default function AviatorGameScreen() {
           </button>
         </div>
       </header>
-
-      {/* Main split game wrapper */}
+         {/* Main split game wrapper */}
       <div className="sp-av-main-layout">
         {/* Left Side: Stats panel */}
         <aside className="sp-av-stats-panel">
@@ -568,34 +567,62 @@ export default function AviatorGameScreen() {
               className={`sp-av-tab-btn ${activeTab === "mine" ? "active" : ""}`}
               onClick={() => setActiveTab("mine")}
             >
-              My Bets
+              Previous
             </button>
+            <button 
+              className={`sp-av-tab-btn ${activeTab === "top" ? "active" : ""}`}
+              onClick={() => setActiveTab("top")}
+            >
+              Top
+            </button>
+          </div>
+
+          {/* Stats summary bar */}
+          <div className="sp-av-stats-summary-row">
+            <span className="sp-av-total-bets-badge">
+              <span className="sp-av-pulse-dot" />
+              {fakePlayers.length + 420} Bets
+            </span>
+            <span className="sp-av-total-win-text">Total win INR 0.00</span>
           </div>
 
           <div className="sp-av-stats-content">
             {activeTab === "all" ? (
               <div className="sp-av-players-list">
                 <div className="sp-av-list-header">
-                  <span>User</span>
-                  <span>Bet</span>
-                  <span>Multiplier</span>
-                  <span>Cash out</span>
+                  <span>Player</span>
+                  <span>Bet INR</span>
+                  <span>X</span>
+                  <span>Win INR</span>
                 </div>
                 {fakePlayers.length === 0 ? (
                   <div className="sp-av-empty-list">Waiting for wagers...</div>
                 ) : (
-                  fakePlayers.map((p, idx) => (
-                    <div className="sp-av-list-row" key={idx}>
-                      <span className="sp-av-user-col">{p.username}</span>
-                      <span>₹{safeNumber(p.amount, 0).toFixed(2)}</span>
-                      <span className={p.cashedOut ? "text-green" : "text-gray"}>
-                        {p.cashedOut ? `${Number(p.cashedOutAtMultiplier).toFixed(2)}x` : "—"}
-                      </span>
-                      <span className={p.cashedOut ? "text-green font-bold" : "text-gray"}>
-                        {p.cashedOut ? `₹${(p.amount * p.cashedOutAtMultiplier).toFixed(2)}` : "—"}
-                      </span>
-                    </div>
-                  ))
+                  fakePlayers.map((p, idx) => {
+                    const getAvatarColor = (name) => {
+                      const colors = ["#22c55e", "#3b82f6", "#f97316", "#a855f7", "#ec4899"];
+                      let hash = 0;
+                      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                      return colors[Math.abs(hash) % colors.length];
+                    };
+                    return (
+                      <div className="sp-av-list-row" key={idx}>
+                        <span className="sp-av-user-col">
+                          <span className="sp-av-user-avatar" style={{ backgroundColor: getAvatarColor(p.username) }}>
+                            {p.username[0].toUpperCase()}
+                          </span>
+                          {p.username}
+                        </span>
+                        <span>₹{safeNumber(p.amount, 0).toFixed(2)}</span>
+                        <span className={p.cashedOut ? "text-purple font-bold" : "text-gray"}>
+                          {p.cashedOut ? `${Number(p.cashedOutAtMultiplier).toFixed(2)}x` : ""}
+                        </span>
+                        <span className={p.cashedOut ? "text-green font-bold" : "text-gray"}>
+                          {p.cashedOut ? `₹${(p.amount * p.cashedOutAtMultiplier).toFixed(2)}` : ""}
+                        </span>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             ) : (
@@ -629,20 +656,34 @@ export default function AviatorGameScreen() {
               </div>
             )}
           </div>
+
+          {/* Provably Fair sidebar footer */}
+          <div className="sp-av-panel-footer">
+            <span className="sp-av-pf-game">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="sp-av-pf-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 11 2 2 4-4"/></svg>
+              Provably Fair Game
+            </span>
+            <span className="sp-av-powered">Powered by SPRIBE</span>
+          </div>
         </aside>
 
         {/* Right Side: Game Arena (Flight & Bets) */}
         <div className="sp-av-arena">
           {/* Top Multiplier History Strip */}
           <div className="sp-av-history-bar">
-            {recentRounds.slice(0, 14).map((r, idx) => {
-              const mult = r.crashPoint ?? r.crashMultiplier ?? r.crash_multiplier ?? 1.0;
-              return (
-                <span className={`sp-av-history-pill ${getPillClass(mult)}`} key={r.roundId || idx}>
-                  {Number(mult).toFixed(2)}x
-                </span>
-              );
-            })}
+            <div className="sp-av-history-pills">
+              {recentRounds.slice(0, 14).map((r, idx) => {
+                const mult = r.crashPoint ?? r.crashMultiplier ?? r.crash_multiplier ?? 1.0;
+                return (
+                  <span className={`sp-av-history-pill ${getPillClass(mult)}`} key={r.roundId || idx}>
+                    {Number(mult).toFixed(2)}x
+                  </span>
+                );
+              })}
+            </div>
+            <button className="sp-av-history-dropdown-btn" aria-label="More rounds">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="sp-av-history-icon"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </button>
           </div>
 
           {/* Flight Stage Board */}
@@ -681,11 +722,20 @@ export default function AviatorGameScreen() {
               </div>
             )}
 
-             {/* Center Partner Logo Placeholder */}
+             {/* Center Partner Logo Branding */}
             {(roundStatus === "starting" || roundStatus === "idle") && (
               <div className="sp-av-center-logo">
-                <span className="sp-av-partner-tag">SPRIBE</span>
-                <span className="sp-av-partner-title">AVIATOR</span>
+                <div className="sp-av-partner-row">
+                  <span className="sp-av-ufc-text">UFC</span>
+                  <span className="sp-av-divider-line" />
+                  <span className="sp-av-logo-brand-script">Aviator</span>
+                </div>
+                <span className="sp-av-partner-sub">OFFICIAL PARTNERS</span>
+                <div className="sp-av-spribe-badge">
+                  <span className="sp-av-spribe-badge-logo">S</span>
+                  <span className="sp-av-spribe-badge-text">SPRIBE</span>
+                  <span className="sp-av-spribe-verified">Official Game Since 2019</span>
+                </div>
               </div>
             )}
 
@@ -702,8 +752,8 @@ export default function AviatorGameScreen() {
               </svg>
             )}
 
-            {/* Flying Red Plane Icon */}
-            {roundStatus === "flying" && (
+            {/* Flying Red Plane Icon - Parked during waiting / flying during active */}
+            {(roundStatus === "flying" || roundStatus === "starting") && (
               <div className="sp-av-plane-wrapper" style={planeStyle}>
                 <RedPlaneIcon />
               </div>
