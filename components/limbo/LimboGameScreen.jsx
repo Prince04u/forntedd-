@@ -152,7 +152,10 @@ export default function LimboGameScreen() {
     setCrashPoint(null);
     setBalance(prev => prev - amount); // Optimistic
 
+    const requestStartTime = Date.now();
     const res = await playLimbo({ amount, targetMultiplier: target });
+    const responseTime = Date.now();
+
     if (!res?.success) {
       setError(res?.message || "Bet failed");
       setIsPlaying(false);
@@ -165,8 +168,10 @@ export default function LimboGameScreen() {
     setActiveBetId(res.data.id);
     activeBetRef.current = res.data.id;
     
-    // Start local animation loop based on elapsed time
-    startTimeRef.current = Date.now();
+    // Start local animation loop synced to server via latency estimate
+    const latency = Math.max(0, (responseTime - requestStartTime) / 2);
+    startTimeRef.current = Date.now() - latency;
+
     const animateMultiplier = () => {
       if (!playingRef.current) return;
       const elapsed = Date.now() - startTimeRef.current;

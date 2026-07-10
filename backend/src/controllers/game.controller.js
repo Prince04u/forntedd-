@@ -857,7 +857,7 @@ const playLimbo = async (req, res, next) => {
       winAmount: 0,
       payoutRatio: 0,
       state: "pending",
-      details: { targetMultiplier, rolledMultiplier: rolled, startTime: Date.now() },
+      details: { targetMultiplier, rolledMultiplier: rolled },
     });
     await bet.save();
 
@@ -878,6 +878,10 @@ const playLimbo = async (req, res, next) => {
       balance: wallet.balance,
       commissionBalance: wallet.commissionBalance,
     });
+
+    // Record exact start time after DB operations
+    const exactStartTime = Date.now();
+    await Bet.updateOne({ _id: bet._id }, { $set: { "details.startTime": exactStartTime } });
 
     // Calculate durations
     const crashDurationMs = Math.floor(Math.log(rolled) * LIMBO_SCALE);
