@@ -219,21 +219,35 @@ const nowpaymentsCallback = async (req, res, next) => {
       await transaction.save();
 
       // Emit socket notification to trigger the client-side success popup
-      const { sendToUser } = require("../services/socket.service");
-      sendToUser(user._id.toString(), "wallet:updated", {
-        balance: wallet.balance,
-        rechargeAdded: true,
-        amount: deposit.amount,
-      });
+      try {
+        const { sendToUser } = require("../services/socket.service");
+        sendToUser(user._id.toString(), "wallet:updated", {
+          balance: wallet.balance,
+          rechargeAdded: true,
+          amount: deposit.amount,
+        });
+      } catch (socketErr) {
+        logger.error(`Socket emit failed for deposit ${deposit._id}: ${socketErr.message}`);
+      }
 
-      await sendTelegramNotification(deposit, user, "success");
-      logger.info(`Deposit ${deposit._id} auto-approved and credited: ₹${deposit.amount}`);
+      // Send Telegram success notification - wrapped in its own try/catch
+      // so a Telegram failure NEVER prevents the 200 response to NOWPayments
+      try {
+        await sendTelegramNotification(deposit, user, "success");
+        logger.info(`Deposit ${deposit._id} auto-approved and credited: ₹${deposit.amount} — Telegram success sent`);
+      } catch (tgErr) {
+        logger.error(`Telegram success notification FAILED for deposit ${deposit._id}: ${tgErr.message}`);
+      }
     } else if (realStatus === "failed" || realStatus === "expired") {
       deposit.status = "rejected";
       await deposit.save();
 
-      await sendTelegramNotification(deposit, user, "failed");
-      logger.info(`Deposit ${deposit._id} automatically rejected (NOWPayments: ${realStatus})`);
+      try {
+        await sendTelegramNotification(deposit, user, "failed");
+        logger.info(`Deposit ${deposit._id} automatically rejected (NOWPayments: ${realStatus}) — Telegram failed sent`);
+      } catch (tgErr) {
+        logger.error(`Telegram failed notification error for deposit ${deposit._id}: ${tgErr.message}`);
+      }
     }
 
     return res.json({ success: true });
@@ -422,14 +436,22 @@ const syncPendingDeposits = async (req, res, next) => {
             await transaction.save();
 
             // Emit socket notification to trigger the client-side success popup
-            const { sendToUser } = require("../services/socket.service");
-            sendToUser(user._id.toString(), "wallet:updated", {
-              balance: wallet.balance,
-              rechargeAdded: true,
-              amount: deposit.amount,
-            });
+            try {
+              const { sendToUser } = require("../services/socket.service");
+              sendToUser(user._id.toString(), "wallet:updated", {
+                balance: wallet.balance,
+                rechargeAdded: true,
+                amount: deposit.amount,
+              });
+            } catch (socketErr) {
+              logger.error(`Socket emit failed in sync for deposit ${deposit._id}: ${socketErr.message}`);
+            }
 
-            await sendTelegramNotification(deposit, user, "success");
+            try {
+              await sendTelegramNotification(deposit, user, "success");
+            } catch (tgErr) {
+              logger.error(`Telegram success notification FAILED in sync for deposit ${deposit._id}: ${tgErr.message}`);
+            }
             
             results.push({
               depositId: deposit._id,
@@ -453,7 +475,11 @@ const syncPendingDeposits = async (req, res, next) => {
           
           const user = await User.findById(deposit.user);
           if (user) {
-            await sendTelegramNotification(deposit, user, "failed");
+            try {
+              await sendTelegramNotification(deposit, user, "failed");
+            } catch (tgErr) {
+              logger.error(`Telegram failed notification error in sync for deposit ${deposit._id}: ${tgErr.message}`);
+            }
           }
 
           results.push({
