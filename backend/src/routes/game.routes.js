@@ -14,6 +14,7 @@ const {
   cancelAviatorBet,
   getAviatorBets,
   getRecentAviatorRounds,
+  rollDice,
   getDiceRolls,
   playLimbo,
   getLimboBets,
