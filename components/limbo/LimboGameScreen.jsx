@@ -134,9 +134,7 @@ export default function LimboGameScreen() {
     let localCurrent = 1.0;
     let hasRebased = false;
     let animStartTime = Date.now();
-    let animStartValue = 1.0;
     let hasShownPopup = false;
-    const durationMs = 1500;
     
     // Clear any existing popup when starting a new bet
     setPopupData(null);
@@ -144,26 +142,29 @@ export default function LimboGameScreen() {
     const animateMultiplier = () => {
       if (!playingRef.current) return;
       
-      // If network hasn't returned yet, wait at 1.00x to prevent overshooting a low crash point
+      // If network hasn't returned yet, wait at 1.00x
       if (resultRef.current.result === null) {
           animRef.current = requestAnimationFrame(animateMultiplier);
           return;
       }
 
-      // When network returns, start the actual easing animation from 1.00
+      // When network returns, start the uniform exponential growth animation
       if (!hasRebased) {
           hasRebased = true;
-          animStartValue = 1.0;
           animStartTime = Date.now();
       }
       
-      const elapsed = Date.now() - animStartTime;
-      const progress = Math.min(elapsed / durationMs, 1.0);
+      const elapsedSec = (Date.now() - animStartTime) / 1000;
       
-      // Easing out curve for the remaining distance
-      const easeOut = 1 - Math.pow(1 - progress, 3);
+      // Exponential growth: 1.00 * e^(0.8 * t)
+      // Reaches 2.0x in ~0.86s, 10.0x in ~2.8s
+      let calculatedCurrent = Math.exp(0.8 * elapsedSec);
       
-      localCurrent = animStartValue + (resultRef.current.result - animStartValue) * easeOut;
+      if (calculatedCurrent >= resultRef.current.result) {
+          localCurrent = resultRef.current.result;
+      } else {
+          localCurrent = calculatedCurrent;
+      }
       
       setCurrentMultiplier(localCurrent);
 
@@ -175,7 +176,7 @@ export default function LimboGameScreen() {
         setTimeout(() => setPopupData(null), 3000);
       }
 
-      if (progress < 1.0 && localCurrent < resultRef.current.result) {
+      if (localCurrent < resultRef.current.result) {
         animRef.current = requestAnimationFrame(animateMultiplier);
       } else {
         finishGame();
