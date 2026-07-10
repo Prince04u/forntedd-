@@ -86,16 +86,18 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
         text: textCustom,
         parse_mode: "HTML",
       });
+      logger.info(`Telegram send custom response: ${JSON.stringify(resCustom || {})}`);
       if (!resCustom || resCustom.ok !== true) {
         throw new Error(resCustom?.description || "Telegram API returned ok: false");
       }
     } catch (apiErr) {
       logger.warn(`Custom Telegram emojis failed, falling back to standard Unicode format: ${apiErr.message}`);
-      await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
+      const resFallback = await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
         chat_id: chatId,
         text: textFallback,
         parse_mode: "HTML",
       });
+      logger.info(`Telegram send fallback response: ${JSON.stringify(resFallback || {})}`);
     }
   } catch (err) {
     logger.error("Failed to send Telegram notification:", err);

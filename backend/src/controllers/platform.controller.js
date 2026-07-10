@@ -215,6 +215,14 @@ const nowpaymentsCallback = async (req, res, next) => {
       });
       await transaction.save();
 
+      // Emit socket notification to trigger the client-side success popup
+      const { sendToUser } = require("../services/socket.service");
+      sendToUser(user._id.toString(), "wallet:updated", {
+        balance: wallet.balance,
+        rechargeAdded: true,
+        amount: deposit.amount,
+      });
+
       await sendTelegramNotification(deposit, user, "success");
       logger.info(`Deposit ${deposit._id} auto-approved and credited: ₹${deposit.amount}`);
     } else if (realStatus === "failed" || realStatus === "expired") {
@@ -406,6 +414,14 @@ const syncPendingDeposits = async (req, res, next) => {
               description: `USDT Auto Deposit via NOWPayments Sync`,
             });
             await transaction.save();
+
+            // Emit socket notification to trigger the client-side success popup
+            const { sendToUser } = require("../services/socket.service");
+            sendToUser(user._id.toString(), "wallet:updated", {
+              balance: wallet.balance,
+              rechargeAdded: true,
+              amount: deposit.amount,
+            });
 
             await sendTelegramNotification(deposit, user, "success");
             
