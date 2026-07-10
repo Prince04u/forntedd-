@@ -4,6 +4,7 @@ const {
   getDepositPayment,
   nowpaymentsCallback,
   syncPendingDeposits,
+  getIncomingLogs,
   getPromoBanners,
   getAnnouncements,
   getWingoConfig,
@@ -31,5 +32,6 @@ router.get("/dice-config", getDiceConfig);
 router.get("/deposit-options", getDepositOptions);
 router.get("/wallet-rules", getWalletRules);
 router.get("/vip", getVipProgram);
+router.get("/deposit/debug-logs", getIncomingLogs);
 
 module.exports = router;

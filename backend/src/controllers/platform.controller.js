@@ -481,7 +481,38 @@ const getVipProgram = async (req, res) => {
   });
 };
 
+const getIncomingLogs = async (req, res, next) => {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const logPath = path.join(__dirname, "../../logs/incoming_requests.log");
+    
+    if (!fs.existsSync(logPath)) {
+      return res.json({ success: true, message: "Logs file not found or empty." });
+    }
+
+    const content = fs.readFileSync(logPath, "utf8");
+    const lines = content.split("\n").filter(Boolean);
+    const logs = lines.map(line => {
+      try {
+        return JSON.parse(line);
+      } catch (e) {
+        return { raw: line };
+      }
+    });
+
+    return res.json({
+      success: true,
+      count: logs.length,
+      recent: logs.slice(-20)
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
+  getIncomingLogs,
   getPlatformStatus,
   getDepositPayment,
   nowpaymentsCallback,
