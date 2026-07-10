@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BottomNav from "@/components/home/BottomNav";
-import BrandLogo from "@/components/brand/BrandLogo";
 import { usePlatformStatus } from "@/components/platform/PlatformStatusProvider";
 import { getToken } from "@/lib/auth";
 import { getSocket } from "@/lib/socket";
@@ -12,8 +11,8 @@ import { getBalance } from "@/lib/walletApi";
 import { getAviatorConfig } from "@/lib/platformApi";
 import { cashOut, getMyBets, getRecentRounds, placeBet } from "@/lib/aviatorApi";
 
-const DEFAULT_LIMITS = { minBetAmount: 10, maxBetAmount: 100000, maxAutoCashOut: 100, houseEdge: 0.01 };
-const HISTORY_LIMIT = 20;
+const DEFAULT_LIMITS = { minBetAmount: 10, maxBetAmount: 50000, maxAutoCashOut: 100, houseEdge: 0.01 };
+const HISTORY_LIMIT = 25;
 const MY_BETS_LIMIT = 30;
 
 const safeNumber = (value, fallback) => {
@@ -31,28 +30,43 @@ export default function AviatorGameScreen() {
   const [balance, setBalance] = useState(0);
   const [limits, setLimits] = useState(DEFAULT_LIMITS);
 
-  const [betAmount, setBetAmount] = useState(100);
-  const [autoCashOutEnabled, setAutoCashOutEnabled] = useState(true);
-  const [autoCashOut, setAutoCashOut] = useState(2);
-  const [autoBetEnabled, setAutoBetEnabled] = useState(false);
+  // --- Betting Panel 1 States ---
+  const [betAmount1, setBetAmount1] = useState(100);
+  const [autoCashOutEnabled1, setAutoCashOutEnabled1] = useState(false);
+  const [autoCashOut1, setAutoCashOut1] = useState(2.0);
+  const [autoBetEnabled1, setAutoBetEnabled1] = useState(false);
+  const [activeBet1, setActiveBet1] = useState(null);
+  const [loading1, setLoading1] = useState(false);
+  const [error1, setError1] = useState("");
 
-  const [liveMultiplier, setLiveMultiplier] = useState(1);
-  const [roundStatus, setRoundStatus] = useState("idle"); // idle | starting | running | crashed
+  // --- Betting Panel 2 States ---
+  const [betAmount2, setBetAmount2] = useState(100);
+  const [autoCashOutEnabled2, setAutoCashOutEnabled2] = useState(false);
+  const [autoCashOut2, setAutoCashOut2] = useState(2.0);
+  const [autoBetEnabled2, setAutoBetEnabled2] = useState(false);
+  const [activeBet2, setActiveBet2] = useState(null);
+  const [loading2, setLoading2] = useState(false);
+  const [error2, setError2] = useState("");
+
+  // --- Live Flight States ---
+  const [liveMultiplier, setLiveMultiplier] = useState(1.0);
+  const [roundStatus, setRoundStatus] = useState("idle"); // starting | running | crashed
+  const [countdown, setCountdown] = useState("5.0");
   const [crashMultiplier, setCrashMultiplier] = useState(null);
   const [roundId, setRoundId] = useState(null);
   const [players, setPlayers] = useState([]);
-
   const [myBets, setMyBets] = useState([]);
   const [recentRounds, setRecentRounds] = useState([]);
 
-  const [activeBet, setActiveBet] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // Sidebar Tab Control
+  const [activeTab, setActiveTab] = useState("all"); // all | mine
 
-  const lastAutoBetAttemptRef = useRef(0);
+  const lastAutoBetAttemptRef1 = useRef(0);
+  const lastAutoBetAttemptRef2 = useRef(0);
 
-  const bettingLocked = loading || maintenanceMode || blocksAction("bet");
+  const bettingLocked = maintenanceMode || blocksAction("bet");
 
+  // Load basic page context info
   const loadData = useCallback(async () => {
     if (!getToken()) return;
     try {
@@ -79,10 +93,11 @@ export default function AviatorGameScreen() {
       const bets = betsRes?.data?.bets || betsRes?.bets || betsRes?.data || [];
       setMyBets(Array.isArray(bets) ? bets : []);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to load Aviator");
+      console.error(err);
     }
   }, []);
 
+  // Socket management & real-time listeners
   useEffect(() => {
     setMounted(true);
     if (!getToken()) {
@@ -112,27 +127,45 @@ export default function AviatorGameScreen() {
         setRoundStatus("starting");
         setCrashMultiplier(null);
         setPlayers([]);
+        setLiveMultiplier(1.0);
         if (data?.roundId) setRoundId(data.roundId);
-        setLiveMultiplier(1);
       });
 
       socket.on("aviator:multiplier", (data) => {
-        if (data?.roundId) setRoundId(data.roundId);
         setRoundStatus("running");
+        if (data?.roundId) setRoundId(data.roundId);
         if (typeof data?.multiplier === "number") {
-          setLiveMultiplier(Math.max(1, data.multiplier));
+          setLiveMultiplier(Math.max(1.0, data.multiplier));
         }
       });
 
       socket.on("aviator:crash", async (data) => {
-        if (data?.roundId) setRoundId(data.roundId);
         setRoundStatus("crashed");
+        if (data?.roundId) setRoundId(data.roundId);
         if (typeof data?.crashMultiplier === "number") {
           setCrashMultiplier(data.crashMultiplier);
-          setLiveMultiplier(Math.max(1, data.crashMultiplier));
+          setLiveMultiplier(Math.max(1.0, data.crashMultiplier));
         }
-        // After the crash, refresh wallet + history (mirrors Mines/Wingo behavior).
+
+        // Reset active bets at crash
+        setActiveBet1(null);
+        setActiveBet2(null);
+
         await loadData();
+      });
+
+      socket.on("aviator:state", (data) => {
+        if (data?.state) {
+          setRoundStatus(data.state);
+          if (data.state === "waiting") {
+            setRoundStatus("starting");
+          }
+        }
+        if (data?.countdown) setCountdown(data.countdown);
+        if (data?.periodId) setRoundId(data.periodId);
+        if (data?.multiplier && data.state === "flying") {
+          setLiveMultiplier(Number(data.multiplier));
+        }
       });
 
       socket.on("aviator:players", (data) => {
@@ -142,9 +175,19 @@ export default function AviatorGameScreen() {
 
       socket.on("aviator:bet:update", (data) => {
         if (!data?.betId) return;
-        setActiveBet((prev) => {
-          if (!prev || prev.id !== data.betId) return prev;
-          return { ...prev, ...data };
+        
+        setActiveBet1((prev) => {
+          if (prev && (prev.id === data.betId || prev._id === data.betId)) {
+            return { ...prev, ...data };
+          }
+          return prev;
+        });
+
+        setActiveBet2((prev) => {
+          if (prev && (prev.id === data.betId || prev._id === data.betId)) {
+            return { ...prev, ...data };
+          }
+          return prev;
         });
       });
     });
@@ -156,391 +199,596 @@ export default function AviatorGameScreen() {
         activeSocket.off("aviator:round:starting");
         activeSocket.off("aviator:multiplier");
         activeSocket.off("aviator:crash");
+        activeSocket.off("aviator:state");
         activeSocket.off("aviator:players");
         activeSocket.off("aviator:bet:update");
       }
     };
   }, [loadData, router]);
 
-  const validateBet = () => {
-    if (betAmount < limits.minBetAmount || betAmount > limits.maxBetAmount) {
-      return `Bet amount must be between ₹${limits.minBetAmount} and ₹${limits.maxBetAmount.toLocaleString("en-IN")}`;
-    }
-    if (betAmount > balance) return "Insufficient balance";
-    if (autoCashOutEnabled) {
-      if (autoCashOut < 1.01) return "Auto cash out must be at least 1.01x";
-      if (autoCashOut > limits.maxAutoCashOut) return `Auto cash out must be ≤ ${limits.maxAutoCashOut}x`;
-    }
-    return "";
-  };
+  // Place Bet Panel 1
+  const handleBet1 = async () => {
+    if (bettingLocked || loading1) return;
+    if (activeBet1) return; // Cancel bet handled separately
 
-  const handleBet = async () => {
-    if (bettingLocked) return;
-    if (activeBet?.status === "active") return;
-
-    const validationMessage = validateBet();
-    if (validationMessage) {
-      setError(validationMessage);
+    if (betAmount1 < limits.minBetAmount || betAmount1 > limits.maxBetAmount) {
+      setError1(`Bet: ₹${limits.minBetAmount} - ₹${limits.maxBetAmount}`);
+      return;
+    }
+    if (betAmount1 > balance) {
+      setError1("Insufficient balance");
       return;
     }
 
-    setError("");
-    setLoading(true);
+    setError1("");
+    setLoading1(true);
     try {
       const payload = {
-        amount: betAmount,
-        autoCashOutMultiplier: autoCashOutEnabled ? autoCashOut : null,
-        autoBet: autoBetEnabled,
-        clientRoundId: `av_${Date.now()}`,
+        amount: betAmount1,
+        autoCashOutMultiplier: autoCashOutEnabled1 ? autoCashOut1 : null,
+        autoBet: autoBetEnabled1,
+        clientRoundId: `av1_${Date.now()}`,
       };
 
       const res = await placeBet(payload);
       const bet = res?.data?.bet || res?.bet || res?.data || null;
-      if (bet) setActiveBet({ ...bet, status: bet.status || "active" });
+      if (bet) setActiveBet1({ ...bet, status: bet.status || "active" });
       if (res?.data?.balance != null) setBalance(res.data.balance);
       if (res?.balance != null) setBalance(res.balance);
-
       await loadData();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to place bet");
+      setError1(err.response?.data?.message || "Failed to place bet");
     } finally {
-      setLoading(false);
+      setLoading1(false);
     }
   };
 
-  const handleCashOut = async () => {
-    if (bettingLocked) return;
-    if (!activeBet?.id) return;
+  // Cashout Panel 1
+  const handleCashOut1 = async () => {
+    if (loading1 || !activeBet1) return;
+    const betId = activeBet1.id || activeBet1._id;
+    if (!betId) return;
 
-    setError("");
-    setLoading(true);
+    setError1("");
+    setLoading1(true);
     try {
-      const res = await cashOut({ betId: activeBet.id });
+      const res = await cashOut({ betId });
       const bet = res?.data?.bet || res?.bet || null;
-      if (bet) setActiveBet(bet);
+      if (bet) setActiveBet1(bet);
       if (res?.data?.balance != null) setBalance(res.data.balance);
       if (res?.balance != null) setBalance(res.balance);
       await loadData();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to cash out");
+      setError1(err.response?.data?.message || "Failed to cash out");
     } finally {
-      setLoading(false);
+      setLoading1(false);
     }
   };
 
+  // Place Bet Panel 2
+  const handleBet2 = async () => {
+    if (bettingLocked || loading2) return;
+    if (activeBet2) return;
+
+    if (betAmount2 < limits.minBetAmount || betAmount2 > limits.maxBetAmount) {
+      setError2(`Bet: ₹${limits.minBetAmount} - ₹${limits.maxBetAmount}`);
+      return;
+    }
+    if (betAmount2 > balance) {
+      setError2("Insufficient balance");
+      return;
+    }
+
+    setError2("");
+    setLoading2(true);
+    try {
+      const payload = {
+        amount: betAmount2,
+        autoCashOutMultiplier: autoCashOutEnabled2 ? autoCashOut2 : null,
+        autoBet: autoBetEnabled2,
+        clientRoundId: `av2_${Date.now()}`,
+      };
+
+      const res = await placeBet(payload);
+      const bet = res?.data?.bet || res?.bet || res?.data || null;
+      if (bet) setActiveBet2({ ...bet, status: bet.status || "active" });
+      if (res?.data?.balance != null) setBalance(res.data.balance);
+      if (res?.balance != null) setBalance(res.balance);
+      await loadData();
+    } catch (err) {
+      setError2(err.response?.data?.message || "Failed to place bet");
+    } finally {
+      setLoading2(false);
+    }
+  };
+
+  // Cashout Panel 2
+  const handleCashOut2 = async () => {
+    if (loading2 || !activeBet2) return;
+    const betId = activeBet2.id || activeBet2._id;
+    if (!betId) return;
+
+    setError2("");
+    setLoading2(true);
+    try {
+      const res = await cashOut({ betId });
+      const bet = res?.data?.bet || res?.bet || null;
+      if (bet) setActiveBet2(bet);
+      if (res?.data?.balance != null) setBalance(res.data.balance);
+      if (res?.balance != null) setBalance(res.balance);
+      await loadData();
+    } catch (err) {
+      setError2(err.response?.data?.message || "Failed to cash out");
+    } finally {
+      setLoading2(false);
+    }
+  };
+
+  // Cancel Bet Panel 1 (Local reset before round starts)
+  const handleCancel1 = () => {
+    if (roundStatus === "starting" || roundStatus === "idle") {
+      setActiveBet1(null);
+    }
+  };
+
+  // Cancel Bet Panel 2 (Local reset before round starts)
+  const handleCancel2 = () => {
+    if (roundStatus === "starting" || roundStatus === "idle") {
+      setActiveBet2(null);
+    }
+  };
+
+  // Auto Bet loops
   useEffect(() => {
-    if (!autoBetEnabled) return;
-    if (!mounted || !getToken()) return;
-    if (bettingLocked) return;
-    if (activeBet?.status === "active") return;
-    if (roundStatus !== "crashed") return;
+    if (!autoBetEnabled1) return;
+    if (!mounted || !getToken() || bettingLocked || activeBet1 || roundStatus !== "starting") return;
 
     const now = Date.now();
-    if (now - lastAutoBetAttemptRef.current < 1500) return;
-    lastAutoBetAttemptRef.current = now;
+    if (now - lastAutoBetAttemptRef1.current < 2000) return;
+    lastAutoBetAttemptRef1.current = now;
+    handleBet1();
+  }, [roundStatus, autoBetEnabled1]);
 
-    const timer = setTimeout(() => {
-      handleBet();
-    }, 750);
+  useEffect(() => {
+    if (!autoBetEnabled2) return;
+    if (!mounted || !getToken() || bettingLocked || activeBet2 || roundStatus !== "starting") return;
 
-    return () => clearTimeout(timer);
-  }, [activeBet?.status, autoBetEnabled, bettingLocked, mounted, roundStatus]);
+    const now = Date.now();
+    if (now - lastAutoBetAttemptRef2.current < 2000) return;
+    lastAutoBetAttemptRef2.current = now;
+    handleBet2();
+  }, [roundStatus, autoBetEnabled2]);
 
+  // Plane animation coordinate mapping
   const stageTransform = useMemo(() => {
-    const m = Math.max(1, safeNumber(liveMultiplier, 1));
-    const x = Math.min(300, Math.log(m) / Math.log(50) * 320);
-    const y = Math.min(110, (m - 1) * 18);
-    const tilt = Math.max(-6, Math.min(18, y / 9));
+    if (roundStatus !== "running") return "translate(10px, 0px)";
+    const m = Math.max(1, safeNumber(liveMultiplier, 1.0));
+    
+    // Custom exponential flight curve matching Spribe physics
+    const progress = Math.min(1.0, (m - 1.0) / 10.0); // caps path visual scale at 11x
+    const x = 10 + progress * 240; // width bounds
+    const y = progress * 100; // height bounds
+    const tilt = Math.max(-5, Math.min(20, y / 5));
+    
     return `translate(${x}px, ${-y}px) rotate(${tilt}deg)`;
-  }, [liveMultiplier]);
+  }, [liveMultiplier, roundStatus]);
 
-  const statusPill = useMemo(() => {
-    if (roundStatus === "running") return { cls: "running", label: "LIVE" };
-    if (roundStatus === "starting") return { cls: "starting", label: "Starting" };
-    if (roundStatus === "crashed") return { cls: "crashed", label: "Crashed" };
-    return { cls: "", label: "Waiting" };
-  }, [roundStatus]);
-
-  const activeBetLabel = useMemo(() => {
-    if (!activeBet) return "No active bet";
-    if (activeBet.status === "cashed_out") return `Cashed out · ${formatMultiplier(activeBet.cashoutMultiplier || activeBet.cashoutMultiplier)}`;
-    if (activeBet.status === "lost") return "Lost";
-    if (activeBet.status === "won") return "Won";
-    if (activeBet.status === "active") return "Bet active";
-    return activeBet.status || "—";
-  }, [activeBet]);
+  // Dynamic status pill tag colors matching recent rounds history
+  const getPillClass = (mult) => {
+    const val = safeNumber(mult, 1.0);
+    if (val < 2.0) return "mult-blue";
+    if (val < 10.0) return "mult-purple";
+    return "mult-pink";
+  };
 
   if (!mounted) {
     return (
-      <main className="aviator-game">
+      <div className="sp-aviator-container">
         <div className="av-msg">Loading...</div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="aviator-game">
-      <header className="av-header">
-        <Link href="/" className="av-back" aria-label="Back to home">
-          ‹
-        </Link>
-        <BrandLogo href="/" size="sm" className="av-brand-logo" />
-        <div className="av-header-icons">
-          <button type="button" onClick={loadData} disabled={loading} title="Refresh" aria-label="Refresh">
-            ↻
+    <div className="sp-aviator-container">
+      {/* Header bar matching Spribe aesthetics */}
+      <header className="sp-av-header">
+        <div className="sp-av-header-left">
+          <Link href="/" className="sp-av-back-btn" aria-label="Go back">
+            ‹
+          </Link>
+          <span className="sp-av-logo-text">Aviator</span>
+          <span className="sp-av-help-badge">How to play</span>
+        </div>
+        <div className="sp-av-header-right">
+          <div className="sp-av-balance-pill">
+            <span className="sp-av-balance-value">{balance.toFixed(2)} INR</span>
+          </div>
+          <button className="sp-av-menu-btn" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
         </div>
       </header>
 
-      <section className="av-wallet-card">
-        <div className="av-wallet-row">
-          <div>
-            <span className="av-wallet-label">Wallet balance</span>
-            <div className="av-wallet-amount">₹{balance.toFixed(2)}</div>
+      {/* Main split game wrapper */}
+      <div className="sp-av-main-layout">
+        {/* Left Side: Stats panel */}
+        <aside className="sp-av-stats-panel">
+          <div className="sp-av-stats-tabs">
+            <button 
+              className={`sp-av-tab-btn ${activeTab === "all" ? "active" : ""}`}
+              onClick={() => setActiveTab("all")}
+            >
+              All Bets
+            </button>
+            <button 
+              className={`sp-av-tab-btn ${activeTab === "mine" ? "active" : ""}`}
+              onClick={() => setActiveTab("mine")}
+            >
+              My Bets
+            </button>
           </div>
-          <div className="av-wallet-actions">
-            <Link href="/wallet" className="av-btn-withdraw">
-              Withdraw
-            </Link>
-            <Link href="/wallet/deposit" className="av-btn-deposit">
-              Deposit
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {(maintenanceMode || blocksAction("bet")) && (
-        <div className="av-maintenance-notice">
-          {maintenanceMessage || "Aviator is temporarily unavailable during maintenance."}
-        </div>
-      )}
-
-      {error && <div className="auth-error av-msg">{error}</div>}
-
-      <section className="av-hero">
-        <span className="av-hero-kicker">Aviator</span>
-        <h1 className="av-hero-title">Ride the multiplier. Cash out before it crashes.</h1>
-        <p className="av-hero-copy">
-          Uses your existing Lucky Nova wallet + auth session and listens to live round updates over sockets.
-        </p>
-      </section>
-
-      <section className="av-panel">
-        <div className="av-panel-top">
-          <div className="av-multibox">
-            <span className="av-meta-label">Multiplier</span>
-            <strong className="av-multi-value">{formatMultiplier(liveMultiplier)}</strong>
-            <div className="av-multi-sub">
-              {roundId ? (
-                <span>
-                  Round <span style={{ fontFamily: "monospace" }}>{String(roundId).slice(-6)}</span>
-                </span>
-              ) : (
-                <span>Waiting for round…</span>
-              )}
-            </div>
-          </div>
-          <div className="av-betbox">
-            <span className="av-meta-label">My bet</span>
-            <strong className="av-bet-value">
-              {activeBet?.amount != null ? `₹${Number(activeBet.amount).toFixed(2)}` : "—"}
-            </strong>
-            <div className="av-multi-sub">{activeBetLabel}</div>
-          </div>
-        </div>
-
-        <div className="av-stage" aria-label="Aviator stage">
-          <div className="av-grid-lines" aria-hidden="true" />
-          <div className={`av-stage-status ${statusPill.cls}`}>
-            <span className="dot" aria-hidden="true" />
-            {statusPill.label}
-            {roundStatus === "crashed" && crashMultiplier != null ? (
-              <span style={{ color: "var(--theme-gold-bright)" }}>{formatMultiplier(crashMultiplier)}</span>
-            ) : null}
-          </div>
-          <div className="av-plane" style={{ transform: stageTransform }}>
-            <span className="av-plane-icon" aria-hidden="true">
-              <img
-                src="/design/game-illustrations/aviator_plane_gold.svg"
-                alt=""
-                className="av-plane-img"
-                draggable="false"
-              />
-            </span>
-            <span className="av-plane-trail" aria-hidden="true" />
-          </div>
-        </div>
-      </section>
-
-      <section className="av-controls">
-        <span className="av-control-label">Bet controls</span>
-        <div className="av-row">
-          <input
-            className="av-input"
-            type="number"
-            min={limits.minBetAmount}
-            max={limits.maxBetAmount}
-            value={betAmount}
-            disabled={bettingLocked}
-            onChange={(e) => setBetAmount(Math.max(0, Number(e.target.value) || 0))}
-            aria-label="Bet amount"
-          />
-          <input
-            className="av-input"
-            type="number"
-            min={1.01}
-            step={0.01}
-            max={limits.maxAutoCashOut}
-            value={autoCashOut}
-            disabled={bettingLocked || !autoCashOutEnabled}
-            onChange={(e) => setAutoCashOut(Math.max(1.01, Number(e.target.value) || 1.01))}
-            aria-label="Auto cash out multiplier"
-          />
-        </div>
-
-        <div className="av-toggle-row">
-          <button
-            type="button"
-            className={`av-toggle ${autoCashOutEnabled ? "active" : ""}`}
-            disabled={bettingLocked}
-            onClick={() => setAutoCashOutEnabled((v) => !v)}
-          >
-            Auto cash out
-          </button>
-          <button
-            type="button"
-            className={`av-toggle ${autoBetEnabled ? "active" : ""}`}
-            disabled={bettingLocked}
-            onClick={() => setAutoBetEnabled((v) => !v)}
-          >
-            Auto bet
-          </button>
-        </div>
-
-        <div className="av-action-row">
-          <button type="button" className="av-btn bet" disabled={bettingLocked} onClick={handleBet}>
-            {loading ? "Processing..." : `Bet · ₹${betAmount.toFixed(2)}`}
-          </button>
-          <button
-            type="button"
-            className="av-btn cashout"
-            disabled={bettingLocked || !activeBet?.id || activeBet?.status !== "active"}
-            onClick={handleCashOut}
-          >
-            {loading ? "Processing..." : "Cash out"}
-          </button>
-        </div>
-      </section>
-
-      <section className="av-split">
-        <div className="av-card">
-          <h2>
-            Live players <span>({players.length})</span>
-          </h2>
-          {players.length === 0 ? (
-            <div style={{ marginTop: "0.625rem", color: "var(--theme-text-dim)", fontSize: "0.8125rem" }}>
-              Waiting for live player feed…
-            </div>
-          ) : (
-            <div className="av-players">
-              {players.slice(0, 30).map((p, idx) => (
-                <div className="av-player" key={p.userId || p.id || idx}>
-                  <strong>{p.username || p.userId?.slice?.(-6) || "Player"}</strong>
-                  <span>
-                    ₹{safeNumber(p.amount, 0).toFixed(2)}
-                    {p.cashedOutAtMultiplier ? ` · ${formatMultiplier(p.cashedOutAtMultiplier)}` : ""}
-                  </span>
+          <div className="sp-av-stats-content">
+            {activeTab === "all" ? (
+              <div className="sp-av-players-list">
+                <div className="sp-av-list-header">
+                  <span>User</span>
+                  <span>Bet</span>
+                  <span>Multiplier</span>
+                  <span>Cash out</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="av-card">
-          <h2>
-            Previous rounds <span>({recentRounds.length})</span>
-          </h2>
-          <table className="av-table">
-            <thead>
-              <tr>
-                <th>Round</th>
-                <th>Crash</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentRounds.length === 0 ? (
-                <tr>
-                  <td colSpan={2} style={{ color: "var(--theme-text-dim)", padding: "0.875rem 0.25rem" }}>
-                    No rounds yet
-                  </td>
-                </tr>
-              ) : (
-                recentRounds.slice(0, HISTORY_LIMIT).map((r) => (
-                  <tr key={r.roundId || r.id}>
-                    <td style={{ fontFamily: "monospace", color: "var(--theme-text-muted)" }}>
-                      {(r.roundId || r.id || "").slice(-6)}
-                    </td>
-                    <td style={{ color: "var(--theme-gold-bright)", fontWeight: 800 }}>
-                      {formatMultiplier(r.crashMultiplier ?? r.crash_multiplier ?? 0)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="av-card">
-          <h2>
-            My history <span>({myBets.length})</span>
-          </h2>
-          <table className="av-table">
-            <thead>
-              <tr>
-                <th>Bet</th>
-                <th>Status</th>
-                <th>Payout</th>
-              </tr>
-            </thead>
-            <tbody>
-              {myBets.length === 0 ? (
-                <tr>
-                  <td colSpan={3} style={{ color: "var(--theme-text-dim)", padding: "0.875rem 0.25rem" }}>
-                    No bets yet
-                  </td>
-                </tr>
-              ) : (
-                myBets.slice(0, MY_BETS_LIMIT).map((b) => {
-                  const status = b.status || "pending";
-                  const pill =
-                    status === "won" || status === "cashed_out"
-                      ? "win"
-                      : status === "lost"
-                        ? "loss"
-                        : "pending";
-                  return (
-                    <tr key={b.id || b._id}>
-                      <td>₹{safeNumber(b.amount ?? b.betAmount, 0).toFixed(2)}</td>
-                      <td>
-                        <span className={`av-pill ${pill}`}>{String(status).replace(/_/g, " ")}</span>
-                      </td>
-                      <td>
-                        {b.payout != null
-                          ? `₹${safeNumber(b.payout, 0).toFixed(2)}`
-                          : b.winAmount != null
-                            ? `₹${safeNumber(b.winAmount, 0).toFixed(2)}`
+                {players.length === 0 ? (
+                  <div className="sp-av-empty-list">Waiting for wagers...</div>
+                ) : (
+                  players.map((p, idx) => (
+                    <div className="sp-av-list-row" key={p.userId || idx}>
+                      <span className="sp-av-user-col">{p.username || "Player"}</span>
+                      <span>₹{safeNumber(p.amount, 0).toFixed(2)}</span>
+                      <span className={p.cashedOutAtMultiplier ? "text-green" : "text-gray"}>
+                        {p.cashedOutAtMultiplier ? `${Number(p.cashedOutAtMultiplier).toFixed(2)}x` : "—"}
+                      </span>
+                      <span className={p.cashedOutAtMultiplier ? "text-green font-bold" : "text-gray"}>
+                        {p.cashedOutAtMultiplier ? `₹${(p.amount * p.cashedOutAtMultiplier).toFixed(2)}` : "—"}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="sp-av-players-list">
+                <div className="sp-av-list-header">
+                  <span>Bet Amount</span>
+                  <span>Status</span>
+                  <span>Payout</span>
+                </div>
+                {myBets.length === 0 ? (
+                  <div className="sp-av-empty-list">No bets yet</div>
+                ) : (
+                  myBets.slice(0, 15).map((b, idx) => {
+                    const status = b.status || "pending";
+                    const isWin = status === "won" || status === "cashed_out";
+                    return (
+                      <div className="sp-av-list-row" key={b.id || b._id || idx}>
+                        <span>₹{safeNumber(b.amount ?? b.betAmount, 0).toFixed(2)}</span>
+                        <span className={isWin ? "text-green" : "text-red"}>
+                          {status === "cashed_out" || status === "won" ? "WIN" : status === "lost" ? "LOST" : "PENDING"}
+                        </span>
+                        <span className={isWin ? "text-green font-bold" : "text-gray"}>
+                          {isWin 
+                            ? `₹${safeNumber(b.payout ?? b.winAmount, 0).toFixed(2)}` 
                             : "—"}
-                      </td>
-                    </tr>
-                  );
-                })
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Right Side: Game Arena (Flight & Bets) */}
+        <div className="sp-av-arena">
+          {/* Top Multiplier History Strip */}
+          <div className="sp-av-history-bar">
+            {recentRounds.slice(0, 14).map((r, idx) => {
+              const mult = r.crashMultiplier ?? r.crash_multiplier ?? 1.0;
+              return (
+                <span className={`sp-av-history-pill ${getPillClass(mult)}`} key={r.roundId || idx}>
+                  {Number(mult).toFixed(2)}x
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Flight Stage Board */}
+          <div className="sp-av-stage">
+            {/* Grid Overlay */}
+            <div className="sp-av-grid-bg" />
+
+            {/* Countdown / Wait Screen */}
+            {roundStatus === "starting" && (
+              <div className="sp-av-wait-overlay">
+                <span className="sp-av-countdown-label">WAITING FOR NEXT ROUND</span>
+                <span className="sp-av-countdown-timer">{Number(countdown).toFixed(1)}s</span>
+                <div className="sp-av-progress-bar-container">
+                  <div 
+                    className="sp-av-progress-bar-fill" 
+                    style={{ width: `${(Number(countdown) / 5.0) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* In-Flight Multiplier Display */}
+            {roundStatus === "running" && (
+              <div className="sp-av-live-multiplier-center">
+                {formatMultiplier(liveMultiplier)}
+              </div>
+            )}
+
+            {/* Crashed Screen */}
+            {roundStatus === "crashed" && (
+              <div className="sp-av-crash-overlay">
+                <span className="sp-av-crash-label">FLEW AWAY!</span>
+                <span className="sp-av-crash-multiplier text-red">
+                  {formatMultiplier(crashMultiplier || liveMultiplier)}
+                </span>
+              </div>
+            )}
+
+            {/* Flight Path SVG Line */}
+            {roundStatus === "running" && (
+              <svg className="sp-av-flight-svg" width="100%" height="100%">
+                <path
+                  d={`M 10,135 Q 120,130 250,35`}
+                  fill="none"
+                  stroke="#e11d48"
+                  strokeWidth="3.5"
+                  strokeDasharray="6"
+                  className="sp-av-path-animation"
+                />
+              </svg>
+            )}
+
+            {/* Flying Red Plane Icon */}
+            {roundStatus === "running" && (
+              <div className="sp-av-plane-wrapper" style={{ transform: stageTransform }}>
+                <img
+                  src="/design/game-illustrations/aviator_plane_gold.svg"
+                  alt="Plane"
+                  className="sp-av-plane-img"
+                  draggable="false"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Double Bet Control Panels */}
+          <div className="sp-av-double-bet-wrapper">
+            {/* Bet Panel 1 */}
+            <div className="sp-av-bet-panel">
+              <div className="sp-av-panel-header">
+                <button 
+                  className={`sp-av-mode-btn ${!autoBetEnabled1 && !autoCashOutEnabled1 ? "active" : ""}`}
+                  onClick={() => { setAutoBetEnabled1(false); setAutoCashOutEnabled1(false); }}
+                >
+                  Bet
+                </button>
+                <button 
+                  className={`sp-av-mode-btn ${autoBetEnabled1 || autoCashOutEnabled1 ? "active" : ""}`}
+                  onClick={() => { setAutoCashOutEnabled1(true); }}
+                >
+                  Auto
+                </button>
+              </div>
+
+              <div className="sp-av-panel-body">
+                {/* Amount Selectors */}
+                <div className="sp-av-input-controls">
+                  <div className="sp-av-number-picker">
+                    <button className="sp-av-pick-btn" onClick={() => setBetAmount1(Math.max(limits.minBetAmount, betAmount1 - 10))}>-</button>
+                    <input 
+                      type="number" 
+                      className="sp-av-amount-input" 
+                      value={betAmount1} 
+                      onChange={(e) => setBetAmount1(Math.max(limits.minBetAmount, Number(e.target.value) || limits.minBetAmount))}
+                    />
+                    <button className="sp-av-pick-btn" onClick={() => setBetAmount1(Math.min(limits.maxBetAmount, betAmount1 + 10))}>+</button>
+                  </div>
+                  <div className="sp-av-quick-presets">
+                    <button className="sp-av-preset-btn" onClick={() => setBetAmount1(100)}>100</button>
+                    <button className="sp-av-preset-btn" onClick={() => setBetAmount1(200)}>200</button>
+                    <button className="sp-av-preset-btn" onClick={() => setBetAmount1(500)}>500</button>
+                    <button className="sp-av-preset-btn" onClick={() => setBetAmount1(1000)}>1000</button>
+                  </div>
+                </div>
+
+                {/* Big Action Button */}
+                <div className="sp-av-action-button-col">
+                  {/* Validation Error Banner */}
+                  {error1 && <div className="sp-av-panel-error">{error1}</div>}
+
+                  {!activeBet1 ? (
+                    <button 
+                      className="sp-av-giant-btn btn-green"
+                      disabled={loading1}
+                      onClick={handleBet1}
+                    >
+                      <span className="btn-label-title">BET</span>
+                      <span className="btn-label-sub">{betAmount1} INR</span>
+                    </button>
+                  ) : activeBet1.status === "active" && roundStatus === "running" ? (
+                    <button 
+                      className="sp-av-giant-btn btn-orange"
+                      disabled={loading1}
+                      onClick={handleCashOut1}
+                    >
+                      <span className="btn-label-title">CASH OUT</span>
+                      <span className="btn-label-sub">{(betAmount1 * liveMultiplier).toFixed(2)} INR</span>
+                    </button>
+                  ) : (
+                    <button 
+                      className="sp-av-giant-btn btn-red"
+                      onClick={handleCancel1}
+                    >
+                      <span className="btn-label-title">CANCEL</span>
+                      <span className="btn-label-sub">Waiting Round</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Auto Bet Features */}
+              {(autoBetEnabled1 || autoCashOutEnabled1) && (
+                <div className="sp-av-auto-features">
+                  <div className="sp-av-auto-row">
+                    <span className="sp-av-auto-label">Auto Bet</span>
+                    <button 
+                      className={`sp-av-auto-toggle ${autoBetEnabled1 ? "enabled" : ""}`}
+                      onClick={() => setAutoBetEnabled1(v => !v)}
+                    >
+                      {autoBetEnabled1 ? "ON" : "OFF"}
+                    </button>
+                  </div>
+                  <div className="sp-av-auto-row">
+                    <span className="sp-av-auto-label">Auto Cashout</span>
+                    <button 
+                      className={`sp-av-auto-toggle ${autoCashOutEnabled1 ? "enabled" : ""}`}
+                      onClick={() => setAutoCashOutEnabled1(v => !v)}
+                    >
+                      {autoCashOutEnabled1 ? "ON" : "OFF"}
+                    </button>
+                    {autoCashOutEnabled1 && (
+                      <input 
+                        type="number" 
+                        step="0.1" 
+                        min="1.01" 
+                        className="sp-av-auto-input" 
+                        value={autoCashOut1}
+                        onChange={(e) => setAutoCashOut1(Math.max(1.01, Number(e.target.value) || 1.01))}
+                      />
+                    )}
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Bet Panel 2 */}
+            <div className="sp-av-bet-panel">
+              <div className="sp-av-panel-header">
+                <button 
+                  className={`sp-av-mode-btn ${!autoBetEnabled2 && !autoCashOutEnabled2 ? "active" : ""}`}
+                  onClick={() => { setAutoBetEnabled2(false); setAutoCashOutEnabled2(false); }}
+                >
+                  Bet
+                </button>
+                <button 
+                  className={`sp-av-mode-btn ${autoBetEnabled2 || autoCashOutEnabled2 ? "active" : ""}`}
+                  onClick={() => { setAutoCashOutEnabled2(true); }}
+                >
+                  Auto
+                </button>
+              </div>
+
+              <div className="sp-av-panel-body">
+                {/* Amount Selectors */}
+                <div className="sp-av-input-controls">
+                  <div className="sp-av-number-picker">
+                    <button className="sp-av-pick-btn" onClick={() => setBetAmount2(Math.max(limits.minBetAmount, betAmount2 - 10))}>-</button>
+                    <input 
+                      type="number" 
+                      className="sp-av-amount-input" 
+                      value={betAmount2} 
+                      onChange={(e) => setBetAmount2(Math.max(limits.minBetAmount, Number(e.target.value) || limits.minBetAmount))}
+                    />
+                    <button className="sp-av-pick-btn" onClick={() => setBetAmount2(Math.min(limits.maxBetAmount, betAmount2 + 10))}>+</button>
+                  </div>
+                  <div className="sp-av-quick-presets">
+                    <button className="sp-av-preset-btn" onClick={() => setBetAmount2(100)}>100</button>
+                    <button className="sp-av-preset-btn" onClick={() => setBetAmount2(200)}>200</button>
+                    <button className="sp-av-preset-btn" onClick={() => setBetAmount2(500)}>500</button>
+                    <button className="sp-av-preset-btn" onClick={() => setBetAmount2(1000)}>1000</button>
+                  </div>
+                </div>
+
+                {/* Big Action Button */}
+                <div className="sp-av-action-button-col">
+                  {/* Validation Error Banner */}
+                  {error2 && <div className="sp-av-panel-error">{error2}</div>}
+
+                  {!activeBet2 ? (
+                    <button 
+                      className="sp-av-giant-btn btn-green"
+                      disabled={loading2}
+                      onClick={handleBet2}
+                    >
+                      <span className="btn-label-title">BET</span>
+                      <span className="btn-label-sub">{betAmount2} INR</span>
+                    </button>
+                  ) : activeBet2.status === "active" && roundStatus === "running" ? (
+                    <button 
+                      className="sp-av-giant-btn btn-orange"
+                      disabled={loading2}
+                      onClick={handleCashOut2}
+                    >
+                      <span className="btn-label-title">CASH OUT</span>
+                      <span className="btn-label-sub">{(betAmount2 * liveMultiplier).toFixed(2)} INR</span>
+                    </button>
+                  ) : (
+                    <button 
+                      className="sp-av-giant-btn btn-red"
+                      onClick={handleCancel2}
+                    >
+                      <span className="btn-label-title">CANCEL</span>
+                      <span className="btn-label-sub">Waiting Round</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Auto Bet Features */}
+              {(autoBetEnabled2 || autoCashOutEnabled2) && (
+                <div className="sp-av-auto-features">
+                  <div className="sp-av-auto-row">
+                    <span className="sp-av-auto-label">Auto Bet</span>
+                    <button 
+                      className={`sp-av-auto-toggle ${autoBetEnabled2 ? "enabled" : ""}`}
+                      onClick={() => setAutoBetEnabled2(v => !v)}
+                    >
+                      {autoBetEnabled2 ? "ON" : "OFF"}
+                    </button>
+                  </div>
+                  <div className="sp-av-auto-row">
+                    <span className="sp-av-auto-label">Auto Cashout</span>
+                    <button 
+                      className={`sp-av-auto-toggle ${autoCashOutEnabled2 ? "enabled" : ""}`}
+                      onClick={() => setAutoCashOutEnabled2(v => !v)}
+                    >
+                      {autoCashOutEnabled2 ? "ON" : "OFF"}
+                    </button>
+                    {autoCashOutEnabled2 && (
+                      <input 
+                        type="number" 
+                        step="0.1" 
+                        min="1.01" 
+                        className="sp-av-auto-input" 
+                        value={autoCashOut2}
+                        onChange={(e) => setAutoCashOut2(Math.max(1.01, Number(e.target.value) || 1.01))}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
 
       <BottomNav />
-    </main>
+    </div>
   );
 }
