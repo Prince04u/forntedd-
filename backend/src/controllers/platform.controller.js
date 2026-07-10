@@ -61,7 +61,10 @@ const getDepositPayment = async (req, res, next) => {
         await deposit.save();
 
         try {
-          const callbackUrl = `${req.secure ? 'https' : 'http'}://${req.headers.host}/api/platform/deposit/nowpayments-callback`;
+          const callbackHost = (!req.headers.host.includes("localhost") && !req.headers.host.includes("127.0.0.1")) 
+            ? "forntedd.onrender.com" 
+            : req.headers.host;
+          const callbackUrl = `https://${callbackHost}/api/platform/deposit/nowpayments-callback`;
 
           const npResponse = await httpsPost(
             "https://api.nowpayments.io/v1/payment",

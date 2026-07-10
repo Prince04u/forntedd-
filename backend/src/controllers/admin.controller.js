@@ -1029,6 +1029,43 @@ const toggleGiftCode = async (req, res, next) => {
   }
 };
 
+const getDiagnosticsLogs = async (req, res, next) => {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    
+    const logsDir = path.join(__dirname, "../../logs");
+    const incomingPath = path.join(logsDir, "incoming_requests.log");
+    const errorPath = path.join(logsDir, "error.log");
+    const combinedPath = path.join(logsDir, "combined.log");
+
+    let incoming = "";
+    let errorLog = "";
+    let combined = "";
+
+    if (fs.existsSync(incomingPath)) {
+      incoming = fs.readFileSync(incomingPath, "utf8");
+    }
+    if (fs.existsSync(errorPath)) {
+      errorLog = fs.readFileSync(errorPath, "utf8");
+    }
+    if (fs.existsSync(combinedPath)) {
+      combined = fs.readFileSync(combinedPath, "utf8");
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        incoming: incoming.split("\n").filter(Boolean).slice(-50),
+        error: errorLog.split("\n").filter(Boolean).slice(-50),
+        combined: combined.split("\n").filter(Boolean).slice(-50)
+      }
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getActiveBetsSummary,
   getUsers,
@@ -1069,4 +1106,5 @@ module.exports = {
   createGiftCode,
   getGiftCodes,
   toggleGiftCode,
+  getDiagnosticsLogs,
 };

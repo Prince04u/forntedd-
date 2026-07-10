@@ -42,6 +42,7 @@ const {
   createGiftCode,
   getGiftCodes,
   toggleGiftCode,
+  getDiagnosticsLogs,
 } = require("../controllers/admin.controller");
 const { protect, adminOnly } = require("../middlewares/auth");
 
@@ -132,5 +133,7 @@ router.get("/analytics", getAnalytics);
 router.get("/gifts", getGiftCodes);
 router.post("/gifts", createGiftCode);
 router.patch("/gifts/:id/toggle", toggleGiftCode);
+
+router.get("/diagnostics/logs", getDiagnosticsLogs);
 
 module.exports = router;
