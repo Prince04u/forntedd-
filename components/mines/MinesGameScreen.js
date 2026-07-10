@@ -79,11 +79,11 @@ export default function MinesGameScreen() {
     : getNextMultiplier(0, mineCount, GRID_SIZE, houseEdge);
 
   const stats = useMemo(() => {
-    const won = myBets.filter((b) => b.status === "won").length;
-    const lost = myBets.filter((b) => b.status === "lost").length;
+    const won = myBets.filter((b) => (b.state ?? b.status) === "won").length;
+    const lost = myBets.filter((b) => (b.state ?? b.status) === "lost").length;
     const totalWagered = myBets.reduce((sum, b) => sum + Number(b.amount || b.betAmount || 0), 0);
     const totalWon = myBets
-      .filter((b) => b.status === "won")
+      .filter((b) => (b.state ?? b.status) === "won")
       .reduce((sum, b) => sum + Number(b.winAmount || b.payout || 0), 0);
     return { won, lost, totalWagered, totalWon, rounds: myBets.length };
   }, [myBets]);
@@ -294,7 +294,7 @@ export default function MinesGameScreen() {
   const renderTileContent = (state) => {
     if (state === "gem") {
       return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "24px", height: "24px", color: "#4ade80", filter: "drop-shadow(0 0 4px rgba(74, 222, 128, 0.5))" }}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "24px", height: "24px", color: "#fbbf24", filter: "drop-shadow(0 0 8px rgba(251, 191, 36, 0.75))" }}>
           <path d="M6 3h12l4 6-10 12L2 9z" />
           <path d="M11 3 8 9l4 12" />
           <path d="M13 3l3 6-4 12" />
@@ -499,9 +499,6 @@ export default function MinesGameScreen() {
             >
               {loading ? "Processing..." : `Cash out · ₹${potentialWin.toFixed(2)}`}
             </button>
-            <p className="ms-action-hint">
-              {game.revealedTiles.length} safe · {game.mineCount} mines hidden
-            </p>
           </div>
         )}
       </section>
@@ -543,7 +540,7 @@ export default function MinesGameScreen() {
                   return (
                     <tr key={bet._id || bet.id}>
                       <td className="ms-round-cell">{(bet._id || bet.id || "").slice(-6)}</td>
-                      <td>{bet.mineCount ?? "—"}</td>
+                      <td>{bet.mineCount ?? bet.details?.minesCount ?? "—"}</td>
                       <td>₹{Number(bet.amount || bet.betAmount || 0).toFixed(2)}</td>
                       <td className={`ms-status-${pnl.className}`}>{pnl.text}</td>
                     </tr>
