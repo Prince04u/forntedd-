@@ -492,7 +492,7 @@ export default function DiceGameScreen() {
             {typeof rollDisplay === "number" ? rollDisplay.toFixed(2) : rollDisplay}
           </div>
 
-          {/* Golden Spribe Slider bar indicator */}
+          {/* Golden Spribe Slider bar indicator (read-only output representation of target & roll values) */}
           <div className="sp-dc-slider-container">
             <div className="sp-dc-slider-track-overlay" style={{ background: trackBackground }}>
               <div className="sp-dc-ticks" />
@@ -500,16 +500,6 @@ export default function DiceGameScreen() {
                 <span className="sp-dc-handle-dot" />
               </div>
             </div>
-            <input 
-              type="range"
-              className="sp-dc-native-slider"
-              min={cfg.minTarget}
-              max={cfg.maxTarget}
-              step={0.1}
-              value={normalizedTarget}
-              disabled={bettingLocked || autoRunning}
-              onChange={(e) => setTarget(Number(e.target.value))}
-            />
             <div className="sp-dc-slider-labels">
               <span>0</span>
               <span>25</span>
@@ -532,6 +522,23 @@ export default function DiceGameScreen() {
               <div className="sp-dc-mini-thumb" style={{ left: `${winChance}%` }}>
                 ‹›
               </div>
+              <input 
+                type="range"
+                className="sp-dc-mini-range-native"
+                min={cfg.minTarget}
+                max={cfg.maxTarget}
+                step={0.1}
+                value={winChance}
+                disabled={bettingLocked || autoRunning}
+                onChange={(e) => {
+                  const newChance = Number(e.target.value);
+                  if (condition === "under") {
+                    setTarget(newChance);
+                  } else {
+                    setTarget(100 - newChance);
+                  }
+                }}
+              />
             </div>
           </div>
           <div className="sp-dc-metrics-sub">

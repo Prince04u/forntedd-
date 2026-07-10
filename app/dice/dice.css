@@ -458,3 +458,81 @@
   font-size: 0.8125rem;
   margin: 0.75rem;
 }
+
+/* History Bar */
+.sp-dc-history-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+  padding: 0 0.5rem;
+}
+
+.sp-dc-history-scroll {
+  display: flex;
+  gap: 0.375rem;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  flex: 1;
+}
+
+.sp-dc-history-scroll::-webkit-scrollbar {
+  display: none; /* Webkit */
+}
+
+.sp-dc-history-pill {
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.25rem 0.625rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.sp-dc-history-pill.low {
+  color: #f43f5e; /* Rose red */
+}
+
+.sp-dc-history-pill.high {
+  color: #38bdf8; /* Cyan blue */
+}
+
+.sp-dc-history-toggle-btn {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 99px;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.sp-dc-clock-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.sp-dc-chevron {
+  font-size: 0.625rem;
+}
+
+/* Mini Slider Range Input Overlay */
+.sp-dc-mini-track {
+  position: relative;
+}
+
+.sp-dc-mini-range-native {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 5;
+  margin: 0;
+}
