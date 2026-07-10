@@ -41,20 +41,20 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
       statusTextCustom = `Created<tg-emoji emoji-id="6068719730468853667">👀</tg-emoji>`;
       titleTextCustom = `<tg-emoji emoji-id="6307506297080121060">💃</tg-emoji>Recharge Request Created <tg-emoji emoji-id="6307506297080121060">💃</tg-emoji>`;
       
-      statusTextFallback = "Created 👀";
-      titleTextFallback = "💃 Recharge Request Created 💃";
+      statusTextFallback = "Created👀";
+      titleTextFallback = "💃Recharge Request Created 💃";
     } else if (statusType === "success") {
       statusTextCustom = `Suceess<tg-emoji emoji-id="6235445786759402354">💸</tg-emoji>`;
       titleTextCustom = `<tg-emoji emoji-id="6235445786759402354">💸</tg-emoji>Recharge Request Success <tg-emoji emoji-id="6235445786759402354">💸</tg-emoji>`;
       
-      statusTextFallback = "Success 💸";
-      titleTextFallback = "🎉 Recharge Request Success 🎉";
+      statusTextFallback = "Suceess💸";
+      titleTextFallback = "💃Recharge Request Success 💃";
     } else {
       statusTextCustom = `Failed<tg-emoji emoji-id="6269019133795374514">🚫</tg-emoji>`;
       titleTextCustom = `<tg-emoji emoji-id="6269019133795374514">🚫</tg-emoji>Recharge Request Failed <tg-emoji emoji-id="6269019133795374514">🚫</tg-emoji>`;
       
-      statusTextFallback = "Failed 🚫";
-      titleTextFallback = "❌ Recharge Request Failed ❌";
+      statusTextFallback = "Failed🚫";
+      titleTextFallback = "💃Recharge Request Failed 💃";
     }
 
     const textCustom =
@@ -68,24 +68,27 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
       `<tg-emoji emoji-id="6068945070223005574">🆘</tg-emoji>Status :-${statusTextCustom}`;
 
     const textFallback =
-      `<b>${titleTextFallback}</b>\n\n` +
-      `💵 Amount :- ₹${amount} / ${usdAmount}$ \n\n` +
-      `🕐 Time : ${time} \n\n` +
-      `➡️ Date : ${date}\n\n` +
-      `🌈 Uid :- ${uid}\n\n` +
-      `💥 Order ID :- ${orderId}\n\n` +
-      `🛡 Txid :- ${txid}\n\n` +
-      `🆘 Status :- <b>${statusTextFallback}</b>`;
+      `${titleTextFallback}\n\n` +
+      ` 💵Amount :- ₹${amount} / ${usdAmount}$ \n\n` +
+      ` 🕐 Time : ${time}  \n\n` +
+      `  ➡️Date : ${date}\n\n` +
+      `🌈Uid :-${uid}\n\n` +
+      `💥order id :-${orderId}\n\n` +
+      `🛡Txid :- ${txid}\n\n` +
+      `🆘Status :-${statusTextFallback}`;
 
     const botToken = "8925619066:AAH1KpM550ubsV1V0G8X3GWQMKI9d6cX0ns";
     const chatId = "-1004321239973";
 
     try {
-      await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
+      const resCustom = await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
         chat_id: chatId,
         text: textCustom,
         parse_mode: "HTML",
       });
+      if (!resCustom || resCustom.ok !== true) {
+        throw new Error(resCustom?.description || "Telegram API returned ok: false");
+      }
     } catch (apiErr) {
       logger.warn(`Custom Telegram emojis failed, falling back to standard Unicode format: ${apiErr.message}`);
       await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
