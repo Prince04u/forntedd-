@@ -947,6 +947,5 @@ module.exports = {
   rollDice,
   getDiceRolls,
   playLimbo,
-  cashOutLimbo,
   getLimboBets,
 };
