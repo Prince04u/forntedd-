@@ -283,10 +283,47 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-size: 35px 35px;
-  background-image: 
+  background: 
+    repeating-conic-gradient(from 0deg at 0% 100%, 
+      rgba(255, 255, 255, 0.0) 0deg, 
+      rgba(255, 255, 255, 0.0) 6deg, 
+      rgba(255, 255, 255, 0.015) 6deg, 
+      rgba(255, 255, 255, 0.015) 12deg),
     linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: auto, 35px 35px, 35px 35px;
+}
+
+/* Center Partner Logo */
+.sp-av-center-logo {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sp-av-partner-tag {
+  background: var(--sp-red);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 1.5px;
+}
+
+.sp-av-partner-title {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-top: 5px;
 }
 
 /* Wait State Overlay */
@@ -388,20 +425,8 @@
 }
 
 .sp-av-plane-wrapper {
-  position: absolute;
-  bottom: 25px;
-  left: 20px;
-  width: 48px;
-  height: 48px;
-  z-index: 6;
+  /* Dimensions and coordinates are dynamically supplied in React styles */
   pointer-events: none;
-  transition: transform 0.1s linear;
-}
-
-.sp-av-plane-img {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
 }
 
 /* Double Bet Control Panels */

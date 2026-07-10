@@ -22,6 +22,34 @@ const safeNumber = (value, fallback) => {
 
 const formatMultiplier = (value) => `${safeNumber(value, 1).toFixed(2)}x`;
 
+const RedPlaneIcon = () => (
+  <svg viewBox="0 0 100 50" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", transform: "scaleX(-1)" }}>
+    {/* Propeller (spinning circular blur) */}
+    <ellipse cx="9" cy="25" rx="3.5" ry="18" fill="#ffffff" opacity="0.22" stroke="#ffffff" strokeWidth="1" />
+    <line x1="9" y1="5" x2="9" y2="45" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" opacity="0.75" />
+
+    {/* Body */}
+    <path d="M90 25 C90 21, 75 16, 45 16 C25 16, 12 20, 8 25 C12 30, 25 34, 45 34 C75 34, 90 29, 90 25 Z" fill="#ff053b" />
+    <path d="M45 16 C35 16, 25 18, 8 25 C25 27, 35 28, 45 28 Z" fill="#ff5577" />
+    <path d="M90 25 C85 25, 75 27, 55 28 C75 29, 85 29, 90 25 Z" fill="#880011" />
+
+    {/* Underbelly details */}
+    <path d="M50 34 C60 34, 70 33, 78 30 C70 31, 60 31, 50 31 Z" fill="#66000c" />
+
+    {/* Wings */}
+    <path d="M55 25 L45 47 C43 51, 48 51, 52 47 L68 25 Z" fill="#e11d48" />
+    <path d="M55 25 L45 47 C44 49, 46 49, 48 47 L58 25 Z" fill="#ff5577" />
+
+    {/* Tail fin */}
+    <path d="M80 23 L90 6 C91 3, 86 3, 83 6 L75 23 Z" fill="#ff053b" />
+    <path d="M80 23 L70 25 L85 27 L90 23 Z" fill="#b90022" />
+
+    {/* Decal details */}
+    <path d="M35 22 L55 22 L50 24 L35 24 Z" fill="#ffffff" opacity="0.3" />
+    <circle cx="65" cy="25" r="2.5" fill="#ffd700" />
+  </svg>
+);
+
 export default function AviatorGameScreen() {
   const router = useRouter();
   const { maintenanceMode, message: maintenanceMessage, blocksAction } = usePlatformStatus();
@@ -388,17 +416,52 @@ export default function AviatorGameScreen() {
   }, [roundStatus, autoBetEnabled2]);
 
   // Plane animation coordinate mapping
-  const stageTransform = useMemo(() => {
-    if (roundStatus !== "flying") return "translate(10px, 0px)";
+  const planeStyle = useMemo(() => {
+    if (roundStatus !== "flying") {
+      return { left: "10px", bottom: "15px", transform: "rotate(0deg)", position: "absolute", zIndex: 6, width: "58px", height: "36px" };
+    }
     const m = Math.max(1, safeNumber(liveMultiplier, 1.0));
     
-    // Custom exponential flight curve matching Spribe physics
-    const progress = Math.min(1.0, (m - 1.0) / 10.0); // caps path visual scale at 11x
-    const x = 10 + progress * 240; // width bounds
-    const y = progress * 100; // height bounds
-    const tilt = Math.max(-5, Math.min(20, y / 5));
+    // progress scales from 0 to 1 based on multiplier
+    const progress = Math.min(1.0, (m - 1.0) / 12.0); // max scale at 13.0x
+    const left = `${10 + progress * 72}%`;
+    const bottom = `${15 + progress * 55}%`;
+    const tilt = Math.max(-5, Math.min(15, progress * 15));
     
-    return `translate(${x}px, ${-y}px) rotate(${tilt}deg)`;
+    return {
+      left,
+      bottom,
+      transform: `rotate(${tilt}deg)`,
+      position: "absolute",
+      zIndex: 6,
+      pointerEvents: "none",
+      width: "58px",
+      height: "36px",
+      transition: "left 0.1s linear, bottom 0.1s linear, transform 0.1s linear"
+    };
+  }, [liveMultiplier, roundStatus]);
+
+  // Dynamic quadratic bezier curve trail tracking the plane in real-time
+  const pathD = useMemo(() => {
+    if (roundStatus !== "flying") return "";
+    const m = Math.max(1, safeNumber(liveMultiplier, 1.0));
+    const progress = Math.min(1.0, (m - 1.0) / 12.0);
+    const endX = 10 + progress * 72; // percentage
+    const endY = 15 + progress * 55; // percentage
+    
+    // SVG coordinate space is 0 to 100
+    // Start point: (10, 85) top-relative
+    // End point: (endX, 100 - endY) top-relative
+    const startX = 10;
+    const startY = 85;
+    const currentX = endX;
+    const currentY = 100 - endY;
+    
+    // Smooth quadratic curve control point
+    const controlX = startX + (currentX - startX) * 0.45;
+    const controlY = startY + (currentY - startY) * 0.9;
+    
+    return `M ${startX},${startY} Q ${controlX},${controlY} ${currentX},${currentY}`;
   }, [liveMultiplier, roundStatus]);
 
   // Dynamic status pill tag colors matching recent rounds history
@@ -568,15 +631,22 @@ export default function AviatorGameScreen() {
               </div>
             )}
 
+             {/* Center Partner Logo Placeholder */}
+            {(roundStatus === "starting" || roundStatus === "idle") && (
+              <div className="sp-av-center-logo">
+                <span className="sp-av-partner-tag">SPRIBE</span>
+                <span className="sp-av-partner-title">AVIATOR</span>
+              </div>
+            )}
+
             {/* Flight Path SVG Line */}
             {roundStatus === "flying" && (
-              <svg className="sp-av-flight-svg" width="100%" height="100%">
+              <svg className="sp-av-flight-svg" viewBox="0 0 100 100" preserveAspectRatio="none" width="100%" height="100%">
                 <path
-                  d={`M 10,135 Q 120,130 250,35`}
+                  d={pathD}
                   fill="none"
-                  stroke="#e11d48"
-                  strokeWidth="3.5"
-                  strokeDasharray="6"
+                  stroke="#ff053b"
+                  strokeWidth="2.5"
                   className="sp-av-path-animation"
                 />
               </svg>
@@ -584,13 +654,8 @@ export default function AviatorGameScreen() {
 
             {/* Flying Red Plane Icon */}
             {roundStatus === "flying" && (
-              <div className="sp-av-plane-wrapper" style={{ transform: stageTransform }}>
-                <img
-                  src="/design/game-illustrations/aviator_plane_gold.svg"
-                  alt="Plane"
-                  className="sp-av-plane-img"
-                  draggable="false"
-                />
+              <div className="sp-av-plane-wrapper" style={planeStyle}>
+                <RedPlaneIcon />
               </div>
             )}
           </div>
