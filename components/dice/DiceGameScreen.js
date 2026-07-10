@@ -499,24 +499,7 @@ export default function DiceGameScreen() {
 
         {/* Roll outcome main screen display */}
         <div className="dc-outcome-card">
-          <div className="dc-particles">
-            <span className="dc-part p1"></span>
-            <span className="dc-part p2"></span>
-            <span className="dc-part p3"></span>
-            <span className="dc-part p4"></span>
-          </div>
-
           <div className="dc-outcome-main-row">
-            {/* Premium Animated Gold Casino Dice */}
-            <div className={`dc-dice-wrap ${rollingNumber !== null ? "rolling" : ""}`}>
-              <div className="dc-die-container d1">
-                <GoldDie value={d1} />
-              </div>
-              <div className="dc-die-container d2">
-                <GoldDie value={d2} />
-              </div>
-            </div>
-
             {/* Large Gold Gradient Roll Value */}
             <div className="dc-outcome-value">
               {typeof rollDisplay === "number" ? rollDisplay.toFixed(2) : rollDisplay}
