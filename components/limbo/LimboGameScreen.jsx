@@ -65,15 +65,20 @@ export default function LimboGameScreen() {
     init();
 
     // Setup Socket
-    const socket = getSocket();
-    if (socket) {
-      socket.on("wallet:balance", (data) => {
-        if (data.balance !== undefined) setBalance(data.balance);
-      });
-      return () => {
-        socket.off("wallet:balance");
-      };
-    }
+    let socketInstance = null;
+    const setupSocket = async () => {
+      socketInstance = await getSocket();
+      if (socketInstance) {
+        socketInstance.on("wallet:balance", (data) => {
+          if (data.balance !== undefined) setBalance(data.balance);
+        });
+      }
+    };
+    setupSocket();
+
+    return () => {
+      if (socketInstance) socketInstance.off("wallet:balance");
+    };
   }, [platformLoaded, isMaintenance, router]);
 
   const fetchBalance = async () => {
