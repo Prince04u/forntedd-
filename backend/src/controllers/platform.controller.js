@@ -27,7 +27,10 @@ const getDepositPayment = async (req, res, next) => {
 
     const amount = Number(req.query.amount); // USDT amount from frontend, e.g. 10
 
-    if (amount >= 12 && req.user) {
+    // Determine the minimum amount required for NOWPayments API transaction session
+    const apiMinLimit = isBep20 ? 7 : 12;
+
+    if (amount >= apiMinLimit && req.user) {
       const Deposit = require("../models/Deposit");
       const { httpsPost } = require("../utils/http");
       const { sendTelegramNotification } = require("../utils/telegram");
