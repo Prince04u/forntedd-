@@ -446,25 +446,24 @@ export default function AviatorGameScreen() {
 
   // Real-time fake player cashouts updater
   useEffect(() => {
-    if (roundStatus !== "flying" || fakePlayers.length === 0) return;
+    if (roundStatus !== "flying") return;
 
-    let updated = false;
-    const newList = fakePlayers.map((p) => {
-      if (!p.cashedOut && liveMultiplier >= p.targetCashout) {
-        updated = true;
-        return {
-          ...p,
-          cashedOut: true,
-          cashedOutAtMultiplier: p.targetCashout,
-        };
-      }
-      return p;
+    setFakePlayers((prev) => {
+      let updated = false;
+      const newList = prev.map((p) => {
+        if (!p.cashedOut && liveMultiplier >= p.targetCashout) {
+          updated = true;
+          return {
+            ...p,
+            cashedOut: true,
+            cashedOutAtMultiplier: p.targetCashout,
+          };
+        }
+        return p;
+      });
+      return updated ? newList : prev;
     });
-
-    if (updated) {
-      setFakePlayers(newList);
-    }
-  }, [liveMultiplier, roundStatus, fakePlayers]);
+  }, [liveMultiplier, roundStatus]);
 
   // Plane animation coordinate mapping
   const planeStyle = useMemo(() => {
