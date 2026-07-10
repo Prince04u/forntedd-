@@ -144,18 +144,16 @@ export default function LimboGameScreen() {
     const animateMultiplier = () => {
       if (!playingRef.current) return;
       
-      // If network hasn't returned yet, keep a constant velocity so it never stops or slows down
+      // If network hasn't returned yet, wait at 1.00x to prevent overshooting a low crash point
       if (resultRef.current.result === null) {
-          localCurrent += 0.005; // small constant speed
-          setCurrentMultiplier(localCurrent);
           animRef.current = requestAnimationFrame(animateMultiplier);
           return;
       }
 
-      // When network returns, rebase the animation to target the final result smoothly
+      // When network returns, start the actual easing animation from 1.00
       if (!hasRebased) {
           hasRebased = true;
-          animStartValue = localCurrent;
+          animStartValue = 1.0;
           animStartTime = Date.now();
       }
       
@@ -166,11 +164,6 @@ export default function LimboGameScreen() {
       const easeOut = 1 - Math.pow(1 - progress, 3);
       
       localCurrent = animStartValue + (resultRef.current.result - animStartValue) * easeOut;
-      
-      // Prevent moving backwards if the final result is lower than what we ticked up to
-      if (resultRef.current.result <= animStartValue) {
-          localCurrent = resultRef.current.result;
-      }
       
       setCurrentMultiplier(localCurrent);
 
