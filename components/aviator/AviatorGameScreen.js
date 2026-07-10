@@ -50,6 +50,31 @@ const RedPlaneIcon = () => (
   </svg>
 );
 
+const FAKE_USERNAMES = [
+  "A***h", "R***t", "S***y", "M***t", "P***v", "K***n", "J***t", "V***s", "A***t", "D***k",
+  "N***j", "H***h", "G***v", "S***h", "Y***h", "R***l", "V***y", "A***n", "S***m", "P***k",
+  "R***n", "M***h", "9***2", "9***9", "8***4", "7***0", "9***5", "8***1", "9***7", "6***3",
+  "H***a", "A***d", "S***k", "S***m", "D***a", "M***a", "P***i", "R***u", "R***j", "V***k"
+];
+
+const generateFakePlayers = () => {
+  const count = Math.floor(18 + Math.random() * 15);
+  const list = [];
+  for (let i = 0; i < count; i++) {
+    const username = FAKE_USERNAMES[Math.floor(Math.random() * FAKE_USERNAMES.length)];
+    const amount = Math.floor(10 + Math.random() * 40) * 10; // ₹100 to ₹4000
+    const targetCashout = parseFloat((1.05 + Math.random() * 5.0).toFixed(2));
+    list.push({
+      username,
+      amount,
+      targetCashout,
+      cashedOutAtMultiplier: null,
+      cashedOut: false
+    });
+  }
+  return list.sort((a, b) => b.amount - a.amount);
+};
+
 export default function AviatorGameScreen() {
   const router = useRouter();
   const { maintenanceMode, message: maintenanceMessage, blocksAction } = usePlatformStatus();
@@ -83,6 +108,7 @@ export default function AviatorGameScreen() {
   const [crashMultiplier, setCrashMultiplier] = useState(null);
   const [roundId, setRoundId] = useState(null);
   const [players, setPlayers] = useState([]);
+  const [fakePlayers, setFakePlayers] = useState([]);
   const [myBets, setMyBets] = useState([]);
   const [recentRounds, setRecentRounds] = useState([]);
 
@@ -157,6 +183,7 @@ export default function AviatorGameScreen() {
         setPlayers([]);
         setLiveMultiplier(1.0);
         if (data?.roundId) setRoundId(data.roundId);
+        setFakePlayers(generateFakePlayers());
       });
 
       socket.on("aviator:multiplier", (data) => {
@@ -187,6 +214,8 @@ export default function AviatorGameScreen() {
           setRoundStatus(data.state);
           if (data.state === "waiting") {
             setRoundStatus("starting");
+            // Regenerate if starting from fresh sync
+            if (fakePlayers.length === 0) setFakePlayers(generateFakePlayers());
           }
         }
         if (data?.countdown) setCountdown(data.countdown);
@@ -415,6 +444,28 @@ export default function AviatorGameScreen() {
     handleBet2();
   }, [roundStatus, autoBetEnabled2]);
 
+  // Real-time fake player cashouts updater
+  useEffect(() => {
+    if (roundStatus !== "flying" || fakePlayers.length === 0) return;
+
+    let updated = false;
+    const newList = fakePlayers.map((p) => {
+      if (!p.cashedOut && liveMultiplier >= p.targetCashout) {
+        updated = true;
+        return {
+          ...p,
+          cashedOut: true,
+          cashedOutAtMultiplier: p.targetCashout,
+        };
+      }
+      return p;
+    });
+
+    if (updated) {
+      setFakePlayers(newList);
+    }
+  }, [liveMultiplier, roundStatus, fakePlayers]);
+
   // Plane animation coordinate mapping
   const planeStyle = useMemo(() => {
     if (roundStatus !== "flying") {
@@ -531,18 +582,18 @@ export default function AviatorGameScreen() {
                   <span>Multiplier</span>
                   <span>Cash out</span>
                 </div>
-                {players.length === 0 ? (
+                {fakePlayers.length === 0 ? (
                   <div className="sp-av-empty-list">Waiting for wagers...</div>
                 ) : (
-                  players.map((p, idx) => (
-                    <div className="sp-av-list-row" key={p.userId || idx}>
-                      <span className="sp-av-user-col">{p.username || "Player"}</span>
+                  fakePlayers.map((p, idx) => (
+                    <div className="sp-av-list-row" key={idx}>
+                      <span className="sp-av-user-col">{p.username}</span>
                       <span>₹{safeNumber(p.amount, 0).toFixed(2)}</span>
-                      <span className={p.cashedOutAtMultiplier ? "text-green" : "text-gray"}>
-                        {p.cashedOutAtMultiplier ? `${Number(p.cashedOutAtMultiplier).toFixed(2)}x` : "—"}
+                      <span className={p.cashedOut ? "text-green" : "text-gray"}>
+                        {p.cashedOut ? `${Number(p.cashedOutAtMultiplier).toFixed(2)}x` : "—"}
                       </span>
-                      <span className={p.cashedOutAtMultiplier ? "text-green font-bold" : "text-gray"}>
-                        {p.cashedOutAtMultiplier ? `₹${(p.amount * p.cashedOutAtMultiplier).toFixed(2)}` : "—"}
+                      <span className={p.cashedOut ? "text-green font-bold" : "text-gray"}>
+                        {p.cashedOut ? `₹${(p.amount * p.cashedOutAtMultiplier).toFixed(2)}` : "—"}
                       </span>
                     </div>
                   ))
@@ -714,7 +765,7 @@ export default function AviatorGameScreen() {
                       <span className="btn-label-title">BET</span>
                       <span className="btn-label-sub">{betAmount1} INR</span>
                     </button>
-                  ) : activeBet1.status === "active" && roundStatus === "flying" ? (
+                  ) : (activeBet1.status === "active" || activeBet1.state === "pending" || activeBet1.state === "next_round") && roundStatus === "flying" ? (
                     <button 
                       className="sp-av-giant-btn btn-orange"
                       disabled={loading1}
@@ -822,7 +873,7 @@ export default function AviatorGameScreen() {
                       <span className="btn-label-title">BET</span>
                       <span className="btn-label-sub">{betAmount2} INR</span>
                     </button>
-                  ) : activeBet2.status === "active" && roundStatus === "flying" ? (
+                  ) : (activeBet2.status === "active" || activeBet2.state === "pending" || activeBet2.state === "next_round") && roundStatus === "flying" ? (
                     <button 
                       className="sp-av-giant-btn btn-orange"
                       disabled={loading2}
