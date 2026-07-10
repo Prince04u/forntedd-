@@ -209,11 +209,15 @@ const nowpaymentsCallback = async (req, res, next) => {
       wallet.balance += deposit.amount;
       await wallet.save();
 
+      const prevBalance = wallet.balance - deposit.amount;
       const transaction = new Transaction({
         user: user._id,
         type: "deposit",
         amount: deposit.amount,
-        status: "completed",
+        direction: "credit",
+        prevBalance: prevBalance,
+        postBalance: wallet.balance,
+        refId: deposit._id.toString(),
         description: `USDT Auto Deposit via NOWPayments`,
       });
       await transaction.save();
@@ -426,11 +430,15 @@ const syncPendingDeposits = async (req, res, next) => {
             wallet.balance += deposit.amount;
             await wallet.save();
 
+            const prevBalance = wallet.balance - deposit.amount;
             const transaction = new Transaction({
               user: user._id,
               type: "deposit",
               amount: deposit.amount,
-              status: "completed",
+              direction: "credit",
+              prevBalance: prevBalance,
+              postBalance: wallet.balance,
+              refId: deposit._id.toString(),
               description: `USDT Auto Deposit via NOWPayments Sync`,
             });
             await transaction.save();
