@@ -21,6 +21,29 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Catch-all request logger to discover external gaming callback endpoints
+app.use((req, res, next) => {
+  if (!req.url.startsWith("/uploads") && !req.url.startsWith("/admin") && !req.url.includes("socket.io")) {
+    try {
+      const logData = {
+        timestamp: new Date().toISOString(),
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        query: req.query,
+        body: req.body
+      };
+      const fs = require("fs");
+      const logFilePath = path.join(__dirname, "../logs/incoming_requests.log");
+      fs.appendFileSync(logFilePath, JSON.stringify(logData) + "\n");
+      console.log(`[CATCH-ALL LOGGER] ${req.method} ${req.url}`);
+    } catch (e) {
+      // ignore
+    }
+  }
+  next();
+});
+
 // Serve static uploaded files (KYCs and payment proof screenshots)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
