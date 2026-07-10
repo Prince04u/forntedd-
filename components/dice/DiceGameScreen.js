@@ -310,11 +310,20 @@ export default function DiceGameScreen() {
       const res = await roll(payload);
       const rawRollData = res?.data || res;
       const rollData = normalizeRoll(rawRollData);
+      
+      // Spin for 600ms to build up tension before revealing landing value
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
       if (rollData) {
+        // Stop spinner and show final roll value
+        spinner.stopped = true;
+        if (spinner.id) window.clearInterval(spinner.id);
+        setRollingNumber(null);
+
         setLastRoll(rollData);
         setMyRolls((prev) => [rollData, ...prev].slice(0, 30));
         
-        // Settle dice based on roll result
+        // Settle dice face values
         const val = rollData.result;
         const finalSum = Math.round(2 + (val / 100) * 10);
         let finalD1 = Math.min(6, Math.max(1, Math.floor(finalSum / 2)));
