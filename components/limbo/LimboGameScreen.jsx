@@ -48,13 +48,13 @@ export default function LimboGameScreen() {
   const [history, setHistory] = useState([]);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [error, setError] = useState(null);
-  const [winPopupAmount, setWinPopupAmount] = useState(null);
+  const [popupData, setPopupData] = useState(null);
   
   const animRef = useRef(null);
   const startTimeRef = useRef(null);
   const playingRef = useRef(false);
   const targetMultiplierRef = useRef(2.0);
-  const resultRef = useRef({ result: 1.0, status: "lost", payout: 0 });
+  const resultRef = useRef({ result: 1.0, status: "lost", payout: 0, betAmount: 10 });
 
   useEffect(() => {
     if (platformLoaded && isMaintenance) {
@@ -127,7 +127,7 @@ export default function LimboGameScreen() {
     setBalance(prev => prev - amount); // Optimistic
 
     // Set a placeholder result while we wait for the network
-    resultRef.current = { result: null, status: "pending", payout: 0 };
+    resultRef.current = { result: null, status: "pending", payout: 0, betAmount: amount };
     targetMultiplierRef.current = target;
     
     // Start local animation loop INSTANTLY
@@ -139,7 +139,7 @@ export default function LimboGameScreen() {
     const durationMs = 1500;
     
     // Clear any existing popup when starting a new bet
-    setWinPopupAmount(null);
+    setPopupData(null);
     
     const animateMultiplier = () => {
       if (!playingRef.current) return;
@@ -177,9 +177,9 @@ export default function LimboGameScreen() {
       // Trigger the win popup exactly when the visual multiplier crosses the user's target
       if (!hasShownPopup && resultRef.current.status === "won" && localCurrent >= targetMultiplierRef.current) {
         hasShownPopup = true;
-        setWinPopupAmount(resultRef.current.payout);
+        setPopupData({ amount: resultRef.current.payout, type: "win" });
         setBalance(prev => prev + resultRef.current.payout);
-        setTimeout(() => setWinPopupAmount(null), 3000);
+        setTimeout(() => setPopupData(null), 3000);
       }
 
       if (progress < 1.0 && localCurrent < resultRef.current.result) {
@@ -208,7 +208,8 @@ export default function LimboGameScreen() {
       resultRef.current = {
         result: finalResult,
         status: res.data.status || "lost",
-        payout: res.data.winAmount || 0
+        payout: res.data.winAmount || 0,
+        betAmount: amount
       };
     } catch (err) {
       setError("Network error");
@@ -231,6 +232,8 @@ export default function LimboGameScreen() {
       setDisplayState("won");
     } else {
       setDisplayState("crashed");
+      setPopupData({ amount: resultRef.current.betAmount, type: "loss" });
+      setTimeout(() => setPopupData(null), 3000);
     }
     
     fetchBalance();
@@ -255,9 +258,13 @@ export default function LimboGameScreen() {
             History
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            {winPopupAmount !== null && (
-              <div style={styles.winPopup}>
-                +{winPopupAmount.toFixed(2)} INR
+            {popupData !== null && (
+              <div style={{
+                ...styles.winPopup,
+                background: popupData.type === "win" ? "#22c55e" : "#ef4444",
+                boxShadow: popupData.type === "win" ? "0 2px 10px rgba(34,197,94,0.5)" : "0 2px 10px rgba(239,68,68,0.5)",
+              }}>
+                {popupData.type === "win" ? "+" : "-"}{popupData.amount.toFixed(2)} INR
               </div>
             )}
             <div style={styles.walletBox}>
