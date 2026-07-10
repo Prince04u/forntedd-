@@ -159,6 +159,7 @@ export default function DiceGameScreen() {
 
   const [rollingNumber, setRollingNumber] = useState(null);
   const [lastRoll, setLastRoll] = useState(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [d1, setD1] = useState(3);
@@ -390,6 +391,20 @@ export default function DiceGameScreen() {
 
   const rollDisplay = rollingNumber !== null ? rollingNumber : lastRoll ? lastRoll.result : 50.00;
 
+  const handlePosition = useMemo(() => {
+    if (rollingNumber !== null) return rollingNumber;
+    if (lastRoll !== null) return lastRoll.result;
+    return normalizedTarget;
+  }, [rollingNumber, lastRoll, normalizedTarget]);
+
+  const trackBackground = useMemo(() => {
+    if (condition === "under") {
+      return `linear-gradient(to right, #22c55e 0%, #22c55e ${normalizedTarget}%, #991b1b ${normalizedTarget}%, #991b1b 100%)`;
+    } else {
+      return `linear-gradient(to right, #991b1b 0%, #991b1b ${normalizedTarget}%, #3b82f6 ${normalizedTarget}%, #3b82f6 100%)`;
+    }
+  }, [condition, normalizedTarget]);
+
   if (!mounted) {
     return (
       <main className="dice-game">
@@ -421,6 +436,32 @@ export default function DiceGameScreen() {
       {error && <div className="auth-error dc-msg">{error}</div>}
 
       <section className="dc-board-stage">
+        {/* Real-time roll history bar */}
+        <div className="sp-dc-history-bar">
+          <div className="sp-dc-history-scroll">
+            {myRolls.slice(0, 10).map((r, i) => {
+              const val = safeNumber(r.result, 50);
+              const isLow = val < 50;
+              return (
+                <span 
+                  key={r.id || r._id || i} 
+                  className={`sp-dc-history-pill ${isLow ? "low" : "high"}`}
+                >
+                  {val.toFixed(2)}
+                </span>
+              );
+            })}
+          </div>
+          <button 
+            type="button" 
+            className="sp-dc-history-toggle-btn"
+            onClick={() => setHistoryOpen(!historyOpen)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="sp-dc-clock-icon"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span className="sp-dc-chevron">▼</span>
+          </button>
+        </div>
+
         {/* Roll outcome main screen display */}
         <div className="dc-outcome-card">
           <div className="dc-outcome-value">
@@ -429,9 +470,9 @@ export default function DiceGameScreen() {
 
           {/* Golden Spribe Slider bar indicator */}
           <div className="sp-dc-slider-container">
-            <div className="sp-dc-slider-track-overlay">
+            <div className="sp-dc-slider-track-overlay" style={{ background: trackBackground }}>
               <div className="sp-dc-ticks" />
-              <div className="sp-dc-handle" style={{ left: `${normalizedTarget}%` }}>
+              <div className="sp-dc-handle" style={{ left: `${handlePosition}%` }}>
                 <span className="sp-dc-handle-dot" />
               </div>
             </div>
@@ -539,49 +580,51 @@ export default function DiceGameScreen() {
 
 
 
-      <section className="dc-history">
-        <h2>Roll history</h2>
-        <table className="dc-table">
-          <thead>
-            <tr>
-              <th>Roll</th>
-              <th>Target</th>
-              <th>Status</th>
-              <th>P/L</th>
-            </tr>
-          </thead>
-          <tbody>
-            {myRolls.length === 0 ? (
+      {historyOpen && (
+        <section className="dc-history">
+          <h2>Roll history</h2>
+          <table className="dc-table">
+            <thead>
               <tr>
-                <td colSpan={4} style={{ color: "var(--theme-text-dim)", padding: "0.875rem 0.25rem" }}>
-                  No rolls yet
-                </td>
+                <th>Roll</th>
+                <th>Target</th>
+                <th>Status</th>
+                <th>P/L</th>
               </tr>
-            ) : (
-              myRolls.slice(0, 25).map((r) => {
-                const status = r.status || (r.payout > 0 ? "won" : "lost");
-                const profit = safeNumber(r.profit, status === "won" ? r.payout - r.amount : -r.amount);
-                return (
-                  <tr key={r.id || r._id}>
-                    <td style={{ fontFamily: "monospace", color: "var(--theme-text-muted)" }}>
-                      {safeNumber(r.result, 0).toFixed(2)}
-                    </td>
-                    <td>
-                      {String(r.condition || condition)} {safeNumber(r.target, 0).toFixed(2)}
-                    </td>
-                    <td>
-                      <span className={`dc-pill ${status === "won" ? "win" : "loss"}`}>{status}</span>
-                    </td>
-                    <td style={{ color: profit >= 0 ? "#86efac" : "var(--theme-danger-text)", fontWeight: 800 }}>
-                      {profit >= 0 ? "+" : "−"}₹{Math.abs(profit).toFixed(2)}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </section>
+            </thead>
+            <tbody>
+              {myRolls.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ color: "var(--theme-text-dim)", padding: "0.875rem 0.25rem" }}>
+                    No rolls yet
+                  </td>
+                </tr>
+              ) : (
+                myRolls.slice(0, 25).map((r) => {
+                  const status = r.status || (r.payout > 0 ? "won" : "lost");
+                  const profit = safeNumber(r.profit, status === "won" ? r.payout - r.amount : -r.amount);
+                  return (
+                    <tr key={r.id || r._id}>
+                      <td style={{ fontFamily: "monospace", color: "var(--theme-text-muted)" }}>
+                        {safeNumber(r.result, 0).toFixed(2)}
+                      </td>
+                      <td>
+                        {String(r.condition || condition)} {safeNumber(r.target, 0).toFixed(2)}
+                      </td>
+                      <td>
+                        <span className={`dc-pill ${status === "won" ? "win" : "loss"}`}>{status}</span>
+                      </td>
+                      <td style={{ color: profit >= 0 ? "#86efac" : "var(--theme-danger-text)", fontWeight: 800 }}>
+                        {profit >= 0 ? "+" : "−"}₹{Math.abs(profit).toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </section>
+      )}
 
       <BottomNav />
     </main>
