@@ -808,10 +808,12 @@ const getDiceRolls = async (req, res, next) => {
 // LIMBO GAME LOGIC
 // ==========================================
 
+const LIMBO_SCALE = 4000;
+
 const playLimbo = async (req, res, next) => {
   try {
     const reqAmount = req.body.amount !== undefined ? req.body.amount : req.body.betAmount;
-    const reqTarget = req.body.targetMultiplier;
+    const reqTarget = req.body.targetMultiplier; // This will act as auto-cashout
 
     const betAmount = Number(reqAmount);
     const targetMultiplier = Number(reqTarget);
@@ -820,7 +822,6 @@ const playLimbo = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid bet amount or target multiplier. Minimum target is 1.01x." });
     }
 
-    // You can customize limits in PlatformConfig if needed, using defaults here
     const minBet = 10;
     const maxBet = 50000;
 
@@ -849,21 +850,17 @@ const playLimbo = async (req, res, next) => {
     if (rolled > 1000000) rolled = 1000000;
     rolled = parseFloat(rolled.toFixed(2));
 
-    const won = rolled >= targetMultiplier;
-    const winAmount = won ? parseFloat((betAmount * targetMultiplier).toFixed(2)) : 0.0;
-    
     const bet = new Bet({
       user: req.user._id,
       game: "limbo",
       amount: betAmount,
-      winAmount,
-      payoutRatio: won ? targetMultiplier : 0.0,
-      state: won ? "won" : "lost",
-      details: { targetMultiplier, rolledMultiplier: rolled },
+      winAmount: 0,
+      payoutRatio: 0,
+      state: "pending",
+      details: { targetMultiplier, rolledMultiplier: rolled, startTime: Date.now() },
     });
     await bet.save();
 
-    // Log txn
     const betTxn = new Transaction({
       user: req.user._id,
       type: "game_bet",
@@ -872,48 +869,179 @@ const playLimbo = async (req, res, next) => {
       prevBalance,
       postBalance: wallet.balance,
       refId: bet._id,
-      description: `Limbo bet placed, Target: ${targetMultiplier.toFixed(2)}x`,
+      description: `Limbo bet placed, Auto-Cashout: ${targetMultiplier.toFixed(2)}x`,
     });
     await betTxn.save();
 
-    if (won) {
-      const balanceBeforeWin = wallet.balance;
-      wallet.balance += winAmount;
-      await wallet.save();
-
-      const winTxn = new Transaction({
-        user: req.user._id,
-        type: "game_win",
-        amount: winAmount,
-        direction: "credit",
-        prevBalance: balanceBeforeWin,
-        postBalance: wallet.balance,
-        refId: bet._id,
-        description: `Limbo win payout for multiplier: ${rolled.toFixed(2)}x`,
-      });
-      await winTxn.save();
-    }
-
-    sendToUser(req.user._id, "wallet:balance", {
+    const { sendToUser } = require("../services/socket.service");
+    sendToUser(req.user._id.toString(), "wallet:balance", {
       balance: wallet.balance,
       commissionBalance: wallet.commissionBalance,
     });
 
-    return res.status(201).json({
+    // Calculate durations
+    const crashDurationMs = Math.floor(Math.log(rolled) * LIMBO_SCALE);
+    const autoCashoutDurationMs = Math.floor(Math.log(targetMultiplier) * LIMBO_SCALE);
+
+    // Auto-cashout timeout (if crash doesn't happen first)
+    if (autoCashoutDurationMs <= crashDurationMs) {
+      setTimeout(async () => {
+        try {
+          const checkBet = await Bet.findById(bet._id);
+          if (checkBet && checkBet.state === "pending") {
+            const winAmount = parseFloat((checkBet.amount * targetMultiplier).toFixed(2));
+            checkBet.state = "won";
+            checkBet.payoutRatio = targetMultiplier;
+            checkBet.winAmount = winAmount;
+            await checkBet.save();
+
+            const cWallet = await Wallet.findOne({ user: checkBet.user });
+            const cPrevBalance = cWallet.balance;
+            cWallet.balance += winAmount;
+            await cWallet.save();
+
+            const winTxn = new Transaction({
+              user: checkBet.user,
+              type: "game_win",
+              amount: winAmount,
+              direction: "credit",
+              prevBalance: cPrevBalance,
+              postBalance: cWallet.balance,
+              refId: checkBet._id,
+              description: `Limbo auto-cashout at ${targetMultiplier.toFixed(2)}x`,
+            });
+            await winTxn.save();
+
+            sendToUser(checkBet.user.toString(), "limbo:win", { 
+              betId: checkBet._id, 
+              multiplier: targetMultiplier,
+              payout: winAmount
+            });
+            sendToUser(checkBet.user.toString(), "wallet:balance", {
+              balance: cWallet.balance,
+              commissionBalance: cWallet.commissionBalance,
+            });
+          }
+        } catch (e) {
+          logger.error(`Limbo auto-cashout error: ${e.message}`);
+        }
+      }, autoCashoutDurationMs);
+    }
+
+    // Set server-side crash timeout
+    setTimeout(async () => {
+      try {
+        const checkBet = await Bet.findById(bet._id);
+        if (checkBet && checkBet.state === "pending") {
+          checkBet.state = "lost";
+          await checkBet.save();
+          sendToUser(checkBet.user.toString(), "limbo:crash", { betId: checkBet._id, crashPoint: rolled });
+        }
+      } catch (e) {
+        logger.error(`Limbo crash timeout error: ${e.message}`);
+      }
+    }, crashDurationMs);
+
+    return res.json({
       success: true,
       data: {
         id: bet._id,
-        result: rolled,
-        status: won ? "won" : "lost",
-        payout: winAmount,
-        profit: won ? parseFloat((winAmount - betAmount).toFixed(2)) : -betAmount,
-        rolledMultiplier: rolled,
-        targetMultiplier: targetMultiplier,
-        winAmount,
-        won,
-        newBalance: wallet.balance,
-      },
+        amount: betAmount,
+        targetMultiplier,
+        status: "pending"
+      }
     });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const cashOutLimbo = async (req, res, next) => {
+  try {
+    const { betId } = req.body;
+    if (!betId) {
+      return res.status(400).json({ message: "Bet ID is required for cash out." });
+    }
+
+    const bet = await Bet.findOne({ _id: betId, user: req.user._id });
+    if (!bet) {
+      return res.status(404).json({ message: "Bet not found." });
+    }
+
+    if (bet.state !== "pending") {
+      return res.status(400).json({ 
+        message: `Bet already settled as ${bet.state}. Crash point was ${bet.details.rolledMultiplier}x.` 
+      });
+    }
+
+    const now = Date.now();
+    const startTime = bet.details.startTime;
+    const elapsedMs = now - startTime;
+    
+    // Calculate the multiplier based on elapsed time
+    let currentMultiplier = Math.exp(elapsedMs / LIMBO_SCALE);
+    const maxMultiplier = bet.details.rolledMultiplier;
+
+    const { sendToUser } = require("../services/socket.service");
+
+    if (currentMultiplier > maxMultiplier) {
+      // Race condition - crashed
+      bet.state = "lost";
+      await bet.save();
+      sendToUser(req.user._id.toString(), "limbo:crash", { betId: bet._id, crashPoint: maxMultiplier });
+      return res.status(400).json({ message: `Too late! Crashed at ${maxMultiplier.toFixed(2)}x` });
+    }
+
+    // Target auto cashout check
+    const target = bet.details.targetMultiplier;
+    let finalMultiplier = parseFloat(currentMultiplier.toFixed(2));
+    
+    if (finalMultiplier >= target) {
+      finalMultiplier = target;
+    }
+
+    if (finalMultiplier < 1.01) finalMultiplier = 1.01;
+
+    const winAmount = parseFloat((bet.amount * finalMultiplier).toFixed(2));
+    
+    bet.state = "won";
+    bet.payoutRatio = finalMultiplier;
+    bet.winAmount = winAmount;
+    await bet.save();
+
+    const wallet = await Wallet.findOne({ user: req.user._id });
+    const prevBalance = wallet.balance;
+    wallet.balance += winAmount;
+    await wallet.save();
+
+    const winTxn = new Transaction({
+      user: req.user._id,
+      type: "game_win",
+      amount: winAmount,
+      direction: "credit",
+      prevBalance,
+      postBalance: wallet.balance,
+      refId: bet._id,
+      description: `Limbo cashout at ${finalMultiplier}x`,
+    });
+    await winTxn.save();
+
+    sendToUser(req.user._id.toString(), "wallet:balance", {
+      balance: wallet.balance,
+      commissionBalance: wallet.commissionBalance,
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        id: bet._id,
+        status: "won",
+        payout: winAmount,
+        multiplier: finalMultiplier,
+        crashPoint: maxMultiplier,
+      }
+    });
+
   } catch (error) {
     return next(error);
   }
@@ -948,5 +1076,6 @@ module.exports = {
   rollDice,
   getDiceRolls,
   playLimbo,
+  cashOutLimbo,
   getLimboBets,
 };

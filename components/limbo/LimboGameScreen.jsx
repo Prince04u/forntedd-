@@ -9,7 +9,7 @@ import { usePlatformStatus } from "@/components/platform/PlatformStatusProvider"
 import { getToken } from "@/lib/auth";
 import { getSocket } from "@/lib/socket";
 import { getBalance } from "@/lib/walletApi";
-import { playLimbo, getMyLimboBets } from "@/lib/limboApi";
+import { playLimbo, cashOutLimbo, getMyLimboBets } from "@/lib/limboApi";
 
 const normalizeBet = (b) => {
   if (!b) return null;
@@ -27,6 +27,7 @@ const normalizeBet = (b) => {
     status,
     amount: Number(amount),
     winAmount: Number(winAmount),
+    createdAt: b.createdAt || new Date().toISOString(),
   };
 };
 
@@ -39,14 +40,20 @@ export default function LimboGameScreen() {
   const [targetMultiplier, setTargetMultiplier] = useState(2.0);
   
   const [isPlaying, setIsPlaying] = useState(false);
+  const [activeBetId, setActiveBetId] = useState(null);
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
-  const [displayState, setDisplayState] = useState("idle"); // idle, playing, won, lost
-  const [history, setHistory] = useState([]);
+  const [displayState, setDisplayState] = useState("idle"); // idle, playing, won, crashed
+  const [crashPoint, setCrashPoint] = useState(null);
   
+  const [history, setHistory] = useState([]);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [error, setError] = useState(null);
+  
   const animRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const playingRef = useRef(false);
+  const activeBetRef = useRef(null);
 
-  // Initialize
   useEffect(() => {
     if (platformLoaded && isMaintenance) {
       router.replace("/");
@@ -64,7 +71,6 @@ export default function LimboGameScreen() {
     };
     init();
 
-    // Setup Socket
     let socketInstance = null;
     const setupSocket = async () => {
       socketInstance = await getSocket();
@@ -72,12 +78,29 @@ export default function LimboGameScreen() {
         socketInstance.on("wallet:balance", (data) => {
           if (data.balance !== undefined) setBalance(data.balance);
         });
+
+        socketInstance.on("limbo:crash", (data) => {
+          if (activeBetRef.current === data.betId) {
+            handleCrash(data.crashPoint);
+          }
+        });
+
+        socketInstance.on("limbo:win", (data) => {
+          if (activeBetRef.current === data.betId) {
+            handleWin(data.multiplier, data.payout);
+          }
+        });
       }
     };
     setupSocket();
 
     return () => {
-      if (socketInstance) socketInstance.off("wallet:balance");
+      if (socketInstance) {
+        socketInstance.off("wallet:balance");
+        socketInstance.off("limbo:crash");
+        socketInstance.off("limbo:win");
+      }
+      if (animRef.current) cancelAnimationFrame(animRef.current);
     };
   }, [platformLoaded, isMaintenance, router]);
 
@@ -113,7 +136,7 @@ export default function LimboGameScreen() {
       return;
     }
     if (isNaN(target) || target < 1.01) {
-      setError("Minimum target is 1.01x");
+      setError("Minimum auto-cashout is 1.01x");
       return;
     }
     if (balance < amount) {
@@ -123,51 +146,87 @@ export default function LimboGameScreen() {
 
     setError(null);
     setIsPlaying(true);
+    playingRef.current = true;
     setDisplayState("playing");
     setCurrentMultiplier(1.0);
-    setBalance(prev => prev - amount); // Optimistic UI update
+    setCrashPoint(null);
+    setBalance(prev => prev - amount); // Optimistic
 
     const res = await playLimbo({ amount, targetMultiplier: target });
     if (!res?.success) {
       setError(res?.message || "Bet failed");
       setIsPlaying(false);
+      playingRef.current = false;
       setDisplayState("idle");
-      fetchBalance(); // rollback
+      fetchBalance();
       return;
     }
 
-    const { result, status, winAmount } = res.data;
+    setActiveBetId(res.data.id);
+    activeBetRef.current = res.data.id;
     
-    // Animate to result
-    let startTimestamp = null;
-    const duration = 1200; // ms
-    
-    const animateMultiplier = (timestamp) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = timestamp - startTimestamp;
-      
-      if (progress < duration) {
-        // Ease out exponential or quad
-        const ease = 1 - Math.pow(1 - progress / duration, 3);
-        const current = 1.0 + (result - 1.0) * ease;
-        setCurrentMultiplier(current);
-        animRef.current = requestAnimationFrame(animateMultiplier);
-      } else {
-        setCurrentMultiplier(result);
-        setDisplayState(status);
-        setIsPlaying(false);
-        setHistory(prev => [normalizeBet(res.data), ...prev].slice(0, 30));
-      }
+    // Start local animation loop based on elapsed time
+    startTimeRef.current = Date.now();
+    const animateMultiplier = () => {
+      if (!playingRef.current) return;
+      const elapsed = Date.now() - startTimeRef.current;
+      // Formula matches backend: Math.exp(elapsedMs / 4000)
+      const current = Math.exp(elapsed / 4000);
+      setCurrentMultiplier(current);
+      animRef.current = requestAnimationFrame(animateMultiplier);
     };
     animRef.current = requestAnimationFrame(animateMultiplier);
   };
 
-  // Cleanup animation
-  useEffect(() => {
-    return () => {
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-    };
-  }, []);
+  const handleManualCashout = async () => {
+    if (!isPlaying || !activeBetId) return;
+    
+    // Optimistically stop animation
+    setIsPlaying(false);
+    playingRef.current = false;
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+
+    const res = await cashOutLimbo(activeBetId);
+    if (res?.success) {
+      handleWin(res.data.multiplier, res.data.payout);
+    } else {
+      // If it failed, it probably crashed right before we clicked
+      if (res?.message?.includes("Crashed at")) {
+        // Backend handles sending the crash socket, but we can fallback here
+        const crashMatch = res.message.match(/([\d.]+)x/);
+        const pt = crashMatch ? Number(crashMatch[1]) : currentMultiplier;
+        handleCrash(pt);
+      } else {
+        setError(res?.message || "Cash out failed");
+        setDisplayState("crashed");
+      }
+    }
+  };
+
+  const handleCrash = (point) => {
+    setIsPlaying(false);
+    playingRef.current = false;
+    activeBetRef.current = null;
+    setActiveBetId(null);
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+    
+    setCurrentMultiplier(point);
+    setCrashPoint(point);
+    setDisplayState("crashed");
+    fetchHistory();
+  };
+
+  const handleWin = (multiplier, payout) => {
+    setIsPlaying(false);
+    playingRef.current = false;
+    activeBetRef.current = null;
+    setActiveBetId(null);
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+    
+    setCurrentMultiplier(multiplier);
+    setDisplayState("won");
+    fetchHistory();
+  };
 
   return (
     <div style={styles.container}>
@@ -180,6 +239,12 @@ export default function LimboGameScreen() {
           <span style={styles.headerTitle}>Limbo</span>
         </div>
         <div style={styles.headerRight}>
+          <button 
+            style={styles.historyBtn} 
+            onClick={() => setShowHistoryModal(true)}
+          >
+            History
+          </button>
           <div style={styles.walletBox}>
             <span style={styles.walletLabel}>Balance</span>
             <span style={styles.walletAmount}>₹{balance.toFixed(2)}</span>
@@ -188,18 +253,18 @@ export default function LimboGameScreen() {
       </header>
 
       <div style={styles.content}>
-        {/* History Bar */}
+        {/* Recent History Bar */}
         <div style={styles.historyBar}>
-          {history.map((bet) => {
-            const isWin = bet.status === "won" || bet.result >= 2.0;
+          {history.slice(0, 15).map((bet) => {
+            const isWin = bet.status === "won";
             return (
               <div 
                 key={bet.id} 
                 style={{
                   ...styles.historyPill,
-                  borderColor: isWin ? "#22c55e" : "rgba(212,175,55,0.25)",
-                  background: isWin ? "rgba(34, 197, 94, 0.15)" : "#1B1B1B",
-                  color: isWin ? "#4ade80" : "#D4AF37",
+                  borderColor: isWin ? "#22c55e" : "rgba(239, 68, 68, 0.4)",
+                  background: isWin ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.1)",
+                  color: isWin ? "#4ade80" : "#f87171",
                 }}
               >
                 {bet.result.toFixed(2)}x
@@ -210,34 +275,42 @@ export default function LimboGameScreen() {
 
         {/* Main Game Canvas */}
         <div style={styles.gameArea}>
-          <div style={styles.spaceBackground}>
-            <div className="stars"></div>
+          <div style={styles.skyBackground(displayState)}>
+            <div className="clouds"></div>
+            <div className="clouds cloud2"></div>
           </div>
           
           <div style={styles.multiplierContainer}>
             <div 
               style={{
                 ...styles.multiplierText,
-                color: displayState === "won" ? "#4ade80" : displayState === "lost" ? "#f87171" : "#fff",
+                color: displayState === "won" ? "#4ade80" : displayState === "crashed" ? "#f87171" : "#fff",
               }}
             >
               {currentMultiplier.toFixed(2)}x
             </div>
             {displayState === "won" && (
-              <div style={styles.winText}>You Won!</div>
+              <div style={styles.winText}>Cashed Out!</div>
+            )}
+            {displayState === "crashed" && (
+              <div style={styles.crashText}>Flew Away!</div>
             )}
           </div>
 
-          <div style={styles.rocketContainer(displayState)}>
-            {/* Simple CSS Rocket */}
-            <div style={styles.rocketBody}>
-              <div style={styles.rocketWindow}></div>
-              <div style={styles.rocketFinLeft}></div>
-              <div style={styles.rocketFinRight}></div>
-              {(displayState === "playing" || displayState === "idle") && (
-                <div style={styles.flame}></div>
-              )}
-            </div>
+          <div style={styles.planeContainer(displayState)}>
+            {displayState === "crashed" ? (
+              // Exploded or flew away state
+              <div style={styles.planeExplosion}>💥</div>
+            ) : (
+              // CSS Plane
+              <div style={styles.planeBody}>
+                <div style={styles.planeWing}></div>
+                <div style={styles.planeTail}></div>
+                {(displayState === "playing" || displayState === "idle") && (
+                  <div style={styles.planeEngine}></div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -270,7 +343,7 @@ export default function LimboGameScreen() {
             </div>
 
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Target Multiplier</label>
+              <label style={styles.label}>Auto Cash Out</label>
               <div style={styles.inputWrapper}>
                 <input
                   type="text"
@@ -283,53 +356,93 @@ export default function LimboGameScreen() {
             </div>
           </div>
 
-          <button 
-            style={{
-              ...styles.betButton,
-              opacity: isPlaying ? 0.7 : 1,
-              background: isPlaying ? "#1B1B1B" : "#22c55e",
-              color: isPlaying ? "#fff" : "#000",
-            }}
-            onClick={placeBet}
-            disabled={isPlaying}
-          >
-            {isPlaying ? "PLAYING..." : "BET"}
-          </button>
+          {!isPlaying ? (
+            <button 
+              style={{...styles.actionButton, background: "#22c55e", color: "#000"}}
+              onClick={placeBet}
+            >
+              BET
+            </button>
+          ) : (
+            <button 
+              style={{...styles.actionButton, background: "#eab308", color: "#000"}}
+              onClick={handleManualCashout}
+            >
+              CASH OUT ₹{(Number(betAmount) * currentMultiplier).toFixed(2)}
+            </button>
+          )}
         </div>
       </div>
 
       <BottomNav />
 
-      {/* Embedded Styles for Rocket Animation & Stars */}
+      {/* History Modal */}
+      {showHistoryModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <div style={styles.modalHeader}>
+              <h3>My Limbo History</h3>
+              <button style={styles.closeBtn} onClick={() => setShowHistoryModal(false)}>✕</button>
+            </div>
+            <div style={styles.historyList}>
+              {history.length === 0 ? (
+                <div style={{textAlign: "center", padding: 20, color: "#aaa"}}>No bets found</div>
+              ) : (
+                history.map(bet => (
+                  <div key={bet.id} style={styles.historyRow}>
+                    <div style={styles.historyCol}>
+                      <span style={{fontSize: 12, color: "#888"}}>Amount</span>
+                      <span style={{fontWeight: "bold"}}>₹{bet.amount}</span>
+                    </div>
+                    <div style={styles.historyCol}>
+                      <span style={{fontSize: 12, color: "#888"}}>Crash/Cashout</span>
+                      <span style={{fontWeight: "bold", color: bet.status === "won" ? "#4ade80" : "#f87171"}}>
+                        {bet.result.toFixed(2)}x
+                      </span>
+                    </div>
+                    <div style={{...styles.historyCol, alignItems: "flex-end"}}>
+                      <span style={{fontSize: 12, color: "#888"}}>Payout</span>
+                      <span style={{fontWeight: "bold", color: bet.status === "won" ? "#4ade80" : "#888"}}>
+                        {bet.status === "won" ? `₹${bet.winAmount.toFixed(2)}` : "₹0.00"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <style dangerouslySetInnerHTML={{__html: `
-        .stars {
+        .clouds {
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
           background: transparent;
           background-image: 
-            radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
-            radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
-            radial-gradient(1px 1px at 50px 160px, #fff, rgba(0,0,0,0)),
-            radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
-            radial-gradient(1px 1px at 130px 80px, #fff, rgba(0,0,0,0)),
-            radial-gradient(1px 1px at 160px 120px, #fff, rgba(0,0,0,0));
-          background-repeat: repeat;
-          background-size: 200px 200px;
-          animation: moveStars 40s linear infinite;
-          opacity: 0.5;
+            radial-gradient(40px 40px at 20% 30%, rgba(255,255,255,0.1) 50%, transparent 100%),
+            radial-gradient(60px 50px at 70% 60%, rgba(255,255,255,0.08) 50%, transparent 100%),
+            radial-gradient(80px 40px at 40% 80%, rgba(255,255,255,0.05) 50%, transparent 100%);
+          background-size: 200% 200%;
+          animation: flyClouds 8s linear infinite;
         }
-        @keyframes moveStars {
-          from { transform: translateY(0); }
-          to { transform: translateY(200px); }
+        .cloud2 {
+          background-image: 
+            radial-gradient(50px 30px at 10% 80%, rgba(255,255,255,0.06) 50%, transparent 100%),
+            radial-gradient(90px 60px at 80% 20%, rgba(255,255,255,0.07) 50%, transparent 100%);
+          animation: flyClouds 12s linear infinite reverse;
         }
-        @keyframes flicker {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.1) translateY(2px); }
+        @keyframes flyClouds {
+          0% { background-position: 0% 0%; }
+          100% { background-position: -200% 100%; }
         }
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-2px); }
-          75% { transform: translateX(2px); }
+        @keyframes planeFly {
+          0%, 100% { transform: translateY(0) rotate(-5deg); }
+          50% { transform: translateY(-15px) rotate(2deg); }
+        }
+        @keyframes planeCrash {
+          0% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(0.5) translateY(-50px) translateX(100px); opacity: 0; }
         }
       `}} />
     </div>
@@ -378,6 +491,16 @@ const styles = {
   headerRight: {
     display: "flex",
     alignItems: "center",
+    gap: 10,
+  },
+  historyBtn: {
+    background: "transparent",
+    border: "1px solid rgba(255,255,255,0.3)",
+    color: "#fff",
+    padding: "6px 12px",
+    borderRadius: "15px",
+    fontSize: "12px",
+    cursor: "pointer",
   },
   walletBox: {
     background: "#1B1B1B",
@@ -419,7 +542,7 @@ const styles = {
     fontWeight: "bold",
     whiteSpace: "nowrap",
     border: "1px solid",
-    boxShadow: "0 0 10px rgba(212,175,55,0.15)",
+    boxShadow: "0 0 10px rgba(0,0,0,0.5)",
   },
   gameArea: {
     flex: 1,
@@ -435,12 +558,13 @@ const styles = {
     justifyContent: "center",
     minHeight: "350px",
   },
-  spaceBackground: {
+  skyBackground: (state) => ({
     position: "absolute",
     top: 0, left: 0, right: 0, bottom: 0,
-    background: "linear-gradient(180deg, #0a0e17 0%, #111a28 100%)",
+    background: state === "crashed" ? "linear-gradient(180deg, #2a0808 0%, #110000 100%)" : "linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%)",
     zIndex: 0,
-  },
+    transition: "background 0.5s ease",
+  }),
   multiplierContainer: {
     position: "absolute",
     top: "30%",
@@ -452,69 +576,73 @@ const styles = {
   multiplierText: {
     fontSize: "64px",
     fontWeight: "900",
-    textShadow: "0 4px 20px rgba(0,0,0,0.5)",
+    textShadow: "0 4px 20px rgba(0,0,0,0.8)",
     transition: "color 0.3s",
   },
   winText: {
-    fontSize: "18px",
+    fontSize: "20px",
     color: "#4ade80",
     fontWeight: "bold",
     marginTop: "5px",
     textShadow: "0 2px 10px rgba(34,197,94,0.5)",
   },
-  rocketContainer: (state) => ({
+  crashText: {
+    fontSize: "20px",
+    color: "#f87171",
+    fontWeight: "bold",
+    marginTop: "5px",
+    textShadow: "0 2px 10px rgba(248,113,113,0.5)",
+  },
+  planeContainer: (state) => ({
     position: "absolute",
     bottom: "20%",
+    left: "30%",
     zIndex: 5,
-    animation: state === "playing" ? "shake 0.5s linear infinite" : "none",
-    opacity: state === "lost" ? 0 : 1,
-    transition: "opacity 0.3s",
+    animation: state === "playing" ? "planeFly 2s ease-in-out infinite" : state === "crashed" ? "planeCrash 0.5s forwards" : "none",
   }),
-  rocketBody: {
-    width: "40px",
-    height: "80px",
-    background: "linear-gradient(to bottom, #f87171, #ef4444, #fff 40%)",
-    borderRadius: "50% 50% 20% 20%",
+  planeExplosion: {
+    fontSize: "60px",
+    filter: "drop-shadow(0 0 20px red)",
+  },
+  planeBody: {
+    width: "80px",
+    height: "25px",
+    background: "linear-gradient(to right, #e2e8f0, #94a3b8)",
+    borderRadius: "50% 20% 20% 50%",
     position: "relative",
-    boxShadow: "inset -5px 0 10px rgba(0,0,0,0.2)",
+    boxShadow: "inset -2px -2px 10px rgba(0,0,0,0.3)",
+    transform: "rotate(-10deg)",
   },
-  rocketWindow: {
+  planeWing: {
     position: "absolute",
-    top: "30px",
-    left: "10px",
-    width: "20px",
+    top: "-5px",
+    left: "25px",
+    width: "30px",
+    height: "15px",
+    background: "#64748b",
+    transform: "skewX(-30deg)",
+    borderRadius: "2px",
+    zIndex: -1,
+  },
+  planeTail: {
+    position: "absolute",
+    top: "-15px",
+    left: "5px",
+    width: "15px",
     height: "20px",
-    background: "#1e3a8a",
-    borderRadius: "50%",
-    border: "3px solid #cbd5e1",
+    background: "#ef4444",
+    transform: "skewX(-20deg)",
+    borderRadius: "2px",
   },
-  rocketFinLeft: {
+  planeEngine: {
     position: "absolute",
-    bottom: "10px",
+    top: "10px",
     left: "-15px",
     width: "20px",
-    height: "30px",
-    background: "#ef4444",
-    clipPath: "polygon(100% 0, 100% 100%, 0 100%)",
-  },
-  rocketFinRight: {
-    position: "absolute",
-    bottom: "10px",
-    right: "-15px",
-    width: "20px",
-    height: "30px",
-    background: "#dc2626",
-    clipPath: "polygon(0 0, 0 100%, 100% 100%)",
-  },
-  flame: {
-    position: "absolute",
-    bottom: "-25px",
-    left: "10px",
-    width: "20px",
-    height: "30px",
-    background: "linear-gradient(to bottom, #fbbf24, #f97316, transparent)",
-    borderRadius: "50% 50% 20% 20%",
-    animation: "flicker 0.1s infinite alternate",
+    height: "10px",
+    background: "linear-gradient(to right, transparent, #ef4444, #fbbf24)",
+    borderRadius: "50%",
+    filter: "blur(2px)",
   },
   controlsArea: {
     background: "#1B1B1B",
@@ -572,7 +700,7 @@ const styles = {
     fontWeight: "bold",
     transition: "background 0.2s",
   },
-  betButton: {
+  actionButton: {
     width: "100%",
     padding: "16px",
     borderRadius: "8px",
@@ -582,6 +710,62 @@ const styles = {
     cursor: "pointer",
     textTransform: "uppercase",
     transition: "all 0.2s",
-    boxShadow: "0 4px 15px rgba(34,197,94,0.3)",
-  }
+    boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: "rgba(0,0,0,0.8)",
+    backdropFilter: "blur(5px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 100,
+  },
+  modalContent: {
+    background: "#1B1B1B",
+    width: "90%",
+    maxWidth: "400px",
+    borderRadius: "12px",
+    border: "1px solid rgba(212,175,55,0.3)",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    maxHeight: "80vh",
+  },
+  modalHeader: {
+    padding: "15px 20px",
+    background: "#141414",
+    borderBottom: "1px solid rgba(255,255,255,0.1)",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  closeBtn: {
+    background: "none",
+    border: "none",
+    color: "#fff",
+    fontSize: "18px",
+    cursor: "pointer",
+  },
+  historyList: {
+    padding: "10px",
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  historyRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    background: "#080808",
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid rgba(255,255,255,0.05)",
+  },
+  historyCol: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+  },
 };

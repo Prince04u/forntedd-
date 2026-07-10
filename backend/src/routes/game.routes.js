@@ -17,6 +17,7 @@ const {
   rollDice,
   getDiceRolls,
   playLimbo,
+  cashOutLimbo,
   getLimboBets,
 } = require("../controllers/game.controller");
 const { protect } = require("../middlewares/auth");
@@ -49,6 +50,7 @@ router.get("/dice/rolls/my", protect, getDiceRolls);
 
 // Limbo routes
 router.post("/limbo/play", protect, playLimbo);
+router.post("/limbo/cashout", protect, cashOutLimbo);
 router.get("/limbo/bets/my", protect, getLimboBets);
 
 module.exports = router;
