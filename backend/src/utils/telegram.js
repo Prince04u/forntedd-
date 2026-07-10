@@ -51,7 +51,7 @@ const sendTelegramNotification = async (deposit, user, statusType) => {
       `<tg-emoji emoji-id="6068945070223005574">🆘</tg-emoji>Status :-${statusText}`;
 
     const botToken = "8925619066:AAH1KpM550ubsV1V0G8X3GWQMKI9d6cX0ns";
-    const chatId = "-5417636031";
+    const chatId = "-1004321239973";
 
     await httpsPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {}, {
       chat_id: chatId,
