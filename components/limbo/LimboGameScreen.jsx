@@ -275,9 +275,11 @@ export default function LimboGameScreen() {
 
         {/* Main Game Canvas */}
         <div style={styles.gameArea}>
-          <div style={styles.skyBackground(displayState)}>
-            <div className="clouds"></div>
-            <div className="clouds cloud2"></div>
+          <div style={styles.spaceBackground(displayState)}>
+            <div className="stars"></div>
+            <div className="stars stars2"></div>
+            <div style={styles.planet1}></div>
+            <div style={styles.planet2}></div>
           </div>
           
           <div style={styles.multiplierContainer}>
@@ -293,24 +295,33 @@ export default function LimboGameScreen() {
               <div style={styles.winText}>Cashed Out!</div>
             )}
             {displayState === "crashed" && (
-              <div style={styles.crashText}>Flew Away!</div>
+              <div style={styles.crashText}>Boom!</div>
             )}
           </div>
 
-          <div style={styles.planeContainer(displayState)}>
+          <div style={styles.rocketContainer(displayState)}>
             {displayState === "crashed" ? (
-              // Exploded or flew away state
+              // Exploded state
               <div style={styles.planeExplosion}>💥</div>
             ) : (
-              // CSS Plane
-              <div style={styles.planeBody}>
-                <div style={styles.planeWing}></div>
-                <div style={styles.planeTail}></div>
-                {(displayState === "playing" || displayState === "idle") && (
-                  <div style={styles.planeEngine}></div>
+              // CSS Rocket matching the screenshot
+              <div style={styles.rocketBody}>
+                <div style={styles.rocketNose}></div>
+                <div style={styles.rocketWindow}></div>
+                <div style={styles.rocketFinLeft}></div>
+                <div style={styles.rocketFinRight}></div>
+                {(displayState === "playing") && (
+                  <div style={styles.flame}></div>
                 )}
               </div>
             )}
+          </div>
+
+          {/* Moon Surface at the bottom */}
+          <div style={styles.moonSurface(displayState)}>
+            <div style={styles.crater1}></div>
+            <div style={styles.crater2}></div>
+            <div style={styles.crater3}></div>
           </div>
         </div>
 
@@ -415,34 +426,51 @@ export default function LimboGameScreen() {
       )}
 
       <style dangerouslySetInnerHTML={{__html: `
-        .clouds {
+        .stars {
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
           background: transparent;
           background-image: 
-            radial-gradient(40px 40px at 20% 30%, rgba(255,255,255,0.1) 50%, transparent 100%),
-            radial-gradient(60px 50px at 70% 60%, rgba(255,255,255,0.08) 50%, transparent 100%),
-            radial-gradient(80px 40px at 40% 80%, rgba(255,255,255,0.05) 50%, transparent 100%);
-          background-size: 200% 200%;
-          animation: flyClouds 8s linear infinite;
+            radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 50px 160px, rgba(255,255,255,0.9), rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.7), rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.8), rgba(0,0,0,0));
+          background-repeat: repeat;
+          background-size: 200px 200px;
+          animation: moveStars 15s linear infinite;
         }
-        .cloud2 {
+        .stars2 {
           background-image: 
-            radial-gradient(50px 30px at 10% 80%, rgba(255,255,255,0.06) 50%, transparent 100%),
-            radial-gradient(90px 60px at 80% 20%, rgba(255,255,255,0.07) 50%, transparent 100%);
-          animation: flyClouds 12s linear infinite reverse;
+            radial-gradient(1px 1px at 30px 50px, #fff, rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 70px 90px, rgba(255,255,255,0.6), rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 110px 20px, rgba(255,255,255,0.8), rgba(0,0,0,0));
+          background-size: 150px 150px;
+          animation: moveStars 25s linear infinite;
         }
-        @keyframes flyClouds {
-          0% { background-position: 0% 0%; }
-          100% { background-position: -200% 100%; }
+        @keyframes moveStars {
+          from { transform: translateY(0); }
+          to { transform: translateY(200px); }
         }
-        @keyframes planeFly {
-          0%, 100% { transform: translateY(0) rotate(-5deg); }
-          50% { transform: translateY(-15px) rotate(2deg); }
+        @keyframes rocketShake {
+          0%, 100% { transform: translate(-50%, 0); }
+          25% { transform: translate(-52%, 2px); }
+          50% { transform: translate(-48%, -2px); }
+          75% { transform: translate(-50%, 3px); }
         }
-        @keyframes planeCrash {
-          0% { transform: scale(1); opacity: 1; }
-          100% { transform: scale(0.5) translateY(-50px) translateX(100px); opacity: 0; }
+        @keyframes rocketLaunch {
+          0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+          10% { transform: translate(-50%, -20px) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -300px) scale(0.5); opacity: 0; }
+        }
+        @keyframes rocketCrash {
+          0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, 0) scale(1.5); opacity: 0; filter: blur(10px); }
+        }
+        @keyframes flameFlicker {
+          0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+          50% { transform: translateX(-50%) scale(1.1) translateY(5px); opacity: 0.8; }
         }
       `}} />
     </div>
@@ -558,16 +586,34 @@ const styles = {
     justifyContent: "center",
     minHeight: "350px",
   },
-  skyBackground: (state) => ({
+  spaceBackground: (state) => ({
     position: "absolute",
     top: 0, left: 0, right: 0, bottom: 0,
-    background: state === "crashed" ? "linear-gradient(180deg, #2a0808 0%, #110000 100%)" : "linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%)",
+    background: state === "crashed" ? "linear-gradient(180deg, #3f0000 0%, #1a0000 100%)" : "linear-gradient(180deg, #0d1b2a 0%, #1b263b 50%, #104257 100%)",
     zIndex: 0,
     transition: "background 0.5s ease",
   }),
+  planet1: {
+    position: "absolute",
+    top: "20%", left: "15%",
+    width: "40px", height: "40px",
+    borderRadius: "50%",
+    background: "radial-gradient(circle at 30% 30%, #5d6d7e, #2c3e50)",
+    boxShadow: "inset -5px -5px 15px rgba(0,0,0,0.5)",
+    opacity: 0.8,
+  },
+  planet2: {
+    position: "absolute",
+    top: "15%", right: "20%",
+    width: "25px", height: "25px",
+    borderRadius: "50%",
+    background: "radial-gradient(circle at 30% 30%, #e67e22, #d35400)",
+    boxShadow: "inset -3px -3px 10px rgba(0,0,0,0.5)",
+    opacity: 0.6,
+  },
   multiplierContainer: {
     position: "absolute",
-    top: "30%",
+    top: "25%",
     zIndex: 10,
     display: "flex",
     flexDirection: "column",
@@ -593,56 +639,119 @@ const styles = {
     marginTop: "5px",
     textShadow: "0 2px 10px rgba(248,113,113,0.5)",
   },
-  planeContainer: (state) => ({
+  rocketContainer: (state) => ({
     position: "absolute",
     bottom: "20%",
-    left: "30%",
+    left: "50%",
+    transform: "translateX(-50%)",
     zIndex: 5,
-    animation: state === "playing" ? "planeFly 2s ease-in-out infinite" : state === "crashed" ? "planeCrash 0.5s forwards" : "none",
+    animation: state === "playing" ? "rocketShake 0.3s ease-in-out infinite" : state === "crashed" ? "rocketCrash 0.5s forwards" : state === "won" ? "rocketLaunch 1s forwards" : "none",
   }),
   planeExplosion: {
-    fontSize: "60px",
-    filter: "drop-shadow(0 0 20px red)",
+    fontSize: "80px",
+    filter: "drop-shadow(0 0 30px red)",
+    transform: "translate(-50%, -50%)",
   },
-  planeBody: {
-    width: "80px",
-    height: "25px",
-    background: "linear-gradient(to right, #e2e8f0, #94a3b8)",
-    borderRadius: "50% 20% 20% 50%",
+  rocketBody: {
+    width: "60px",
+    height: "100px",
+    background: "linear-gradient(to right, #cbd5e1, #94a3b8)",
+    borderRadius: "50% 50% 10% 10%",
     position: "relative",
-    boxShadow: "inset -2px -2px 10px rgba(0,0,0,0.3)",
-    transform: "rotate(-10deg)",
+    boxShadow: "inset -5px 0 15px rgba(0,0,0,0.3)",
+    zIndex: 2,
   },
-  planeWing: {
+  rocketNose: {
     position: "absolute",
-    top: "-5px",
-    left: "25px",
+    top: "-30px",
+    left: "0",
+    width: "60px",
+    height: "40px",
+    background: "#ef4444",
+    clipPath: "polygon(50% 0, 100% 100%, 0 100%)",
+    borderTopLeftRadius: "50%",
+    borderTopRightRadius: "50%",
+  },
+  rocketWindow: {
+    position: "absolute",
+    top: "30px",
+    left: "15px",
     width: "30px",
-    height: "15px",
-    background: "#64748b",
-    transform: "skewX(-30deg)",
-    borderRadius: "2px",
+    height: "30px",
+    background: "radial-gradient(circle at 30% 30%, #60a5fa, #1e3a8a)",
+    borderRadius: "50%",
+    border: "4px solid #cbd5e1",
+    boxShadow: "inset 0 0 5px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.3)",
+  },
+  rocketFinLeft: {
+    position: "absolute",
+    bottom: "5px",
+    left: "-20px",
+    width: "30px",
+    height: "45px",
+    background: "linear-gradient(to bottom, #ef4444, #dc2626)",
+    clipPath: "polygon(100% 0, 100% 100%, 0 100%, 20% 50%)",
     zIndex: -1,
   },
-  planeTail: {
+  rocketFinRight: {
     position: "absolute",
-    top: "-15px",
-    left: "5px",
-    width: "15px",
-    height: "20px",
-    background: "#ef4444",
-    transform: "skewX(-20deg)",
-    borderRadius: "2px",
+    bottom: "5px",
+    right: "-20px",
+    width: "30px",
+    height: "45px",
+    background: "linear-gradient(to bottom, #ef4444, #dc2626)",
+    clipPath: "polygon(0 0, 0 100%, 100% 100%, 80% 50%)",
+    zIndex: -1,
   },
-  planeEngine: {
+  flame: {
     position: "absolute",
-    top: "10px",
-    left: "-15px",
-    width: "20px",
-    height: "10px",
-    background: "linear-gradient(to right, transparent, #ef4444, #fbbf24)",
+    bottom: "-50px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "30px",
+    height: "60px",
+    background: "radial-gradient(ellipse at top, #fef08a 10%, #f97316 40%, transparent 80%)",
     borderRadius: "50%",
+    animation: "flameFlicker 0.1s infinite alternate",
+    zIndex: -2,
     filter: "blur(2px)",
+  },
+  moonSurface: (state) => ({
+    position: "absolute",
+    bottom: 0,
+    left: "-10%",
+    width: "120%",
+    height: "30%",
+    background: "radial-gradient(ellipse at top, #1e293b, #0f172a)",
+    borderRadius: "50% 50% 0 0",
+    boxShadow: "inset 0 10px 20px rgba(255,255,255,0.05)",
+    zIndex: 1,
+    transform: state === "playing" ? "translateY(100%)" : "translateY(0)",
+    transition: "transform 2s ease-in",
+  }),
+  crater1: {
+    position: "absolute",
+    top: "30%", left: "20%",
+    width: "40px", height: "15px",
+    background: "rgba(0,0,0,0.3)",
+    borderRadius: "50%",
+    boxShadow: "inset 0 2px 5px rgba(0,0,0,0.5), 0 2px 2px rgba(255,255,255,0.1)",
+  },
+  crater2: {
+    position: "absolute",
+    top: "50%", right: "30%",
+    width: "60px", height: "20px",
+    background: "rgba(0,0,0,0.3)",
+    borderRadius: "50%",
+    boxShadow: "inset 0 2px 5px rgba(0,0,0,0.5), 0 2px 2px rgba(255,255,255,0.1)",
+  },
+  crater3: {
+    position: "absolute",
+    top: "40%", left: "50%",
+    width: "30px", height: "10px",
+    background: "rgba(0,0,0,0.3)",
+    borderRadius: "50%",
+    boxShadow: "inset 0 2px 5px rgba(0,0,0,0.5), 0 2px 2px rgba(255,255,255,0.1)",
   },
   controlsArea: {
     background: "#1B1B1B",
