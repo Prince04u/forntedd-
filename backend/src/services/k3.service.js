@@ -52,7 +52,8 @@ const generatePeriodId = (duration) => {
   const roundIndex = Math.floor(secondsSinceMidnight / sec) + 1;
 
   const dateStr = startOfTodayUTC.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
-  const durationCode = duration === "1m" ? "01" : duration === "3m" ? "03" : duration === "5m" ? "05" : "10";
+  // Use different duration codes (81, 83, 85, 90) for K3 to prevent E11000 duplicate key with Wingo (01, 03, 05, 10)
+  const durationCode = duration === "1m" ? "81" : duration === "3m" ? "83" : duration === "5m" ? "85" : "90";
   const roundStr = String(roundIndex).padStart(4, "0");
 
   return `${dateStr}${durationCode}${roundStr}`;
