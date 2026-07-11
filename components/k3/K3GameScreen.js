@@ -88,7 +88,11 @@ export default function K3GameScreen() {
       const onTick = (data) => {
         setPeriod((prev) => {
           if (!prev || prev.periodId !== data.periodId) return data;
-          return { ...prev, remainingSeconds: data.remainingSeconds };
+          // Avoid jumping by only syncing if there's a > 2 second drift
+          if (Math.abs(prev.remainingSeconds - data.remainingSeconds) > 2) {
+            return { ...prev, remainingSeconds: data.remainingSeconds };
+          }
+          return prev;
         });
         if (data.remainingSeconds <= 5) setIsRolling(true);
         else setIsRolling(false);
@@ -410,6 +414,52 @@ export default function K3GameScreen() {
         <button className="k3-confirm-bet" onClick={handlePlaceBet} disabled={!betSheet || bettingLocked}>
           BET
         </button>
+      </div>
+
+      {/* HISTORY SECTION */}
+      <div className="k3-history-section">
+        <div className="k3-history-tabs">
+          <button className={`k3-hist-tab ${historyTab === "game" ? "active" : ""}`} onClick={() => setHistoryTab("game")}>Game history</button>
+          <button className={`k3-hist-tab ${historyTab === "chart" ? "active" : ""}`} onClick={() => setHistoryTab("chart")}>Chart</button>
+          <button className={`k3-hist-tab ${historyTab === "my" ? "active" : ""}`} onClick={() => setHistoryTab("my")}>My history</button>
+        </div>
+
+        {historyTab === "game" && (
+          <div className="k3-history-table">
+            <div className="k3-history-th">
+              <div className="k3-th-col">Period</div>
+              <div className="k3-th-col">Sum</div>
+              <div className="k3-th-col">Results</div>
+            </div>
+            <div className="k3-history-body">
+              {results.map((res, i) => {
+                const sum = res.result.dice.reduce((a, b) => a + b, 0);
+                const size = sum >= 11 ? "Big" : "Small";
+                const parity = sum % 2 === 0 ? "Even" : "Odd";
+                return (
+                  <div key={i} className="k3-history-tr">
+                    <div className="k3-td-col" style={{ fontSize: "12px" }}>{res.periodId}</div>
+                    <div className="k3-td-col k3-td-sum">
+                      <span className="k3-sum-val">{sum}</span>
+                      <span className="k3-sum-size">{size}</span>
+                      <span className="k3-sum-parity">{parity}</span>
+                    </div>
+                    <div className="k3-td-col k3-td-dice">
+                      {res.result.dice.map((d, di) => {
+                        const dots = getFaces(d).top; 
+                        return (
+                          <div key={di} className="k3-mini-die">
+                            {renderDiceValue(dots)}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
     </div>
