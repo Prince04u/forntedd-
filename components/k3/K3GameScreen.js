@@ -115,7 +115,6 @@ export default function K3GameScreen() {
     };
   }, [duration, loadData]);
 
-  // Handle rolling animation
   useEffect(() => {
     let interval;
     if (isRolling) {
@@ -154,15 +153,9 @@ export default function K3GameScreen() {
       return (
         <div className="k3-chip-grid">
           {Array.from({ length: 16 }, (_, i) => i + 3).map(num => {
-            const isBig = num >= 11;
-            const isOdd = num % 2 !== 0;
-            // Determine theme color for circular chip
-            let theme = "theme-violet"; // default
+            let theme = "theme-gold";
             if (num === 3 || num === 18) theme = "theme-red";
-            else if (num === 4 || num === 17) theme = "theme-blue";
-            else if (num === 5 || num === 16) theme = "theme-green";
-            else if (num === 6 || num === 15) theme = "theme-orange";
-
+            else if (num === 4 || num === 17) theme = "theme-green";
             return (
               <div key={num} className={`k3-chip-btn ${theme}`} onClick={() => setBetSheet({ betType: "total", betValue: String(num), multiplier: MULTIPLIERS[`total_${num}`] })}>
                 <span className="k3-chip-val">{num}</span>
@@ -173,39 +166,23 @@ export default function K3GameScreen() {
         </div>
       );
     }
-    if (betCategory === "size") {
+    if (betCategory === "2_same") {
       return (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-          <div className="k3-wide-bet-btn theme-orange" onClick={() => setBetSheet({ betType: "size", betValue: "big", multiplier: MULTIPLIERS.size })}>
-            <span className="k3-chip-val">BIG</span>
-            <span className="k3-chip-mult">11-18 • {MULTIPLIERS.size}x</span>
-          </div>
-          <div className="k3-wide-bet-btn theme-blue" onClick={() => setBetSheet({ betType: "size", betValue: "small", multiplier: MULTIPLIERS.size })}>
-            <span className="k3-chip-val">SMALL</span>
-            <span className="k3-chip-mult">3-10 • {MULTIPLIERS.size}x</span>
-          </div>
-        </div>
-      );
-    }
-    if (betCategory === "parity") {
-      return (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-          <div className="k3-wide-bet-btn theme-red" onClick={() => setBetSheet({ betType: "parity", betValue: "odd", multiplier: MULTIPLIERS.parity })}>
-            <span className="k3-chip-val">ODD</span>
-            <span className="k3-chip-mult">{MULTIPLIERS.parity}x</span>
-          </div>
-          <div className="k3-wide-bet-btn theme-green" onClick={() => setBetSheet({ betType: "parity", betValue: "even", multiplier: MULTIPLIERS.parity })}>
-            <span className="k3-chip-val">EVEN</span>
-            <span className="k3-chip-mult">{MULTIPLIERS.parity}x</span>
-          </div>
+        <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+          {[11, 22, 33, 44, 55, 66].map(num => (
+            <div key={num} className="k3-chip-btn theme-gold" onClick={() => setBetSheet({ betType: "2_same_specific", betValue: String(num), multiplier: MULTIPLIERS["2_same_specific"] })}>
+              <span className="k3-chip-val" style={{ fontSize: "16px" }}>{num}*</span>
+              <span className="k3-chip-mult">{MULTIPLIERS["2_same_specific"]}x</span>
+            </div>
+          ))}
         </div>
       );
     }
     if (betCategory === "3_same") {
       return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-          <div className="k3-wide-bet-btn theme-violet" onClick={() => setBetSheet({ betType: "3_same_any", betValue: "any", multiplier: MULTIPLIERS["3_same_any"] })}>
-            <span className="k3-chip-val">Any 3 Same</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div className="k3-action-btn" style={{ borderColor: "rgba(245, 197, 66, 0.4)", background: "linear-gradient(145deg, rgba(245, 197, 66, 0.1), #111)" }} onClick={() => setBetSheet({ betType: "3_same_any", betValue: "any", multiplier: MULTIPLIERS["3_same_any"] })}>
+            <span className="k3-chip-val" style={{ color: "#F5C542" }}>Any 3 Same</span>
             <span className="k3-chip-mult">{MULTIPLIERS["3_same_any"]}x</span>
           </div>
           <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
@@ -219,151 +196,200 @@ export default function K3GameScreen() {
         </div>
       );
     }
+    if (betCategory === "different") {
+      return (
+        <div className="k3-action-btn" style={{ borderColor: "rgba(245, 197, 66, 0.4)", background: "linear-gradient(145deg, rgba(245, 197, 66, 0.1), #111)" }} onClick={() => setBetSheet({ betType: "3_seq_any", betValue: "seq", multiplier: MULTIPLIERS["3_seq_any"] })}>
+          <span className="k3-chip-val" style={{ color: "#F5C542" }}>3 Sequential (e.g. 123)</span>
+          <span className="k3-chip-mult">{MULTIPLIERS["3_seq_any"]}x</span>
+        </div>
+      );
+    }
   };
 
   return (
     <div className="k3-container">
-      {/* Header */}
+      {/* 1. Header */}
       <div className="k3-header">
-        <Link href="/" className="k3-header-back">←</Link>
-        <div className="k3-header-title">K3 Lottery</div>
+        <div className="k3-header-left">
+          <Link href="/" className="k3-back-btn">←</Link>
+          <div className="k3-header-title">K3 Lottery</div>
+        </div>
+        <div className="k3-header-center">
+          {durationMeta.label}
+        </div>
         <div className="k3-header-right">
-          <BrandLogo width={60} />
+          <button className="k3-icon-btn">💵</button>
+          <button className="k3-icon-btn">📜</button>
+          <button className="k3-icon-btn">≡</button>
         </div>
       </div>
 
-      {/* Wallet Card */}
-      <div className="k3-wallet-card">
-        <div className="k3-wallet-header">
-          <span>Wallet Balance</span>
-          <span onClick={loadData} style={{ cursor: "pointer" }}>↻ Refresh</span>
-        </div>
-        <div className="k3-wallet-balance">₹{balance.toFixed(2)}</div>
-        <div className="k3-wallet-actions">
-          <button className="k3-btn-action k3-btn-withdraw">Withdraw</button>
-          <button className="k3-btn-action k3-btn-deposit">Deposit</button>
+      {/* 2. Wallet Card */}
+      <div className="k3-wallet-wrapper">
+        <div className="k3-wallet-card">
+          <div className="k3-wallet-label">Wallet Balance</div>
+          <div className="k3-wallet-balance-row">
+            <div className="k3-wallet-balance">₹{balance.toFixed(2)}</div>
+            <div className="k3-wallet-refresh" onClick={loadData}>↻</div>
+          </div>
+          <div className="k3-wallet-actions">
+            <button className="k3-btn k3-btn-secondary">Withdraw</button>
+            <button className="k3-btn k3-btn-primary">Deposit</button>
+          </div>
         </div>
       </div>
 
-      {/* Game Duration Tabs */}
-      <div className="k3-duration-tabs">
+      {/* 3. Game Tabs */}
+      <div className="k3-game-tabs">
         {DURATIONS.map((d) => (
-          <Link key={d.id} href={`/k3/${d.id}`} style={{ textDecoration: "none" }}>
-            <div className={`k3-duration-tab ${duration === d.id ? "active" : ""}`}>
-              <span>{d.icon}</span>
+          <Link key={d.id} href={`/k3/${d.id}`} style={{ textDecoration: "none", flex: "0 0 auto" }}>
+            <div className={`k3-game-tab ${duration === d.id ? "active" : ""}`}>
               {d.label}
             </div>
           </Link>
         ))}
       </div>
 
-      {/* Main Game Area */}
-      <div className="k3-game-area">
+      {/* 4 & 5 & 6 & 7 & 8. Main Game Area Wrapper */}
+      <div className="k3-game-arena">
         {showCountdownOverlay && (
           <div className="k3-locked-overlay">
             <div className="k3-locked-text">Stop Betting</div>
           </div>
         )}
         
+        {/* Period & Countdown */}
         <div className="k3-period-header">
-          <div className="k3-period-info">
+          <div className="k3-period-col">
             <span className="k3-period-label">Period</span>
-            <span className="k3-period-id">{period?.periodId || "Loading..."}</span>
+            <span className="k3-period-value">{period?.periodId || "Loading..."}</span>
           </div>
-          <div className="k3-timer-container">
+          <div className="k3-period-col" style={{ alignItems: "flex-end" }}>
             <span className="k3-period-label">Count Down</span>
-            <div className="k3-timer-box-wrapper">
-              <div className="k3-timer-box">{timer.mm[0]}</div>
-              <div className="k3-timer-box">{timer.mm[1]}</div>
-              <span style={{ fontWeight: 800, color: "#F5C542" }}>:</span>
-              <div className="k3-timer-box">{timer.ss[0]}</div>
-              <div className="k3-timer-box">{timer.ss[1]}</div>
+            <div className="k3-timer-display">
+              <div className="k3-time-box">{timer.mm[0]}</div>
+              <div className="k3-time-box">{timer.mm[1]}</div>
+              <span className="k3-time-sep">:</span>
+              <div className="k3-time-box">{timer.ss[0]}</div>
+              <div className="k3-time-box">{timer.ss[1]}</div>
             </div>
           </div>
         </div>
 
-        {/* Premium Dice Stage */}
+        {/* Premium Dice Arena */}
         <div className="k3-dice-stage">
           {diceAnim.map((die, i) => (
-            <div key={i} className={`k3-die-3d ${isRolling ? "rolling" : ""}`}>
-              <div style={{ fontSize: "32px", fontWeight: 900, color: "#333", textShadow: "0 1px 0 #fff" }}>{die}</div>
+            <div key={i} className="k3-die-wrapper">
+              <div className={`k3-die-3d ${isRolling ? "rolling" : ""}`}>
+                <div className="k3-die-value">{die}</div>
+              </div>
+              <div className="k3-die-shadow"></div>
             </div>
           ))}
         </div>
         
-        {/* Betting Segments */}
-        <div className="k3-bet-segments">
+        {/* Betting Tabs (Segmented Controls) */}
+        <div className="k3-segments">
           <div className={`k3-segment ${betCategory === "total" ? "active" : ""}`} onClick={() => setBetCategory("total")}>TOTAL</div>
-          <div className={`k3-segment ${betCategory === "size" ? "active" : ""}`} onClick={() => setBetCategory("size")}>SIZE</div>
-          <div className={`k3-segment ${betCategory === "parity" ? "active" : ""}`} onClick={() => setBetCategory("parity")}>PARITY</div>
+          <div className={`k3-segment ${betCategory === "2_same" ? "active" : ""}`} onClick={() => setBetCategory("2_same")}>2 SAME</div>
           <div className={`k3-segment ${betCategory === "3_same" ? "active" : ""}`} onClick={() => setBetCategory("3_same")}>3 SAME</div>
+          <div className={`k3-segment ${betCategory === "different" ? "active" : ""}`} onClick={() => setBetCategory("different")}>DIFFERENT</div>
         </div>
 
+        {/* Compact Betting Chips */}
         {renderBetGrid()}
+
+        {/* Bottom Bet Buttons (Big, Small, Odd, Even) */}
+        <div className="k3-bottom-actions">
+          <div className="k3-action-btn big" onClick={() => setBetSheet({ betType: "size", betValue: "big", multiplier: MULTIPLIERS.size })}>
+            <span className="k3-chip-val" style={{ fontSize: "16px" }}>BIG</span>
+            <span className="k3-chip-mult">{MULTIPLIERS.size}x</span>
+          </div>
+          <div className="k3-action-btn small" onClick={() => setBetSheet({ betType: "size", betValue: "small", multiplier: MULTIPLIERS.size })}>
+            <span className="k3-chip-val" style={{ fontSize: "16px" }}>SMALL</span>
+            <span className="k3-chip-mult">{MULTIPLIERS.size}x</span>
+          </div>
+          <div className="k3-action-btn odd" onClick={() => setBetSheet({ betType: "parity", betValue: "odd", multiplier: MULTIPLIERS.parity })}>
+            <span className="k3-chip-val" style={{ fontSize: "16px" }}>ODD</span>
+            <span className="k3-chip-mult">{MULTIPLIERS.parity}x</span>
+          </div>
+          <div className="k3-action-btn even" onClick={() => setBetSheet({ betType: "parity", betValue: "even", multiplier: MULTIPLIERS.parity })}>
+            <span className="k3-chip-val" style={{ fontSize: "16px" }}>EVEN</span>
+            <span className="k3-chip-mult">{MULTIPLIERS.parity}x</span>
+          </div>
+        </div>
       </div>
 
-      {/* History Section */}
+      {/* 9 & 10. History Section */}
       <div className="k3-history-area">
         <div className="k3-history-tabs">
           <div className={`k3-history-tab ${historyTab === "game" ? "active" : ""}`} onClick={() => setHistoryTab("game")}>Game History</div>
           <div className={`k3-history-tab ${historyTab === "my" ? "active" : ""}`} onClick={() => setHistoryTab("my")}>My History</div>
         </div>
 
-        {historyTab === "game" ? (
-          <table className="k3-table">
-            <thead>
-              <tr>
-                <th>Period</th>
-                <th>Result</th>
-                <th>Size/Parity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((r, i) => (
-                <tr key={i}>
-                  <td style={{ fontWeight: 700 }}>{r.periodId.slice(-4)}</td>
-                  <td>
-                    <div className="k3-table-dice">
-                      {r.result?.dice?.map((d, j) => <div key={j} className="k3-mini-die">{d}</div>)}
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: "flex", gap: "4px", justifyContent: "center" }}>
-                      <span className={`k3-badge ${r.result?.size}`}>{r.result?.size === "big" ? "Big" : "Small"}</span>
-                      <span className={`k3-badge ${r.result?.parity}`}>{r.result?.parity === "odd" ? "Odd" : "Even"}</span>
-                    </div>
-                  </td>
+        <div className="k3-table-wrapper">
+          {historyTab === "game" ? (
+            <table className="k3-table">
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th>Dice Result</th>
+                  <th>Result</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <table className="k3-table">
-            <thead>
-              <tr>
-                <th>Period</th>
-                <th>Bet</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {myBets.map((b, i) => (
-                <tr key={i}>
-                  <td>{b.periodId.slice(-4)}</td>
-                  <td style={{ fontWeight: 600, color: "#fff" }}>{formatBetLabel(b.details.betType, b.details.betValue)}</td>
-                  <td>₹{b.amount}</td>
-                  <td className={b.state === "won" ? "k3-status-win" : "k3-status-lose"}>
-                    {b.state === "won" ? `+₹${b.winAmount}` : "-₹" + b.amount}
-                  </td>
+              </thead>
+              <tbody>
+                {results.map((r, i) => (
+                  <tr key={i}>
+                    <td style={{ color: "#F5C542" }}>{r.periodId.slice(-4)}</td>
+                    <td>
+                      <div className="k3-table-dice">
+                        {r.result?.dice?.map((d, j) => <div key={j} className="k3-mini-die">{d}</div>)}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
+                        <span className={`k3-badge ${r.result?.size}`}>{r.result?.size === "big" ? "Big" : "Small"}</span>
+                        <span className={`k3-badge ${r.result?.parity}`}>{r.result?.parity === "odd" ? "Odd" : "Even"}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <table className="k3-table">
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th>Bet</th>
+                  <th>Amount</th>
+                  <th>Profit</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {myBets.map((b, i) => (
+                  <tr key={i}>
+                    <td style={{ color: "#F5C542" }}>{b.periodId.slice(-4)}</td>
+                    <td>{formatBetLabel(b.details.betType, b.details.betValue)}</td>
+                    <td>₹{b.amount}</td>
+                    <td className={b.state === "won" ? "k3-status-win" : (b.state === "lost" ? "k3-status-lose" : "")}>
+                      {b.state === "won" ? `+₹${b.winAmount}` : (b.state === "lost" ? `-₹${b.amount}` : "0")}
+                    </td>
+                    <td>
+                      <span className={`k3-badge ${b.state === "won" ? "win" : (b.state === "lost" ? "lose" : "pending")}`}>
+                        {b.state.toUpperCase()}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
 
-      {/* Bet Modal */}
+      {/* Bet Modal (Premium Amount Selector) */}
       {betSheet && (
         <div className="k3-modal-overlay">
           <div className="k3-bet-modal">
@@ -372,19 +398,20 @@ export default function K3GameScreen() {
               <div className="k3-modal-close" onClick={() => setBetSheet(null)}>✕</div>
             </div>
 
-            <div style={{ textAlign: "center", marginBottom: "20px" }}>
-              <div style={{ fontSize: "14px", color: "#A8A8A8" }}>Selected</div>
-              <div style={{ fontSize: "24px", fontWeight: 900, color: "#fff" }}>{formatBetLabel(betSheet.betType, betSheet.betValue)}</div>
-              <div style={{ fontSize: "12px", color: "#F5C542", marginTop: "4px" }}>Multiplier: {betSheet.multiplier}x</div>
+            <div className="k3-modal-selected">
+              <div style={{ fontSize: "14px", color: "#B7B7B7", textTransform: "uppercase", letterSpacing: "1px" }}>Selected</div>
+              <div style={{ fontSize: "28px", fontWeight: 900, color: "#FFFFFF", margin: "4px 0" }}>{formatBetLabel(betSheet.betType, betSheet.betValue)}</div>
+              <div style={{ fontSize: "13px", color: "#F5C542", fontWeight: 700 }}>Multiplier: {betSheet.multiplier}x</div>
             </div>
 
-            <div className="k3-modal-row">
+            <div className="k3-modal-row" style={{ marginBottom: "12px" }}>
               <span className="k3-modal-label">Base Amount</span>
-              <div className="k3-amt-grid">
-                {[10, 50, 100, 1000].map(amt => (
-                  <button key={amt} className={`k3-amt-btn ${baseAmount === amt ? "active" : ""}`} onClick={() => setBaseAmount(amt)}>₹{amt}</button>
-                ))}
-              </div>
+            </div>
+            
+            <div className="k3-multipliers-row">
+              {[1, 10, 50, 100, 500, 1000].map(amt => (
+                <button key={amt} className={`k3-mult-btn ${baseAmount === amt ? "active" : ""}`} onClick={() => setBaseAmount(amt)}>₹{amt}</button>
+              ))}
             </div>
 
             <div className="k3-modal-row">
@@ -397,7 +424,7 @@ export default function K3GameScreen() {
             </div>
 
             <button className="k3-confirm-btn" onClick={handlePlaceBet} disabled={bettingLocked}>
-              Total ₹{baseAmount * quantity}
+              Total Bet: ₹{baseAmount * quantity}
             </button>
           </div>
         </div>
