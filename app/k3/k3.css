@@ -253,6 +253,7 @@ body {
    ARENA
    ========================================= */
 .k3-game-arena {
+  position: relative;
   margin: 0 16px 16px;
   background: #151515;
   border-radius: 16px;
