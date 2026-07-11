@@ -44,6 +44,16 @@ const initSocket = (socketIoInstance) => {
       logger.info(`Socket ${socket.id} joined Aviator flight room`);
     });
 
+    socket.on("k3:join", (duration) => {
+      socket.join(`k3:${duration}`);
+      logger.info(`Socket ${socket.id} joined K3 room: k3:${duration}`);
+    });
+
+    socket.on("k3:leave", (duration) => {
+      socket.leave(`k3:${duration}`);
+      logger.info(`Socket ${socket.id} left K3 room: k3:${duration}`);
+    });
+
     // Support client manual room join
     socket.on("join:user", () => {
       if (socket.userId) {

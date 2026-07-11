@@ -114,6 +114,21 @@ export default function K3GameScreen() {
     };
   }, [duration, loadData]);
 
+  // Local ticker to ensure smooth countdown
+  useEffect(() => {
+    const localTick = setInterval(() => {
+      setPeriod((prev) => {
+        if (prev && prev.remainingSeconds > 0) {
+          return { ...prev, remainingSeconds: prev.remainingSeconds - 1 };
+        } else if (prev && prev.remainingSeconds === 0) {
+          loadData();
+        }
+        return prev;
+      });
+    }, 1000);
+    return () => clearInterval(localTick);
+  }, [loadData]);
+
   useEffect(() => {
     let interval;
     if (isRolling) {
