@@ -68,7 +68,8 @@ exports.placeK3Bet = async (req, res, next) => {
     }
 
     const config = await PlatformConfig.findOne() || {};
-    const k3Config = config.k3Config || { minBet: 10, maxBet: 50000 };
+    const k3Config = config.k3Config || { minBet: 1, maxBet: 50000 };
+    if (k3Config.minBet > 1) k3Config.minBet = 1; // Force minBet to 1 as requested
 
     if (amount < k3Config.minBet || amount > k3Config.maxBet) {
       return res.status(400).json({ message: `Bet amount must be between ₹${k3Config.minBet} and ₹${k3Config.maxBet}` });

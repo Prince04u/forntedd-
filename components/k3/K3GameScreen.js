@@ -227,16 +227,16 @@ export default function K3GameScreen() {
           })}
           <div style={{ gridColumn: "span 4", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "16px" }}>
             <div className={`k3-chip-btn theme-red ${isSelected("size", "big") ? "active" : ""}`} onClick={() => selectBet("size", "big", MULTIPLIERS.size)} style={{ width: "100%", borderRadius: "8px", padding: "12px 0" }}>
-               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px"}}><span style={{fontWeight: 900, color:"#fff"}}>BIG</span></div>
+               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px", height: "100%"}}><span className="k3-chip-val">BIG</span></div>
             </div>
             <div className={`k3-chip-btn theme-green ${isSelected("size", "small") ? "active" : ""}`} onClick={() => selectBet("size", "small", MULTIPLIERS.size)} style={{ width: "100%", borderRadius: "8px", padding: "12px 0" }}>
-               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px"}}><span style={{fontWeight: 900, color:"#fff"}}>SMALL</span></div>
+               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px", height: "100%"}}><span className="k3-chip-val">SMALL</span></div>
             </div>
             <div className={`k3-chip-btn theme-red ${isSelected("parity", "odd") ? "active" : ""}`} onClick={() => selectBet("parity", "odd", MULTIPLIERS.parity)} style={{ width: "100%", borderRadius: "8px", padding: "12px 0" }}>
-               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px"}}><span style={{fontWeight: 900, color:"#fff"}}>ODD</span></div>
+               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px", height: "100%"}}><span className="k3-chip-val">ODD</span></div>
             </div>
             <div className={`k3-chip-btn theme-green ${isSelected("parity", "even") ? "active" : ""}`} onClick={() => selectBet("parity", "even", MULTIPLIERS.parity)} style={{ width: "100%", borderRadius: "8px", padding: "12px 0" }}>
-               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px"}}><span style={{fontWeight: 900, color:"#fff"}}>EVEN</span></div>
+               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px", height: "100%"}}><span className="k3-chip-val">EVEN</span></div>
             </div>
           </div>
         </div>

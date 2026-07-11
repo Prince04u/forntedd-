@@ -679,13 +679,14 @@ body {
 .k3-big-digit {
   width: 120px;
   height: 180px;
-  background: #f0f0f0;
+  background: #111111;
+  border: 1px solid rgba(245, 197, 66, 0.4);
   border-radius: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 120px;
   font-weight: 900;
-  color: #00c97b;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  color: #F5C542;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
