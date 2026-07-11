@@ -59,23 +59,44 @@ const generatePeriodId = (duration) => {
   return `${dateStr}${durationCode}${roundStr}`;
 };
 
+const getRemainingSeconds = (duration) => {
+  const now = new Date();
+  const startOfTodayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const secondsSinceMidnight = Math.floor((now.getTime() - startOfTodayUTC.getTime()) / 1000);
+  const sec = DURATION_SEC[duration] || 60;
+  const rem = sec - (secondsSinceMidnight % sec);
+  return rem === sec ? 0 : rem; // If exactly on boundary, it's 0. But wait, Wingo uses `sec - (secondsSinceMidnight % sec)`. If it's sec, it's the start. Let's just return sec - (secondsSinceMidnight % sec).
+};
+
 const tickK3 = async () => {
   const io = getIO();
   for (const duration of DURATIONS) {
-    timers[duration] -= 1;
-    io.to(`k3:${duration}`).emit("k3:tick", {
-      duration,
-      periodId: activePeriods[duration].periodId,
-      remainingSeconds: Math.max(0, timers[duration]),
-    });
+    const now = new Date();
+    const startOfTodayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const secondsSinceMidnight = Math.floor((now.getTime() - startOfTodayUTC.getTime()) / 1000);
+    const sec = DURATION_SEC[duration] || 60;
+    const rem = sec - (secondsSinceMidnight % sec);
+    
+    timers[duration] = rem;
+    const currentAbsolutePeriodId = generatePeriodId(duration);
 
-    if (timers[duration] <= 0) {
-      timers[duration] = DURATION_SEC[duration];
+    if (activePeriods[duration] && activePeriods[duration].periodId !== currentAbsolutePeriodId) {
       const completedPeriod = activePeriods[duration];
+      activePeriods[duration] = { periodId: currentAbsolutePeriodId }; // Temp lock
       (async () => {
-        await resolvePeriod(duration, completedPeriod);
+        if (completedPeriod._id) {
+           await resolvePeriod(duration, completedPeriod);
+        }
         activePeriods[duration] = await getOrCreateActivePeriod(duration);
       })();
+    }
+
+    if (activePeriods[duration] && activePeriods[duration]._id) {
+      io.to(`k3:${duration}`).emit("k3:tick", {
+        duration,
+        periodId: activePeriods[duration].periodId,
+        remainingSeconds: rem,
+      });
     }
   }
 };

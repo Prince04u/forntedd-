@@ -45,6 +45,9 @@ export default function K3GameScreen() {
   const [betCategory, setBetCategory] = useState("total");
   const [betSheet, setBetSheet] = useState(null); 
   const [baseAmount, setBaseAmount] = useState(1);
+  const [quantity, setQuantity] = useState(1);
+  const [agreed, setAgreed] = useState(true);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const [diceAnim, setDiceAnim] = useState([5, 4, 5]); // Matches screenshot
   const [isRolling, setIsRolling] = useState(false);
 
@@ -152,14 +155,21 @@ export default function K3GameScreen() {
     return () => clearInterval(interval);
   }, [isRolling]);
 
-  const handlePlaceBet = async () => {
+  const BASE_AMOUNTS = [1, 10, 100, 1000];
+  const MULTIPLIERS_ARRAY = [1, 5, 10, 20, 50, 100];
+
+  const confirmBet = async () => {
     if (!betSheet || bettingLocked) return;
+    if (quantity < 1) {
+      alert("Please enter a valid quantity.");
+      return;
+    }
     setLoading(true);
     try {
       await placeBet(duration, {
         betType: betSheet.betType,
         betValue: betSheet.betValue,
-        amount: baseAmount
+        amount: baseAmount * quantity
       });
       setBetSheet(null);
       loadData();
@@ -180,7 +190,24 @@ export default function K3GameScreen() {
       setBetSheet(null);
     } else {
       setBetSheet({ betType: bType, betValue: bVal, multiplier: mult });
+      setQuantity(1);
+      setBaseAmount(1);
     }
+  };
+
+  const closeBetSheet = () => {
+    setBetSheet(null);
+    setError("");
+  };
+
+  const setBetQuantity = (val) => {
+    if (val === "") {
+      setQuantity("");
+      return;
+    }
+    const next = parseInt(val, 10);
+    if (isNaN(next) || next < 1) return;
+    setQuantity(next);
   };
 
   const renderDiceValue = (val) => {
@@ -241,8 +268,8 @@ export default function K3GameScreen() {
             <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>2 matching numbers: odds({MULTIPLIERS["2_same_specific"]}) <span style={{color:"#ff4d4d"}}>❓</span></div>
             <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
               {[11, 22, 33, 44, 55, 66].map(num => (
-                <div key={num} className={`k3-chip-btn ${isSelected("2_same_specific", String(num)) ? "theme-red active" : ""}`} onClick={() => selectBet("2_same_specific", String(num), MULTIPLIERS["2_same_specific"])} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("2_same_specific", String(num)) ? "#fff" : "#aaa"}}>{num}</div>
+                <div key={num} className={`k3-glossy-box ${isSelected("2_same_specific", String(num)) ? "active-red" : ""}`} onClick={() => selectBet("2_same_specific", String(num), MULTIPLIERS["2_same_specific"])}>
+                  {num}
                 </div>
               ))}
             </div>
@@ -251,13 +278,13 @@ export default function K3GameScreen() {
             <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>A pair of unique numbers: odds(69.12) <span style={{color:"#ff4d4d"}}>❓</span></div>
             <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
               {[11, 22, 33, 44, 55, 66].map(num => (
-                <div key={`pair_${num}`} className={`k3-chip-btn ${isSelected("2_same_unique_pair", String(num)) ? "theme-red active" : ""}`} onClick={() => selectBet("2_same_unique_pair", String(num), 69.12)} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("2_same_unique_pair", String(num)) ? "#fff" : "#aaa"}}>{num}</div>
+                <div key={`pair_${num}`} className={`k3-glossy-box ${isSelected("2_same_unique_pair", String(num)) ? "active-red" : ""}`} onClick={() => selectBet("2_same_unique_pair", String(num), 69.12)}>
+                  {num}
                 </div>
               ))}
               {[1, 2, 3, 4, 5, 6].map(num => (
-                <div key={`uniq_${num}`} className={`k3-chip-btn ${isSelected("2_same_unique_single", String(num)) ? "theme-green active" : ""}`} onClick={() => selectBet("2_same_unique_single", String(num), 69.12)} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("2_same_unique_single", String(num)) ? "#fff" : "#aaa"}}>{num}</div>
+                <div key={`uniq_${num}`} className={`k3-glossy-box ${isSelected("2_same_unique_single", String(num)) ? "active-green" : ""}`} onClick={() => selectBet("2_same_unique_single", String(num), 69.12)}>
+                  {num}
                 </div>
               ))}
             </div>
@@ -272,16 +299,16 @@ export default function K3GameScreen() {
             <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>3 of the same number: odds({MULTIPLIERS["3_same_specific"]}) <span style={{color:"#ff4d4d"}}>❓</span></div>
             <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
               {[111, 222, 333, 444, 555, 666].map(num => (
-                <div key={num} className={`k3-chip-btn ${isSelected("3_same_specific", String(num)) ? "theme-red active" : ""}`} onClick={() => selectBet("3_same_specific", String(num), MULTIPLIERS["3_same_specific"])} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("3_same_specific", String(num)) ? "#fff" : "#aaa"}}>{num}</div>
+                <div key={num} className={`k3-glossy-box ${isSelected("3_same_specific", String(num)) ? "active-red" : ""}`} onClick={() => selectBet("3_same_specific", String(num), MULTIPLIERS["3_same_specific"])}>
+                  {num}
                 </div>
               ))}
             </div>
           </div>
           <div>
             <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>Any 3 of the same number: odds({MULTIPLIERS["3_same_any"]}) <span style={{color:"#ff4d4d"}}>❓</span></div>
-            <div className={`k3-chip-btn ${isSelected("3_same_any", "any") ? "theme-red active" : ""}`} onClick={() => selectBet("3_same_any", "any", MULTIPLIERS["3_same_any"])} style={{ width: "100%", padding: "12px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("3_same_any", "any") ? "#fff" : "#aaa"}}>Any 3 of the same number: odds</div>
+            <div className={`k3-glossy-box ${isSelected("3_same_any", "any") ? "active-red" : ""}`} onClick={() => selectBet("3_same_any", "any", MULTIPLIERS["3_same_any"])}>
+              Any 3 of the same number
             </div>
           </div>
         </div>
@@ -294,8 +321,8 @@ export default function K3GameScreen() {
             <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>3 different numbers: odds(34.56) <span style={{color:"#ff4d4d"}}>❓</span></div>
             <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
               {[1, 2, 3, 4, 5, 6].map(num => (
-                <div key={num} className={`k3-chip-btn ${isSelected("3_diff", String(num)) ? "theme-red active" : ""}`} onClick={() => selectBet("3_diff", String(num), 34.56)} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("3_diff", String(num)) ? "#fff" : "#aaa"}}>{num}</div>
+                <div key={num} className={`k3-glossy-box ${isSelected("3_diff", String(num)) ? "active-red" : ""}`} onClick={() => selectBet("3_diff", String(num), 34.56)}>
+                  {num}
                 </div>
               ))}
             </div>
@@ -437,25 +464,6 @@ export default function K3GameScreen() {
 
         {/* Number Grid */}
         {renderBetGrid()}
-
-        {/* Bet Controls Inline */}
-        <div className="k3-bet-controls">
-          <div className="k3-bet-input-group">
-            <button className="k3-bet-ctrl-btn" onClick={() => setBaseAmount(Math.max(1, baseAmount - 1))}>-</button>
-            <input className="k3-bet-input" value={baseAmount} readOnly />
-            <button className="k3-bet-ctrl-btn" onClick={() => setBaseAmount(baseAmount + 1)}>+</button>
-          </div>
-          <div className="k3-quick-mults">
-            <button className={`k3-quick-btn ${baseAmount === 1 ? "active" : ""}`} onClick={() => setBaseAmount(1)}>X1</button>
-            <button className={`k3-quick-btn ${baseAmount === 5 ? "active" : ""}`} onClick={() => setBaseAmount(5)}>X5</button>
-            <button className={`k3-quick-btn ${baseAmount === 10 ? "active" : ""}`} onClick={() => setBaseAmount(10)}>X10</button>
-            <button className={`k3-quick-btn ${baseAmount === 50 ? "active" : ""}`} onClick={() => setBaseAmount(50)}>X50</button>
-            <button className={`k3-quick-btn ${baseAmount === 100 ? "active" : ""}`} onClick={() => setBaseAmount(100)}>X100</button>
-          </div>
-          <button className="k3-confirm-bet" onClick={handlePlaceBet} disabled={!betSheet || bettingLocked}>
-            BET
-          </button>
-        </div>
       </div>
 
       {/* HISTORY SECTION */}
@@ -575,6 +583,117 @@ export default function K3GameScreen() {
           </div>
         )}
       </div>
+
+      {betSheet && (
+        <div className="wg-bet-overlay" onClick={closeBetSheet}>
+          <div
+            className={`wg-bet-sheet theme-blue`}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="wg-bet-sheet-banner">
+              <div className="wg-bet-sheet-header">
+                <p className="wg-bet-sheet-game">{duration} K3</p>
+              </div>
+              <div className="wg-bet-sheet-select">
+                {formatBetLabel(betSheet.betType, betSheet.betValue)}
+              </div>
+            </div>
+
+            <div className="wg-bet-sheet-body">
+              <div className="wg-bet-field">
+                <span className="wg-bet-field-label">Balance</span>
+                <div className="wg-bet-amount-row">
+                  {BASE_AMOUNTS.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`wg-bet-chip ${baseAmount === value ? "active" : ""}`}
+                      onClick={() => setBaseAmount(value)}
+                    >
+                      {value >= 1000 ? `${value/1000}K` : value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="wg-bet-field">
+                <span className="wg-bet-field-label">Quantity</span>
+                <div className="wg-bet-qty">
+                  <button
+                    type="button"
+                    className="wg-bet-qty-btn"
+                    disabled={quantity <= 1}
+                    onClick={() => setBetQuantity(quantity - 1)}
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setBetQuantity(e.target.value)}
+                    className="wg-bet-qty-input"
+                  />
+                  <button
+                    type="button"
+                    className="wg-bet-qty-btn"
+                    onClick={() => setBetQuantity(quantity + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="wg-bet-field wg-bet-field-multi">
+                <div className="wg-bet-multi-row">
+                  {MULTIPLIERS_ARRAY.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      className={`wg-bet-multi ${quantity === m ? "active" : ""}`}
+                      onClick={() => setBetQuantity(m)}
+                    >
+                      X{m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label className="wg-bet-agree">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                />
+                <span>I agree</span>
+                <button type="button" className="wg-bet-rules" onClick={() => {}}>
+                  (Pre-sale rules)
+                </button>
+              </label>
+
+              {error && betSheet && (
+                <p className="wg-bet-sheet-error" role="alert">{error}</p>
+              )}
+            </div>
+
+            <div className="wg-bet-sheet-footer">
+              <button type="button" className="wg-bet-cancel" disabled={loading} onClick={closeBetSheet}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="wg-bet-confirm"
+                disabled={loading || !agreed}
+                onClick={confirmBet}
+              >
+                {loading ? "Processing..." : `Total amount ₹${(baseAmount * quantity).toFixed(2)}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
