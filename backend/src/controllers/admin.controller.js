@@ -538,6 +538,7 @@ const getGamesOverview = async (req, res, next) => {
         mines: config.minesConfig,
         aviator: config.aviatorConfig,
         dice: config.diceConfig,
+        k3: config.k3Config,
       },
     });
   } catch (error) {
@@ -547,7 +548,7 @@ const getGamesOverview = async (req, res, next) => {
 
 const updateGameConfig = async (req, res, next) => {
   try {
-    const { gameId } = req.params; // "wingo" | "mines" | "aviator" | "dice"
+    const { gameId } = req.params; // "wingo" | "mines" | "aviator" | "dice" | "k3"
     const { minBet, maxBet, houseEdgePercent } = req.body;
 
     let config = await PlatformConfig.findOne();

@@ -7,6 +7,7 @@ const logger = require("./config/logger");
 const { initSocket } = require("./services/socket.service");
 const { initWingoGame } = require("./services/wingo.service");
 const { initAviatorGame } = require("./services/aviator.service");
+const { initK3Game } = require("./services/k3.service");
 
 // Models for seed data checks
 const PlatformConfig = require("./models/PlatformConfig");
@@ -44,6 +45,7 @@ const startServer = async () => {
 
   // Initialize background game loops
   await initWingoGame();
+  await initK3Game();
   initAviatorGame();
 
   server.listen(PORT, () => {

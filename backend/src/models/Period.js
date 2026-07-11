@@ -5,7 +5,7 @@ const PeriodSchema = new mongoose.Schema(
     game: {
       type: String,
       required: true,
-      enum: ["wingo", "aviator"],
+      enum: ["wingo", "aviator", "k3"],
       index: true,
     },
     duration: {

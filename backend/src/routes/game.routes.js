@@ -23,6 +23,8 @@ const { protect } = require("../middlewares/auth");
 
 const router = express.Router();
 
+const k3Routes = require("./k3.routes");
+
 // Wingo routes
 router.get("/wingo/:duration/current", protect, getCurrentPeriod);
 router.get("/wingo/:duration/results", getRecentResults);
@@ -50,5 +52,8 @@ router.get("/dice/rolls/my", protect, getDiceRolls);
 // Limbo routes
 router.post("/limbo/play", protect, playLimbo);
 router.get("/limbo/bets/my", protect, getLimboBets);
+
+// K3 routes
+router.use("/k3", k3Routes);
 
 module.exports = router;

@@ -77,6 +77,14 @@ const PlatformConfigSchema = new mongoose.Schema(
         houseEdgePercent: 2.0,
       },
     },
+    k3Config: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {
+        minBet: 10,
+        maxBet: 50000,
+        houseEdgePercent: 3.0,
+      },
+    },
     // Referral configuration rates
     referralCommissionRates: {
       type: [Number],

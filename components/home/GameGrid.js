@@ -38,6 +38,8 @@ const GAMES = {
     { id: "wingo1m", label: "Wingo 1M", category: "Lottery", href: "/wingo/1m", className: "wingo", art: "⏱️", badge: "hot" },
     { id: "wingo3m", label: "Wingo 3M", category: "Lottery", href: "/wingo/3m", className: "wingo", art: "⏳" },
     { id: "wingo5m", label: "Wingo 5M", category: "Lottery", href: "/wingo/5m", className: "wingo", art: "🕐", badge: "new" },
+    { id: "k3_1m", label: "K3 1M", category: "Lottery", href: "/k3/1m", className: "cricket", art: "🎲", badge: "new" },
+    { id: "k3_3m", label: "K3 3M", category: "Lottery", href: "/k3/3m", className: "cricket", art: "🎲" },
   ],
   popular: [
     {
@@ -69,6 +71,8 @@ const GAMES = {
     },
   ],
   lottery: [
+    { id: "k3_1m", label: "K3 1M", category: "Lottery", href: "/k3/1m", className: "cricket", art: "🎲", badge: "new" },
+    { id: "k3_3m", label: "K3 3M", category: "Lottery", href: "/k3/3m", className: "cricket", art: "🎲" },
     { id: "wingo1m", label: "Wingo 1M", category: "Lottery", href: "/wingo/1m", className: "wingo", art: "⏱️", badge: "hot" },
     { id: "wingo3m", label: "Wingo 3M", category: "Lottery", href: "/wingo/3m", className: "wingo", art: "⏳" },
     { id: "wingo5m", label: "Wingo 5M", category: "Lottery", href: "/wingo/5m", className: "wingo", art: "🕐", badge: "new" },

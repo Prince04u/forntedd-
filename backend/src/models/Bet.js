@@ -11,7 +11,7 @@ const BetSchema = new mongoose.Schema(
     game: {
       type: String,
       required: true,
-      enum: ["wingo", "mines", "aviator", "dice", "limbo"],
+      enum: ["wingo", "mines", "aviator", "dice", "limbo", "k3"],
       index: true,
     },
     periodId: {
