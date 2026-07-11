@@ -26,7 +26,13 @@ import BrandLogo from "@/components/brand/BrandLogo";
 export default function K3GameScreen() {
   const params = useParams();
   const router = useRouter();
-  const duration = params.duration || "1m";
+  let duration = params.duration || "1m";
+  // Normalize manually typed URLs like /k3/1min
+  if (duration === "1min") duration = "1m";
+  if (duration === "3min") duration = "3m";
+  if (duration === "5min") duration = "5m";
+  if (duration === "10min") duration = "10m";
+
   const durationMeta = getDurationMeta(duration);
   const { maintenanceMode, blocksAction } = usePlatformStatus();
 
@@ -70,36 +76,44 @@ export default function K3GameScreen() {
 
   useEffect(() => {
     loadData();
-    const socket = getSocket();
-    if (!socket) return;
+    let activeSocket = null;
+    let cancelled = false;
 
-    socket.emit("k3:join", duration);
+    getSocket().then((socket) => {
+      if (!socket || cancelled) return;
+      activeSocket = socket;
 
-    const onTick = (data) => {
-      setPeriod((prev) => {
-        if (!prev || prev.periodId !== data.periodId) return data;
-        return { ...prev, remainingSeconds: data.remainingSeconds };
-      });
-      if (data.remainingSeconds <= 5) setIsRolling(true);
-      else setIsRolling(false);
-    };
+      socket.emit("k3:join", duration);
 
-    const onResult = (data) => {
-      if (data.duration === duration) {
-        setResults((prev) => [data, ...prev].slice(0, 50));
-        setDiceAnim(data.result.dice);
-        setIsRolling(false);
-        setTimeout(() => loadData(), 2000);
-      }
-    };
+      const onTick = (data) => {
+        setPeriod((prev) => {
+          if (!prev || prev.periodId !== data.periodId) return data;
+          return { ...prev, remainingSeconds: data.remainingSeconds };
+        });
+        if (data.remainingSeconds <= 5) setIsRolling(true);
+        else setIsRolling(false);
+      };
 
-    socket.on("k3:tick", onTick);
-    socket.on("k3:result", onResult);
+      const onResult = (data) => {
+        if (data.duration === duration) {
+          setResults((prev) => [data, ...prev].slice(0, 50));
+          setDiceAnim(data.result.dice);
+          setIsRolling(false);
+          setTimeout(() => loadData(), 2000);
+        }
+      };
+
+      socket.on("k3:tick", onTick);
+      socket.on("k3:result", onResult);
+    });
 
     return () => {
-      socket.off("k3:tick", onTick);
-      socket.off("k3:result", onResult);
-      socket.emit("k3:leave", duration);
+      cancelled = true;
+      if (activeSocket) {
+        activeSocket.emit("k3:leave", duration);
+        activeSocket.off("k3:tick");
+        activeSocket.off("k3:result");
+      }
     };
   }, [duration, loadData]);
 
