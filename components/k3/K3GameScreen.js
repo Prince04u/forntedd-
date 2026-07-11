@@ -222,6 +222,7 @@ export default function K3GameScreen() {
           })}
         </div>
       );
+    }
     if (betCategory === "2_same") {
       return (
         <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
