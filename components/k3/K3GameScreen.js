@@ -229,54 +229,85 @@ export default function K3GameScreen() {
     }
     if (betCategory === "2_same") {
       return (
-        <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-          {[11, 22, 33, 44, 55, 66].map(num => (
-            <div key={num} className={`k3-chip-wrapper ${isSelected("2_same_specific", String(num)) ? "selected" : ""}`} onClick={() => selectBet("2_same_specific", String(num), MULTIPLIERS["2_same_specific"])}>
-              <div className="k3-chip-btn theme-red">
-                <div className="k3-chip-inner"><span className="k3-chip-val" style={{fontSize: "14px"}}>{num}*</span></div>
-              </div>
-              <span className="k3-chip-mult">{MULTIPLIERS["2_same_specific"]}X</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px", padding: "16px" }}>
+          <div>
+            <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>2 matching numbers: odds({MULTIPLIERS["2_same_specific"]}) <span style={{color:"#ff4d4d"}}>❓</span></div>
+            <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
+              {[11, 22, 33, 44, 55, 66].map(num => (
+                <div key={num} className={`k3-chip-btn ${isSelected("2_same_specific", String(num)) ? "theme-red active" : ""}`} onClick={() => selectBet("2_same_specific", String(num), MULTIPLIERS["2_same_specific"])} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("2_same_specific", String(num)) ? "#fff" : "#aaa"}}>{num}</div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+          <div>
+            <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>A pair of unique numbers: odds(69.12) <span style={{color:"#ff4d4d"}}>❓</span></div>
+            <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
+              {[11, 22, 33, 44, 55, 66].map(num => (
+                <div key={`pair_${num}`} className="k3-chip-btn" onClick={() => alert("Combination bets are coming soon!")} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div className="k3-chip-val" style={{fontSize: "14px", color: "#aaa"}}>{num}</div>
+                </div>
+              ))}
+              {[1, 2, 3, 4, 5, 6].map(num => (
+                <div key={`uniq_${num}`} className="k3-chip-btn" onClick={() => alert("Combination bets are coming soon!")} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div className="k3-chip-val" style={{fontSize: "14px", color: "#aaa"}}>{num}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       );
     }
     if (betCategory === "3_same") {
       return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "0 16px" }}>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <div className={`k3-chip-wrapper ${isSelected("3_same_any", "any") ? "selected" : ""}`} onClick={() => selectBet("3_same_any", "any", MULTIPLIERS["3_same_any"])}>
-              <div className="k3-chip-btn theme-green" style={{ width: "auto", padding: "0 16px", borderRadius: "32px" }}>
-                <div className="k3-chip-inner" style={{ width: "auto", padding: "0 12px", borderRadius: "20px" }}>
-                  <span className="k3-chip-val" style={{fontSize: "14px"}}>Any 3 Same</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px", padding: "16px" }}>
+          <div>
+            <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>3 of the same number: odds({MULTIPLIERS["3_same_specific"]}) <span style={{color:"#ff4d4d"}}>❓</span></div>
+            <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
+              {[111, 222, 333, 444, 555, 666].map(num => (
+                <div key={num} className={`k3-chip-btn ${isSelected("3_same_specific", String(num)) ? "theme-red active" : ""}`} onClick={() => selectBet("3_same_specific", String(num), MULTIPLIERS["3_same_specific"])} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("3_same_specific", String(num)) ? "#fff" : "#aaa"}}>{num}</div>
                 </div>
-              </div>
-              <span className="k3-chip-mult">{MULTIPLIERS["3_same_any"]}X</span>
+              ))}
             </div>
           </div>
-          <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", padding: "0" }}>
-            {[111, 222, 333, 444, 555, 666].map(num => (
-              <div key={num} className={`k3-chip-wrapper ${isSelected("3_same_specific", String(num)) ? "selected" : ""}`} onClick={() => selectBet("3_same_specific", String(num), MULTIPLIERS["3_same_specific"])}>
-                <div className="k3-chip-btn theme-red">
-                  <div className="k3-chip-inner"><span className="k3-chip-val" style={{fontSize: "14px"}}>{num}</span></div>
-                </div>
-                <span className="k3-chip-mult">{MULTIPLIERS["3_same_specific"]}X</span>
-              </div>
-            ))}
+          <div>
+            <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>Any 3 of the same number: odds({MULTIPLIERS["3_same_any"]}) <span style={{color:"#ff4d4d"}}>❓</span></div>
+            <div className={`k3-chip-btn ${isSelected("3_same_any", "any") ? "theme-red active" : ""}`} onClick={() => selectBet("3_same_any", "any", MULTIPLIERS["3_same_any"])} style={{ width: "100%", padding: "12px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("3_same_any", "any") ? "#fff" : "#aaa"}}>Any 3 of the same number: odds</div>
+            </div>
           </div>
         </div>
       );
     }
     if (betCategory === "different") {
       return (
-        <div style={{ display: "flex", justifyContent: "center", padding: "0 16px" }}>
-          <div className={`k3-chip-wrapper ${isSelected("3_seq_any", "seq") ? "selected" : ""}`} onClick={() => selectBet("3_seq_any", "seq", MULTIPLIERS["3_seq_any"])}>
-            <div className="k3-chip-btn theme-red" style={{ width: "auto", padding: "0 16px", borderRadius: "32px" }}>
-              <div className="k3-chip-inner" style={{ width: "auto", padding: "0 12px", borderRadius: "20px" }}>
-                <span className="k3-chip-val" style={{fontSize: "14px"}}>3 Sequential</span>
-              </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px", padding: "16px" }}>
+          <div>
+            <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>3 different numbers: odds(34.56) <span style={{color:"#ff4d4d"}}>❓</span></div>
+            <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
+              {[1, 2, 3, 4, 5, 6].map(num => (
+                <div key={num} className="k3-chip-btn" onClick={() => alert("Combination bets are coming soon!")} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div className="k3-chip-val" style={{fontSize: "14px", color: "#aaa"}}>{num}</div>
+                </div>
+              ))}
             </div>
-            <span className="k3-chip-mult">{MULTIPLIERS["3_seq_any"]}X</span>
+          </div>
+          <div>
+            <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>3 continuous numbers: odds({MULTIPLIERS["3_seq_any"]}) <span style={{color:"#ff4d4d"}}>❓</span></div>
+            <div className={`k3-chip-btn ${isSelected("3_seq_any", "seq") ? "theme-red active" : ""}`} onClick={() => selectBet("3_seq_any", "seq", MULTIPLIERS["3_seq_any"])} style={{ width: "100%", padding: "12px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="k3-chip-val" style={{fontSize: "14px", color: isSelected("3_seq_any", "seq") ? "#fff" : "#aaa"}}>3 continuous numbers</div>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: "14px", color: "#ccc", marginBottom: "8px" }}>2 different numbers: odds(6.91) <span style={{color:"#ff4d4d"}}>❓</span></div>
+            <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", padding: 0 }}>
+              {[1, 2, 3, 4, 5, 6].map(num => (
+                <div key={`2diff_${num}`} className="k3-chip-btn" onClick={() => alert("Combination bets are coming soon!")} style={{ padding: "8px 0", borderRadius: "8px", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div className="k3-chip-val" style={{fontSize: "14px", color: "#aaa"}}>{num}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       );
@@ -464,9 +495,40 @@ export default function K3GameScreen() {
 
         {historyTab === "chart" && (
           <div className="k3-history-table">
-             <div style={{padding: "20px", textAlign: "center", color: "#888", fontSize: "14px"}}>
-                Chart view is under development.
-             </div>
+            <div className="k3-history-th">
+              <div className="k3-th-col">Period</div>
+              <div className="k3-th-col">Results</div>
+              <div className="k3-th-col" style={{flex: 1.5}}>Number</div>
+            </div>
+            <div className="k3-history-body">
+              {results.length === 0 && <div style={{padding: "20px", textAlign: "center", color: "#888"}}>No data available</div>}
+              {results.map((res, i) => {
+                const sorted = [...res.result.dice].sort();
+                let combText = "3 different numbers";
+                if (sorted[0] === sorted[1] && sorted[1] === sorted[2]) combText = "3 same numbers";
+                else if (sorted[0] === sorted[1] || sorted[1] === sorted[2]) combText = "2 same numbers";
+                else if (sorted[0] + 1 === sorted[1] && sorted[1] + 1 === sorted[2]) combText = "3 continuous numbers";
+
+                return (
+                  <div key={i} className="k3-history-tr">
+                    <div className="k3-td-col" style={{ fontSize: "12px" }}>{res.periodId}</div>
+                    <div className="k3-td-col k3-td-dice">
+                      {res.result.dice.map((d, di) => {
+                        const dots = getFaces(d).top; 
+                        return (
+                          <div key={di} className="k3-mini-die">
+                            {renderDiceValue(dots)}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="k3-td-col" style={{ fontSize: "12px", flex: 1.5, color: "#ccc" }}>
+                      {combText}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
