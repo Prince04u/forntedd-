@@ -664,22 +664,28 @@ body {
 .k3-history-tab.active { background: #222; color: #F5C542; }
 
 /* Locked Overlay */
-.k3-locked-overlay {
+.k3-big-countdown-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(4px);
-  z-index: 10;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 16px;
+  gap: 16px;
+  backdrop-filter: blur(2px);
+  border-radius: 12px;
 }
-.k3-locked-text {
-  font-size: 32px;
+.k3-big-digit {
+  width: 120px;
+  height: 180px;
+  background: #f0f0f0;
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 120px;
   font-weight: 900;
-  color: #F5C542;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.9);
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  color: #00c97b;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
