@@ -226,18 +226,10 @@ export default function K3GameScreen() {
             );
           })}
           <div style={{ gridColumn: "span 4", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "16px" }}>
-            <div className={`k3-chip-btn theme-red ${isSelected("size", "big") ? "active" : ""}`} onClick={() => selectBet("size", "big", MULTIPLIERS.size)} style={{ width: "100%", borderRadius: "8px", padding: "12px 0" }}>
-               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px", height: "100%"}}><span className="k3-chip-val">BIG</span></div>
-            </div>
-            <div className={`k3-chip-btn theme-green ${isSelected("size", "small") ? "active" : ""}`} onClick={() => selectBet("size", "small", MULTIPLIERS.size)} style={{ width: "100%", borderRadius: "8px", padding: "12px 0" }}>
-               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px", height: "100%"}}><span className="k3-chip-val">SMALL</span></div>
-            </div>
-            <div className={`k3-chip-btn theme-red ${isSelected("parity", "odd") ? "active" : ""}`} onClick={() => selectBet("parity", "odd", MULTIPLIERS.parity)} style={{ width: "100%", borderRadius: "8px", padding: "12px 0" }}>
-               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px", height: "100%"}}><span className="k3-chip-val">ODD</span></div>
-            </div>
-            <div className={`k3-chip-btn theme-green ${isSelected("parity", "even") ? "active" : ""}`} onClick={() => selectBet("parity", "even", MULTIPLIERS.parity)} style={{ width: "100%", borderRadius: "8px", padding: "12px 0" }}>
-               <div className="k3-chip-inner" style={{width: "100%", borderRadius: "6px", height: "100%"}}><span className="k3-chip-val">EVEN</span></div>
-            </div>
+            <button className={`k3-wg-color-btn red ${isSelected("size", "big") ? "active" : ""}`} onClick={() => selectBet("size", "big", MULTIPLIERS.size)}>BIG</button>
+            <button className={`k3-wg-color-btn green ${isSelected("size", "small") ? "active" : ""}`} onClick={() => selectBet("size", "small", MULTIPLIERS.size)}>SMALL</button>
+            <button className={`k3-wg-color-btn red ${isSelected("parity", "odd") ? "active" : ""}`} onClick={() => selectBet("parity", "odd", MULTIPLIERS.parity)}>ODD</button>
+            <button className={`k3-wg-color-btn green ${isSelected("parity", "even") ? "active" : ""}`} onClick={() => selectBet("parity", "even", MULTIPLIERS.parity)}>EVEN</button>
           </div>
         </div>
       );
@@ -454,9 +446,11 @@ export default function K3GameScreen() {
             <button className="k3-bet-ctrl-btn" onClick={() => setBaseAmount(baseAmount + 1)}>+</button>
           </div>
           <div className="k3-quick-mults">
-            <button className="k3-quick-btn" onClick={() => setBaseAmount(10)}>x1</button>
-            <button className="k3-quick-btn" onClick={() => setBaseAmount(50)}>x5</button>
-            <button className="k3-quick-btn" onClick={() => setBaseAmount(100)}>x10</button>
+            <button className={`k3-quick-btn ${baseAmount === 1 ? "active" : ""}`} onClick={() => setBaseAmount(1)}>X1</button>
+            <button className={`k3-quick-btn ${baseAmount === 5 ? "active" : ""}`} onClick={() => setBaseAmount(5)}>X5</button>
+            <button className={`k3-quick-btn ${baseAmount === 10 ? "active" : ""}`} onClick={() => setBaseAmount(10)}>X10</button>
+            <button className={`k3-quick-btn ${baseAmount === 50 ? "active" : ""}`} onClick={() => setBaseAmount(50)}>X50</button>
+            <button className={`k3-quick-btn ${baseAmount === 100 ? "active" : ""}`} onClick={() => setBaseAmount(100)}>X100</button>
           </div>
           <button className="k3-confirm-bet" onClick={handlePlaceBet} disabled={!betSheet || bettingLocked}>
             BET

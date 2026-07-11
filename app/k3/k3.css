@@ -14,6 +14,7 @@ body {
 }
 
 .k3-container {
+  --theme-gold-metal: linear-gradient(135deg, #FFE8A3 0%, #F1C40F 25%, #C29B1D 50%, #F5D365 75%, #A67C00 100%);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -21,6 +22,26 @@ body {
   max-width: 480px;
   margin: 0 auto;
   position: relative;
+}
+
+.k3-container::before {
+  content:"";
+  position: fixed;
+  inset: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 20% 6%, rgba(212,175,55,.14), transparent 42%),
+    radial-gradient(circle at 85% 18%, rgba(109,40,217,.12), transparent 46%),
+    radial-gradient(circle at 45% 92%, rgba(212,175,55,.08), transparent 55%),
+    linear-gradient(180deg, #0b0b0b 0%, #0d0d0d 35%, #080808 100%);
+}
+
+.k3-container > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* =========================================
@@ -142,18 +163,22 @@ body {
    WALLET CARD
    ========================================= */
 .k3-wallet-wrapper {
-  padding: 16px;
+  padding: 0.75rem 0.75rem 0.625rem;
 }
 
 .k3-wallet-card {
-  background: #151515;
+  background: rgba(25, 25, 25, 0.65);
   border-radius: 16px;
-  border: 1px solid rgba(245, 197, 66, 0.2);
-  padding: 20px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 1.125rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 
+    0 12px 32px 0 rgba(0, 0, 0, 0.45),
+    inset 0 1px 1px rgba(255, 255, 255, 0.08),
+    0 0 15px rgba(212, 175, 55, 0.08);
+  backdrop-filter: blur(4px);
 }
 
 .k3-wallet-left {
@@ -162,40 +187,43 @@ body {
   gap: 8px;
 }
 .k3-wallet-label {
-  color: #888888;
+  color: #a0a0a0;
   font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .k3-wallet-balance {
-  font-size: 32px;
-  font-weight: 800;
   color: #F5C542;
+  font-size: 24px;
+  font-weight: 800;
 }
 
 .k3-wallet-right {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
-.k3-btn-action {
-  padding: 8px 20px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 14px;
+.k3-btn-withdraw,
+.k3-btn-deposit {
   border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
-  text-align: center;
   width: 100px;
+  text-align: center;
 }
 .k3-btn-withdraw {
-  background: linear-gradient(90deg, #ff7a33, #ff5500);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  border: 1px solid rgba(249, 115, 22, 0.3);
 }
 .k3-btn-deposit {
-  background: linear-gradient(90deg, #fceb80, #d9aa2e);
-  color: #000000;
+  background: var(--theme-gold-metal);
+  color: #000;
+  border: 1px solid rgba(212, 175, 55, 0.4);
 }
 
 /* =========================================
@@ -203,50 +231,54 @@ body {
    ========================================= */
 .k3-game-tabs {
   display: flex;
-  gap: 8px;
-  padding: 0 16px;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  gap: 0.4375rem;
+  padding: 0 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .k3-game-tab {
   flex: 1;
-  background: #151515;
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 16px 0;
-  font-weight: 600;
-  font-size: 12px;
+  border-radius: 14px;
+  padding: 0.625rem 0.375rem;
+  font-weight: 700;
+  font-size: 0.7125rem;
   color: #888888;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 0.375rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .k3-tab-icon {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1px solid #888888;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 14px;
+  font-size: 0.875rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .k3-game-tab.active {
-  background: linear-gradient(135deg, #fceb80, #d9aa2e);
-  border: none;
+  background: var(--theme-gold-metal);
   color: #000;
-  box-shadow: 0 4px 15px rgba(245, 197, 66, 0.3);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border-color: rgba(212, 175, 55, 0.5);
 }
 
 .k3-game-tab.active .k3-tab-icon {
-  border-color: #000;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #000;
 }
 
 /* =========================================
@@ -611,6 +643,9 @@ body {
   font-size: 16px;
 }
 
+/* =========================================
+   BOTTOM ACTIONS / MULTIPLIERS / WINGO BUTTONS
+   ========================================= */
 .k3-quick-mults {
   display: flex;
   gap: 6px;
@@ -625,6 +660,53 @@ body {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+}
+.k3-quick-btn.active {
+  background: var(--theme-gold-metal);
+  color: #000;
+  border-color: #F5C542;
+  box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+}
+
+.k3-wg-color-btn {
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.05);
+  box-shadow: 0 8px 16px rgba(0,0,0,.35), inset 0 2px 4px rgba(255,255,255,.2);
+  transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+}
+.k3-wg-color-btn::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 10%;
+  width: 80%;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 50% / 100% 100% 0 0;
+}
+.k3-wg-color-btn:active {
+  transform: scale(.97);
+}
+.k3-wg-color-btn.green {
+  background: radial-gradient(circle at 35% 25%, #86efac 0%, #16a34a 65%, #14532d 100%);
+}
+.k3-wg-color-btn.red {
+  background: radial-gradient(circle at 35% 25%, #fca5a5 0%, #dc2626 65%, #7f1d1d 100%);
+}
+.k3-wg-color-btn.active {
+  border: 2px solid #F5C542;
+  box-shadow: 0 0 15px rgba(245, 197, 66, 0.8), inset 0 2px 4px rgba(255,255,255,.2);
 }
 
 .k3-confirm-bet {
