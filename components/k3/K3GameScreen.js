@@ -432,6 +432,7 @@ export default function K3GameScreen() {
               <div className="k3-th-col">Results</div>
             </div>
             <div className="k3-history-body">
+              {results.length === 0 && <div style={{padding: "20px", textAlign: "center", color: "#888"}}>No data available</div>}
               {results.map((res, i) => {
                 const sum = res.result.dice.reduce((a, b) => a + b, 0);
                 const size = sum >= 11 ? "Big" : "Small";
@@ -453,6 +454,46 @@ export default function K3GameScreen() {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {historyTab === "chart" && (
+          <div className="k3-history-table">
+             <div style={{padding: "20px", textAlign: "center", color: "#888", fontSize: "14px"}}>
+                Chart view is under development.
+             </div>
+          </div>
+        )}
+
+        {historyTab === "my" && (
+          <div className="k3-history-table">
+            <div className="k3-history-th">
+              <div className="k3-th-col" style={{flex: 1.5}}>Period</div>
+              <div className="k3-th-col">Detail</div>
+              <div className="k3-th-col">Result</div>
+            </div>
+            <div className="k3-history-body">
+              {myBets.length === 0 && <div style={{padding: "20px", textAlign: "center", color: "#888"}}>No bets yet</div>}
+              {myBets.map((bet, i) => {
+                const isWon = bet.status === "won";
+                const color = isWon ? "#00c97b" : bet.status === "lost" ? "#ff4d4d" : "#F5C542";
+                const sign = isWon ? "+" : "-";
+                return (
+                  <div key={i} className="k3-history-tr">
+                    <div className="k3-td-col" style={{ fontSize: "12px", flex: 1.5, textAlign: "left" }}>
+                      {bet.periodId}<br/>
+                      <span style={{color: "#888", fontSize: "10px"}}>₹{bet.amount}</span>
+                    </div>
+                    <div className="k3-td-col" style={{fontSize: "12px"}}>
+                       {formatBetLabel(bet.details.betType, bet.details.betValue)}
+                    </div>
+                    <div className="k3-td-col" style={{color, fontWeight: 600}}>
+                       {bet.status === "pending" ? "Pending" : `${sign}₹${(bet.winAmount || bet.amount).toFixed(2)}`}
                     </div>
                   </div>
                 );

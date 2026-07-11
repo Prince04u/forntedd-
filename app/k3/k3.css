@@ -18,8 +18,96 @@ body {
   flex-direction: column;
   min-height: 100vh;
   background-color: #0b0b0b;
-  color: #FFFFFF;
-  padding-bottom: 80px;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* =========================================
+   HISTORY SECTION (DARK THEME)
+   ========================================= */
+.k3-history-section {
+  background: #111;
+  border-radius: 8px;
+  margin: 16px 12px 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.k3-history-tabs {
+  display: flex;
+  background: #1a1a1a;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.k3-hist-tab {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  color: #888;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.k3-hist-tab.active {
+  color: #F5C542;
+  border-bottom: 2px solid #F5C542;
+}
+.k3-history-table {
+  width: 100%;
+}
+.k3-history-th {
+  display: flex;
+  background: #181818;
+  color: #aaa;
+  font-weight: 600;
+  padding: 12px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.k3-th-col, .k3-td-col {
+  flex: 1;
+  text-align: center;
+}
+.k3-history-th .k3-th-col {
+  color: #aaa;
+}
+.k3-history-tr {
+  display: flex;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  align-items: center;
+  font-size: 14px;
+  color: #ccc;
+}
+.k3-td-sum {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.k3-sum-val { color: #fff; font-weight: 500; }
+.k3-sum-size, .k3-sum-parity { color: #888; }
+.k3-td-dice {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+.k3-mini-die {
+  width: 20px;
+  height: 20px;
+  background: #ff3b3b;
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1px;
+  padding: 2px;
+}
+.k3-mini-die .k3-dot {
+  width: 3px;
+  height: 3px;
+  box-shadow: none;
 }
 
 /* =========================================
@@ -429,91 +517,7 @@ body {
   transform: scale(0.95);
 }
 
-/* =========================================
-   HISTORY SECTION
-   ========================================= */
-.k3-history-section {
-  background: #fff;
-  border-radius: 12px;
-  margin: 16px 12px 24px;
-  overflow: hidden;
-  color: #333;
-}
-.k3-history-tabs {
-  display: flex;
-  background: #f5f5f5;
-  padding: 8px;
-  gap: 8px;
-}
-.k3-hist-tab {
-  flex: 1;
-  padding: 10px 0;
-  border: none;
-  background: #fff;
-  color: #666;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.k3-hist-tab.active {
-  background: #00c97b;
-  color: #fff;
-}
-.k3-history-table {
-  width: 100%;
-}
-.k3-history-th {
-  display: flex;
-  background: #e6f6ee;
-  color: #fff;
-  font-weight: 600;
-  padding: 12px 16px;
-  font-size: 14px;
-}
-.k3-th-col, .k3-td-col {
-  flex: 1;
-  text-align: center;
-}
-.k3-history-th .k3-th-col {
-  color: #a3c9b7;
-}
-.k3-history-tr {
-  display: flex;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  align-items: center;
-  font-size: 14px;
-  color: #333;
-}
-.k3-td-sum {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-}
-.k3-sum-val { color: #666; }
-.k3-td-dice {
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-}
-.k3-mini-die {
-  width: 20px;
-  height: 20px;
-  background: #ff3b3b;
-  border-radius: 4px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 1px;
-  padding: 2px;
-}
-.k3-mini-die .k3-dot {
-  width: 3px;
-  height: 3px;
-  box-shadow: none;
-}
+
 
 /* Red Theme */
 .k3-chip-btn.theme-red {
