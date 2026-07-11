@@ -1,0 +1,115 @@
+/* =========================================
+   DICE STAGE (ISOMETRIC)
+   ========================================= */
+.k3-dice-stage {
+  position: relative;
+  height: 120px;
+  background: #0b0b0b;
+  border: 1px solid rgba(245, 197, 66, 0.4);
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  perspective: 1000px;
+}
+
+.k3-dice-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+.k3-dice-arrow.left {
+  left: 12px;
+  border-right: 12px solid #F5C542;
+}
+.k3-dice-arrow.right {
+  right: 12px;
+  border-left: 12px solid #F5C542;
+}
+
+.k3-die-wrapper {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  transform: translateY(10px);
+}
+
+.k3-die-iso {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  transform-style: preserve-3d;
+  /* Rotate to isometric view: rotateX(-30deg) rotateY(45deg) */
+  transform: rotateX(-25deg) rotateY(45deg);
+  transition: transform 0.3s;
+}
+
+.k3-die-iso.rolling {
+  animation: diceRollIso 0.4s infinite linear;
+}
+
+.k3-die-face {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  padding: 6px;
+  background: #e63946;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Front Face */
+.k3-die-face-front {
+  transform: translateZ(30px);
+  background: #f04754;
+}
+/* Back Face */
+.k3-die-face-back {
+  transform: rotateY(180deg) translateZ(30px);
+  background: #d93844;
+}
+/* Right Face */
+.k3-die-face-right {
+  transform: rotateY(90deg) translateZ(30px);
+  background: #c12733; /* Darker for shadow */
+}
+/* Left Face */
+.k3-die-face-left {
+  transform: rotateY(-90deg) translateZ(30px);
+  background: #f04754;
+}
+/* Top Face */
+.k3-die-face-top {
+  transform: rotateX(90deg) translateZ(30px);
+  background: #ff5e6b; /* Lighter for highlight */
+}
+/* Bottom Face */
+.k3-die-face-bottom {
+  transform: rotateX(-90deg) translateZ(30px);
+  background: #a31c26;
+}
+
+.k3-dot {
+  width: 10px;
+  height: 10px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  justify-self: center;
+  align-self: center;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+@keyframes diceRollIso {
+  0% { transform: rotateX(-25deg) rotateY(45deg); }
+  100% { transform: rotateX(335deg) rotateY(405deg); }
+}

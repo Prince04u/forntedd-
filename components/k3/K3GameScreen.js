@@ -222,8 +222,73 @@ export default function K3GameScreen() {
           })}
         </div>
       );
+    if (betCategory === "2_same") {
+      return (
+        <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+          {[11, 22, 33, 44, 55, 66].map(num => (
+            <div key={num} className={`k3-chip-wrapper ${isSelected("2_same_specific", String(num)) ? "selected" : ""}`} onClick={() => selectBet("2_same_specific", String(num), MULTIPLIERS["2_same_specific"])}>
+              <div className="k3-chip-btn theme-red">
+                <div className="k3-chip-inner"><span className="k3-chip-val" style={{fontSize: "14px"}}>{num}*</span></div>
+              </div>
+              <span className="k3-chip-mult">{MULTIPLIERS["2_same_specific"]}X</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (betCategory === "3_same") {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "0 16px" }}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <div className={`k3-chip-wrapper ${isSelected("3_same_any", "any") ? "selected" : ""}`} onClick={() => selectBet("3_same_any", "any", MULTIPLIERS["3_same_any"])}>
+              <div className="k3-chip-btn theme-green" style={{ width: "auto", padding: "0 16px", borderRadius: "32px" }}>
+                <div className="k3-chip-inner" style={{ width: "auto", padding: "0 12px", borderRadius: "20px" }}>
+                  <span className="k3-chip-val" style={{fontSize: "14px"}}>Any 3 Same</span>
+                </div>
+              </div>
+              <span className="k3-chip-mult">{MULTIPLIERS["3_same_any"]}X</span>
+            </div>
+          </div>
+          <div className="k3-chip-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", padding: "0" }}>
+            {[111, 222, 333, 444, 555, 666].map(num => (
+              <div key={num} className={`k3-chip-wrapper ${isSelected("3_same_specific", String(num)) ? "selected" : ""}`} onClick={() => selectBet("3_same_specific", String(num), MULTIPLIERS["3_same_specific"])}>
+                <div className="k3-chip-btn theme-red">
+                  <div className="k3-chip-inner"><span className="k3-chip-val" style={{fontSize: "14px"}}>{num}</span></div>
+                </div>
+                <span className="k3-chip-mult">{MULTIPLIERS["3_same_specific"]}X</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    if (betCategory === "different") {
+      return (
+        <div style={{ display: "flex", justifyContent: "center", padding: "0 16px" }}>
+          <div className={`k3-chip-wrapper ${isSelected("3_seq_any", "seq") ? "selected" : ""}`} onClick={() => selectBet("3_seq_any", "seq", MULTIPLIERS["3_seq_any"])}>
+            <div className="k3-chip-btn theme-red" style={{ width: "auto", padding: "0 16px", borderRadius: "32px" }}>
+              <div className="k3-chip-inner" style={{ width: "auto", padding: "0 12px", borderRadius: "20px" }}>
+                <span className="k3-chip-val" style={{fontSize: "14px"}}>3 Sequential</span>
+              </div>
+            </div>
+            <span className="k3-chip-mult">{MULTIPLIERS["3_seq_any"]}X</span>
+          </div>
+        </div>
+      );
     }
     return null;
+  };
+
+  const getFaces = (topVal) => {
+    switch (topVal) {
+      case 1: return { top: 1, front: 2, right: 3 };
+      case 2: return { top: 2, front: 6, right: 3 };
+      case 3: return { top: 3, front: 1, right: 2 };
+      case 4: return { top: 4, front: 5, right: 1 };
+      case 5: return { top: 5, front: 4, right: 1 };
+      case 6: return { top: 6, front: 2, right: 4 };
+      default: return { top: 5, front: 4, right: 1 };
+    }
   };
 
   return (
@@ -299,15 +364,21 @@ export default function K3GameScreen() {
         {/* Dice Stage */}
         <div className="k3-dice-stage">
           <div className="k3-dice-arrow left"></div>
-          {diceAnim.map((die, i) => (
-            <div key={i} className="k3-die-wrapper">
-              <div className={`k3-die-3d ${isRolling ? "rolling" : ""}`}>
-                <div className="k3-die-value">
-                  {renderDiceValue(die)}
+          {diceAnim.map((die, i) => {
+            const faces = getFaces(die);
+            return (
+              <div key={i} className="k3-die-wrapper">
+                <div className={`k3-die-iso ${isRolling ? "rolling" : ""}`}>
+                  <div className="k3-die-face k3-die-face-front">{renderDiceValue(faces.front)}</div>
+                  <div className="k3-die-face k3-die-face-back"></div>
+                  <div className="k3-die-face k3-die-face-right">{renderDiceValue(faces.right)}</div>
+                  <div className="k3-die-face k3-die-face-left"></div>
+                  <div className="k3-die-face k3-die-face-top">{renderDiceValue(faces.top)}</div>
+                  <div className="k3-die-face k3-die-face-bottom"></div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           <div className="k3-dice-arrow right"></div>
         </div>
       </div>
@@ -315,9 +386,9 @@ export default function K3GameScreen() {
       {/* Betting Category Segments */}
       <div className="k3-segments">
         <div className={`k3-segment ${betCategory === "total" ? "active" : ""}`} onClick={() => setBetCategory("total")}>Total</div>
-        <div className={`k3-segment ${betCategory === "2_same" ? "active" : ""}`} onClick={() => setCategoryMock()}>2 same</div>
-        <div className={`k3-segment ${betCategory === "3_same" ? "active" : ""}`} onClick={() => setCategoryMock()}>3 same</div>
-        <div className={`k3-segment ${betCategory === "different" ? "active" : ""}`} onClick={() => setCategoryMock()}>Different</div>
+        <div className={`k3-segment ${betCategory === "2_same" ? "active" : ""}`} onClick={() => setBetCategory("2_same")}>2 same</div>
+        <div className={`k3-segment ${betCategory === "3_same" ? "active" : ""}`} onClick={() => setBetCategory("3_same")}>3 same</div>
+        <div className={`k3-segment ${betCategory === "different" ? "active" : ""}`} onClick={() => setBetCategory("different")}>Different</div>
       </div>
 
       {/* Number Grid */}
@@ -342,8 +413,4 @@ export default function K3GameScreen() {
 
     </div>
   );
-
-  function setCategoryMock() {
-    alert("This tab is not fully implemented in this mockup layout yet.");
-  }
 }
